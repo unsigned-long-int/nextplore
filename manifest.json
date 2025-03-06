@@ -1,0 +1,7 @@
+{
+    "prog_name": "AI-ORM-Metafactory",
+    "version": "1.0.0",
+    "description": "A tool that intelligently generates object-relationship-models from database based on generic user query.",
+    "author": "Oleynikov Nikolay",
+    "license": "Apache License 2.0"
+}

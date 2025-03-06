@@ -1,0 +1,8 @@
+repositories
+__pycache__
+.env
+*~*
+.idea
+config
+logs
+*#*
