@@ -1,5 +1,5 @@
 from sqlalchemy import inspect, Engine, Inspector, quoted_name
-from typing import Dict, Set, List, Tuple, Optional
+from typing import Dict, List, Optional
 from functools import partial
 
 from infrastructure.event_orchestration_service.event_orchestrator import EventOrchestrator
@@ -46,7 +46,7 @@ def fetch_all(
 
         table_names = inspector.get_table_names(
             schema=quoted_name(schema_name, True)
-        )[:5]
+            )
         for table_name in table_names:
             try:
                 table: Dict[str, TableDescriptor] = fetch_table(

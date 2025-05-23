@@ -1,5 +1,5 @@
 {
-    "prog_name": "AI-ORM-Metafactory",
+    "prog_name": "Nextplore",
     "version": "1.0.0",
     "description": "A tool that intelligently generates object-relationship-models from database based on generic user query.",
     "author": "Oleynikov Nikolay",

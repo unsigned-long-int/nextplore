@@ -1,8 +1,6 @@
 import argparse
-import queue
 
 from tabulate import tabulate
-
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Engine
 from threading import Event, Thread
@@ -30,19 +28,12 @@ class CLIParser:
         if not args.query:
             user_query = read_stdin_stream()
 
-        progress_queue = queue.Queue()
-        progress_queue.put('providing response...')
-
         done = Event()
-        spinner = Thread(target=spin, args=(progress_queue, done))
+        spinner = Thread(target=spin, args=(done))
         spinner.start()
 
-        orm_model = self.ai_orm_factory.retrieve_orm_model(
-            progress_queue=progress_queue,
-            query=user_query
-        )
+        orm_model = self.ai_orm_factory.retrieve_orm_model(user_query)
 
-        progress_queue.put('requesting data from orm model...')
         Session = sessionmaker(bind=self.engine)
         session = Session()
         sample = session.query(orm_model).all()

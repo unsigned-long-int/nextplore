@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, ClassVar, Optional
 from sqlalchemy.engine.interfaces import ReflectedColumn
 
 from infrastructure.event_orchestration_service.event_orchestrator import EventOrchestrator
@@ -12,6 +12,7 @@ from .table_descriptor import ReflectedColumnMissing
 
 @dataclass(frozen=True)
 class DatabaseDescriptor:
+    filter_op_enum: ClassVar[List[str]] = ['==', '>', '<', '>=', '<=', 'like', 'in']
     schemas: Dict[str, SchemaDescriptor]
     event_orchestrator: EventOrchestrator
 

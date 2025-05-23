@@ -6,7 +6,7 @@ from infrastructure.event_orchestration_service.event_orchestrator import EventO
 from infrastructure.event_orchestration_service.events import events
 
 
-def load_open_ai_client(api_key: str) -> Optional[OpenAI]:
+def load_open_ai_client(api_key: str, event_orchestrator: EventOrchestrator) -> Optional[OpenAI]:
     try:
         client = OpenAI(api_key=api_key)
         return client

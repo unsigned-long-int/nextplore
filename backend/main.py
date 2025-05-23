@@ -1,5 +1,9 @@
 from sqlalchemy import create_engine
 from pathlib import Path
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from api.router import api_router
+
 
 from infrastructure.credentials_loader import load_credentials
 from infrastructure.event_orchestration_service.event_orchestrator import (
@@ -28,12 +32,22 @@ from infrastructure.storage.database_inspection_service import (
 from core.orm_factory import AIORMFactory
 
 
-def main() -> None:
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+app.include_router(api_router, prefix='/api')
+
+def prev():
     event_orchestrator = EventOrchestrator()
     credentials = load_credentials()
 
     client = load_open_ai_client(api_key=credentials.openai_api_key)
     engine = create_engine(credentials.sql_connection_string)
+    print(engine)
     manifest = load_manifest(event_orchestrator)
 
     ingestion_service = CSVIngestionService(
@@ -51,7 +65,8 @@ def main() -> None:
         event_orchestrator=event_orchestrator,
         engine=engine,
         ingestion_service=ingestion_service,
-        retrieval_service=retrieval_service
+        retrieval_service=retrieval_service,
+        upsert_factory_callback=create_upsert_orchestration_service
     )
 
     cli_parser = CLIParser(
@@ -70,5 +85,5 @@ def main() -> None:
         )
 
 
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+#    main()

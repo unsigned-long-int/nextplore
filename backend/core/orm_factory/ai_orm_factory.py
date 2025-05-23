@@ -1,15 +1,13 @@
 import json
 import pandas as pd
+from typing import Callable
 
-from sqlalchemy import Engine, inspect
-from queue import Queue
+from sqlalchemy import Engine
 from dataclasses import dataclass
 from openai import OpenAI
-from typing import List, Optional, Callable
+from typing import List, Optional, Callable, Dict
 
-from infrastructure.cosine_similarity import cosine_similarity
 from infrastructure.storage.database_inspection_service import DatabaseInspectionFilter
-from infrastructure.storage.upsert_orchestration_service import UpsertOrchestrationService
 from infrastructure.storage.ingestion_service import IngestionServiceProtocol
 from infrastructure.storage.retrieval_service import RetrievalServiceProtocol
 from infrastructure.storage.database_inspection_service import fetch_database_descriptor
@@ -17,6 +15,12 @@ from infrastructure.vector_generation_service import VectorGenerator
 from infrastructure.event_orchestration_service.event_orchestrator import EventOrchestrator
 from core.context_retriever import retrieve_contextual_vector_matrix
 from .orm_meta import generate_orm_class
+
+
+@dataclass
+class ORMRequest:
+    orm_model: type
+    filters: List[Dict[str, str | int]]
 
 
 @dataclass
@@ -28,17 +32,16 @@ class AIORMFactory:
     retrieval_service: RetrievalServiceProtocol
     upsert_factory_callback: Optional[Callable] = None
 
-    def retrieve_orm_model(self, query: str, progress_queue: Queue) -> type:
+    def retrieve_orm_model(self, query: str) -> ORMRequest:
         if self.upsert_factory_callback:
-            self._upsert_meta(progress_queue)
+            self._upsert_meta()
 
-        orm_vectors = self._retrieve_meta(progress_queue)
-        query_vector = self._vectorize_query(query, progress_queue)
+        orm_vectors = self._retrieve_meta()
+        query_vector = self._vectorize_query(query)
 
         contextual_vector_matrix = retrieve_contextual_vector_matrix(
             query_vector=query_vector,
-            orm_vectors=orm_vectors,
-            progress_queue=progress_queue
+            orm_vectors=orm_vectors
         )
         database_inspection_filters = [
             DatabaseInspectionFilter(
@@ -53,7 +56,6 @@ class AIORMFactory:
             database_inspection_filters=database_inspection_filters
         )
 
-        progress_queue.put('searching for most suitable orm model...')
         tools = [{'type': 'function',
                   'function': {
                       'name': 'generate_orm_class',
@@ -83,24 +85,52 @@ class AIORMFactory:
                                       'enum': database_descriptor.column_names_enum
                                   },
                                   'description': 'delivers the names of the columns for chosen table.'
-                              }
-                          },
-                          'required': [
-                              'schema_name', 'class_name', 'table_name', 'column_names'
-                          ],
-                          'additionalProperties': False
-                      },
-                      'strict': True
-                  }
-                  }
-                 ]
+                              },
+                              'column_filters': {
+                                  'type': 'array',
+                                  'description': 'the list of filters as dict containing operator, value and column for filtering. Can be empty if not necessary.',
+                                  'items': {
+                                       'type': 'object',
+                                       'description': 'delivers the filter values for sql statement if needed to filter selected column.',
+                                       'properties': {
+                                            'operator': {
+                                                'type': 'string',
+                                                'description': 'delivers operator to be used for filtering',
+                                                'enum': database_descriptor.filter_op_enum
+                                            },
+                                            'value': {
+                                                'type': ['number', 'string'],
+                                                'description': 'delivers value to be used by operator'
+                                            },
+                                            'filter_column': {
+                                                'type': 'string',
+                                                'description': 'delivers columns to be filtered through operator with value',
+                                                'enum': database_descriptor.column_names_enum
+                                            }
+                                        },
+                                        'required': ['operator', 'value', 'filter_column'],
+                                        'additionalProperties': False
+                                    }
+                                }
+                            },
+                            'required': [
+                                'schema_name', 'class_name', 'table_name', 'column_names', 'column_filters'
+                            ],
+                            'additionalProperties': False
+                            },
+                            'strict': True
+                        }
+                    }
+                ]
         request = self.client.chat.completions.create(
             model='gpt-4o',
             messages=[{'role': 'user', 'content': query}],
             tools=tools,
             tool_choice='required'
         )
+        print(tools)
         tool_call = request.choices[0].message.tool_calls[0]
+        print(tool_call)
         args = json.loads(tool_call.function.arguments)
 
         reflected_columns = database_descriptor.fetch_reflected_columns(
@@ -110,33 +140,27 @@ class AIORMFactory:
             ),
             column_names=args['column_names']
         )
-
-        progress_queue.put('generating the model...')
         orm_model = generate_orm_class(
             schema_name=args['schema_name'],
             class_name=args['class_name'],
             table_name=args['table_name'],
             reflected_columns=reflected_columns
         )
-        return orm_model
+        return ORMRequest(orm_model=orm_model, filters=args['column_filters'])
 
-    def _upsert_meta(self, progress_queue: Queue) -> None:
-        progress_queue.put('initialising upsert orchestration service...')
+    def _upsert_meta(self) -> None:
         upsert_orchestration_service = self.upsert_factory_callback(
             client=self.client,
             event_orchestrator=self.event_orchestrator,
             engine=self.engine,
             ingestion_service=self.ingestion_service
         )
-        progress_queue.put('upserting new vectors in meta...')
         upsert_orchestration_service.upsert_storage()
 
-    def _retrieve_meta(self, progress_queue: Queue) -> pd.DataFrame:
-        progress_queue.put('retrieving vectors from meta...')
+    def _retrieve_meta(self) -> pd.DataFrame:
         return self.retrieval_service.retrieve_vectors()
 
-    def _vectorize_query(self, query: str, progress_queue: Queue) -> List[float]:
-        progress_queue.put('generating query vectors...')
+    def _vectorize_query(self, query: str) -> List[float]:
         vector_generator = VectorGenerator(
             client=self.client,
             datastream=query
