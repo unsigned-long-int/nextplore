@@ -31,7 +31,10 @@ def generate_orm_class(
     table_identifier = f'{schema_name}.{table_name}'
     print(table_identifier)
     print(mapper_registry.metadata.tables)
+    #if cached_class := mapper_registry._class_registry.get(class_name):
+    #    return cached_class
     if table_identifier in mapper_registry.metadata.tables:
+    #    #return mapper_registry.metadata.tables[table_identifier]
         print('removed')
         mapper_registry.metadata.remove(mapper_registry.metadata.tables[table_identifier])
 

@@ -20,6 +20,8 @@ from .orm_meta import generate_orm_class
 @dataclass
 class ORMRequest:
     orm_model: type
+    selected_columns: List[str]
+    aggregates: List[Dict[str, str]]
     filters: List[Dict[str, str | int]]
 
 
@@ -32,7 +34,7 @@ class AIORMFactory:
     retrieval_service: RetrievalServiceProtocol
     upsert_factory_callback: Optional[Callable] = None
 
-    def retrieve_orm_model(self, query: str) -> ORMRequest:
+    def retrieve_orm_request(self, query: str) -> ORMRequest:
         if self.upsert_factory_callback:
             self._upsert_meta()
 
@@ -111,10 +113,32 @@ class AIORMFactory:
                                         'required': ['operator', 'value', 'filter_column'],
                                         'additionalProperties': False
                                     }
+                                },
+                                'column_aggregates': {
+                                    'type': 'array',
+                                    'description': 'the list of columns and aggregate commands used (avg, sum, min, max). Can be empty if not necessary.',
+                                    'items': {
+                                        'type': 'object',
+                                        'description': 'delivers the aggregates for sql statement if needed to aggregate selected columns.',
+                                        'properties': {
+                                            'agg_func': {
+                                                'type': 'string',
+                                                'description': 'aggregate function to be used on column.',
+                                                'enum': database_descriptor.agg_funcs_enum
+                                            },
+                                            'agg_column': {
+                                                'type': 'string',
+                                                'description': 'Delivers columns to be used for aggregating the values grouped by the rest of the columns.',
+                                                'enum': database_descriptor.column_names_enum
+                                            }
+                                        },
+                                        'required': ['agg_func', 'agg_column'],
+                                        'additionalProperties': False
+                                    }
                                 }
                             },
                             'required': [
-                                'schema_name', 'class_name', 'table_name', 'column_names', 'column_filters'
+                                'schema_name', 'class_name', 'table_name', 'column_names', 'column_filters', 'column_aggregates'
                             ],
                             'additionalProperties': False
                             },
@@ -134,11 +158,10 @@ class AIORMFactory:
         args = json.loads(tool_call.function.arguments)
 
         reflected_columns = database_descriptor.fetch_reflected_columns(
-            database_inspection_filter=DatabaseInspectionFilter(
+            DatabaseInspectionFilter(
                 schema_name=args['schema_name'],
                 table_name=args['table_name']
-            ),
-            column_names=args['column_names']
+            )
         )
         orm_model = generate_orm_class(
             schema_name=args['schema_name'],
@@ -146,7 +169,12 @@ class AIORMFactory:
             table_name=args['table_name'],
             reflected_columns=reflected_columns
         )
-        return ORMRequest(orm_model=orm_model, filters=args['column_filters'])
+        return ORMRequest(
+            orm_model=orm_model, 
+            selected_columns=args['column_names'], 
+            aggregates=args['column_aggregates'],
+            filters=args['column_filters']
+            )
 
     def _upsert_meta(self) -> None:
         upsert_orchestration_service = self.upsert_factory_callback(

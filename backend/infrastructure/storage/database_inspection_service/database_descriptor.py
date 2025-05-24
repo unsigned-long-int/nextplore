@@ -12,14 +12,14 @@ from .table_descriptor import ReflectedColumnMissing
 
 @dataclass(frozen=True)
 class DatabaseDescriptor:
-    filter_op_enum: ClassVar[List[str]] = ['==', '>', '<', '>=', '<=', 'like', 'in']
+    filter_op_enum: ClassVar[List[str]] = ['==', '!=', '>', '<', '>=', '<=', 'like', 'not like', 'in']
+    agg_funcs_enum: ClassVar[List[str]] = ['sum', 'avg', 'min', 'max', 'count']
     schemas: Dict[str, SchemaDescriptor]
     event_orchestrator: EventOrchestrator
 
     def fetch_reflected_columns(
             self,
-            database_inspection_filter: DatabaseInspectionFilter,
-            column_names: List[str]
+            database_inspection_filter: DatabaseInspectionFilter
     ) -> Optional[List[ReflectedColumn]]:
         schema_name = database_inspection_filter.schema_name
         table_name = database_inspection_filter.table_name
@@ -35,17 +35,7 @@ class DatabaseDescriptor:
             self.event_orchestrator.queue.append(event)
             return None
 
-        reflected_columns = []
-        for column_name in column_names:
-            try:
-                reflected_column = table.dispatch_reflected_column(
-                    column_name
-                )
-                reflected_columns.append(reflected_column)
-            except ReflectedColumnMissing as e:
-                event = events.ReflectedColumnNotFound(str(e))
-                self.event_orchestrator.queue.append(event)
-        return reflected_columns
+        return table.columns
 
     @property
     def table_metas(self) -> List[Dict[str, str | List[str]]]:

@@ -54,18 +54,15 @@ router = APIRouter()
 
 @router.post("/", response_model=AskResponse)
 def ask_query(request: AskRequest):
-    orm_request = ai_orm_factory.retrieve_orm_model(request.prompt)
+    orm_request = ai_orm_factory.retrieve_orm_request(request.prompt)
     session_factory = fetch_session_maker(engine)
 
     with session_scope(session_factory) as session:
-        statement = generate_orm_statement(model=orm_request.orm_model, filters=orm_request.filters)
-        sample = session.execute(statement).scalars().all()
-        print(sample)
-        #session.execute()
-        #query_request = session.query(orm_model)
-        #sample = query_request.all()
+        statement = generate_orm_statement(orm_request)
+        query_result = session.execute(statement)
+        headers = query_result.keys()
+        sample = query_result.fetchall()
         if sample:
-            headers = sample[0].__table__.columns.keys()
             return AskResponse(
                 sql=str(statement),
                 data=[{column: str(getattr(row, column))
