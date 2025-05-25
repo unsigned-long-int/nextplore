@@ -9,6 +9,8 @@ import {
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import { MsalProvider } from '@azure/msal-react';
+import { msalInstance } from './msalInstance';
 
 const theme = createTheme({
   primaryColor: 'grape',
@@ -19,9 +21,11 @@ const theme = createTheme({
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ColorSchemeScript defaultColorScheme="dark" />
-    <MantineProvider theme={theme} defaultColorScheme="dark">
-      <Notifications />
-      <App />
-    </MantineProvider>
+    <MsalProvider instance={msalInstance}>
+      <MantineProvider theme={theme} defaultColorScheme="dark">
+        <Notifications />
+        <App />
+      </MantineProvider>
+    </MsalProvider>
   </React.StrictMode>
 );

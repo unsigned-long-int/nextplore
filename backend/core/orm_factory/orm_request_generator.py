@@ -12,7 +12,7 @@ OPERATOR_DISPATCHER: Dict[str, Any] = {
     'like': lambda stmt, field, value: stmt.where(field.like(value)),
     'not like': lambda stmt, field, value: stmt.where(~field.like(value)),
     'in': lambda stmt, field, value: stmt.where(field.in_(value))
-}
+    }
 
 AGGREGATOR_DISPATCHER: Dict[str, Any] = {
     'sum': func.sum,

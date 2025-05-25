@@ -33,9 +33,9 @@ export const QueryPage = () => {
 
   return (
     <Box>
-      <Title order={2} mb="xs">Ask your database</Title>
+      <Title order={2} mb="xs">Request any data from database</Title>
       <Text c="dimmed" size="sm" mb="md">
-        Example: "Total revenue by country this year"
+        Example: "Total number of employees in german payroll"
       </Text>
 
       <PromptBox

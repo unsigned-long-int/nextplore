@@ -13,7 +13,7 @@ export const PromptBox = ({ prompt, setPrompt, onSubmit, loading }: Props) => {
     <Paper withBorder p="md" radius="md" shadow="md">
       <Group align="flex-end">
         <Textarea
-          label="Your question"
+          label="Type your query"
           placeholder="e.g., Show me average expense per person for the last year for german entity"
           value={prompt}
           onChange={(e) => setPrompt(e.currentTarget.value)}
