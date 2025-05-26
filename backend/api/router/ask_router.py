@@ -5,21 +5,21 @@ from core.orm_factory import AIORMFactory
 from sqlalchemy import create_engine
 from pathlib import Path
 
-from infrastructure.credentials_loader import load_credentials
-from infrastructure.event_orchestration_service.event_orchestrator import (
+from services.credentials_loader import load_credentials
+from services.event_orchestration_service.event_orchestrator import (
     EventOrchestrator
 )
-from infrastructure.manifest_loader import load_manifest
-from infrastructure.open_ai_client_loader import load_open_ai_client
-from infrastructure.storage.ingestion_service import (
+from services.manifest_loader import load_manifest
+from services.open_ai_client_loader import load_open_ai_client
+from core.database.database_metadata_ingestor import (
     CSVIngestionService
 )
-from infrastructure.storage.retrieval_service import (
+from core.database.database_metadata_retriever import (
     CSVRetrievalService
 )
 from core.orm_factory import generate_orm_statement
 from sqlalchemy.orm import sessionmaker
-from infrastructure.sql_connection_service import fetch_engine, fetch_session_maker, session_scope
+from services.sql_connection_service import fetch_engine, fetch_session_maker, session_scope
 
 
 event_orchestrator = EventOrchestrator()
@@ -52,7 +52,7 @@ ai_orm_factory = AIORMFactory(
 )
 router = APIRouter()
 
-@router.post("/", response_model=AskResponse)
+@router.post('', response_model=AskResponse)
 def ask_query(request: AskRequest):
     orm_request = ai_orm_factory.retrieve_orm_request(request.prompt)
     session_factory = fetch_session_maker(engine)

@@ -7,12 +7,12 @@ from dataclasses import dataclass
 from openai import OpenAI
 from typing import List, Optional, Callable, Dict
 
-from infrastructure.storage.database_inspection_service import DatabaseInspectionFilter
-from infrastructure.storage.ingestion_service import IngestionServiceProtocol
-from infrastructure.storage.retrieval_service import RetrievalServiceProtocol
-from infrastructure.storage.database_inspection_service import fetch_database_descriptor
-from infrastructure.vector_generation_service import VectorGenerator
-from infrastructure.event_orchestration_service.event_orchestrator import EventOrchestrator
+from core.database.user_database_inspector import DatabaseInspectionFilter
+from core.database.database_metadata_ingestor import IngestionServiceProtocol
+from core.database.database_metadata_retriever import RetrievalServiceProtocol
+from core.database.user_database_inspector import fetch_database_descriptor
+from core.vector_generation_service import VectorGenerator
+from services.event_orchestration_service.event_orchestrator import EventOrchestrator
 from core.context_retriever import retrieve_contextual_vector_matrix
 from .orm_meta import generate_orm_class
 

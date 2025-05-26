@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import { App } from './App';
 import {
   MantineProvider,
   ColorSchemeScript,
@@ -10,7 +10,9 @@ import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { MsalProvider } from '@azure/msal-react';
-import { msalInstance } from './msalInstance';
+import { BrowserRouter } from 'react-router-dom';
+import { msalInstance } from './authentication/authProvider';
+import { AuthRedirectHandler } from './components/AuthRedirectHandler';
 
 const theme = createTheme({
   primaryColor: 'grape',
@@ -19,13 +21,15 @@ const theme = createTheme({
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ColorSchemeScript defaultColorScheme="dark" />
-    <MsalProvider instance={msalInstance}>
-      <MantineProvider theme={theme} defaultColorScheme="dark">
-        <Notifications />
-        <App />
-      </MantineProvider>
-    </MsalProvider>
-  </React.StrictMode>
+  <BrowserRouter>
+    <React.StrictMode>
+      <ColorSchemeScript defaultColorScheme="dark" />
+      <MsalProvider instance={msalInstance}>
+        <MantineProvider theme={theme} defaultColorScheme="dark">
+          <Notifications />
+          <AuthRedirectHandler/>
+        </MantineProvider>
+      </MsalProvider>
+    </React.StrictMode>
+  </BrowserRouter>
 );

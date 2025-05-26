@@ -2,7 +2,7 @@ import pandas as pd
 
 from typing import List, Tuple, Optional
 
-from infrastructure.cosine_similarity import cosine_similarity
+from core.cosine_similarity import cosine_similarity
 
 
 def retrieve_contextual_vector_matrix(
