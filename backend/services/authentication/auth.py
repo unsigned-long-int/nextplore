@@ -1,32 +1,43 @@
-import requests 
 from typing import Dict, Any
 from jose import jwt, JWTError
+import httpx
 from services.settings import settings
+from fastapi import HTTPException, status
 
-_jwls = None 
+from fastapi.security import HTTPBearer
 
-def _get_jwks():
-    global _jwks
 
-    if not _jwls:
-        response = requests.get(settings.JWKS_URL)
+bearer_scheme = HTTPBearer()
+
+
+async def get_jwks():
+    async with httpx.AsyncClient() as client:
+        response = await client.get(settings.JWKS_URL, timeout=5.0)
         response.raise_for_status()
-        _jwks = response.json()
-    return _jwks
+        return response.json()
 
 
-def verify_token(token: str) -> Dict[str, Any]:
-    jwks = _get_jwks()
-
+async def verify_token(token: str):
+    jwks = await get_jwks()
+    
     try:
-        print(jwks)
-        claims = jwt.decode(
-            token,
-            jwks,
-            algorithms=[settings.JWT_ALGORITHMS],
-            audience=settings.AZURE_CLIENT_ID,
-            issuer=settings.ISSUER
-        )
-        return claims 
-    except JWTError as e:
-        raise ValueError(f'Token validation error: {e}')
+        for key in jwks["keys"]:
+            print(key)
+            try:
+                payload = jwt.decode(
+                    token,
+                    key,
+                    algorithms=["RS256"],
+                    audience=settings.AZURE_CLIENT_ID,
+                    issuer=settings.ISSUER
+                )
+                return payload
+            except JWTError:
+                continue
+    except Exception as e:
+        print("Token verification error:", e)
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or expired token"
+    )

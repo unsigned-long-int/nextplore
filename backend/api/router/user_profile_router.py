@@ -10,9 +10,9 @@ router = APIRouter()
 
 @router.get('', response_model=UserProfile)
 def get_user_profile(
-    user=Depends(get_active_user),
-    session = backend_session_scope
+    user=Depends(get_active_user)
 ) -> UserProfile:
+    print('geceiving data')
     email = user.get("preferred_username")
     print(email)
     if not email:
@@ -24,7 +24,7 @@ def get_user_profile(
     domain = email.split("@")[-1]
     print(name)
 
-    with session() as scoped_session:
+    with backend_session_scope() as scoped_session:
         org = scoped_session.query(Organization).filter_by(domain=domain).first()
         print(org)
         if not org:

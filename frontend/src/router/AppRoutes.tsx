@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, BrowserRouter } from 'react-router-dom';
 import { ProtectedRoute } from '../components/ProtectedRoute';
-import { HomePage } from '../pages/HomePage';
+import { HomePage } from '../pages/LoginPage';
 import { QueryPage } from '../pages/QueryPage';
 import { UserProfilePage } from '../pages/UserProfilePage';
 import { AppLayout } from '../components/AppLayout';

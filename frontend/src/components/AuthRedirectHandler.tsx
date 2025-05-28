@@ -1,18 +1,17 @@
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
 
 import App from '../App';
-import { LoginButton } from "./LoginButton";
+import { LoginPage } from '../pages/LoginPage';
 
 
 export const AuthRedirectHandler: React.FC = () => {
-
     return (
         <>
             <AuthenticatedTemplate>
                 <App/>
             </AuthenticatedTemplate>
             <UnauthenticatedTemplate>
-                <LoginButton/>
+                <LoginPage />
             </UnauthenticatedTemplate>
         </>
     )

@@ -18,6 +18,7 @@ export const QueryPage = () => {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -37,7 +38,6 @@ export const QueryPage = () => {
       <Text c="dimmed" size="sm" mb="md">
         Example: "Total number of employees in german payroll"
       </Text>
-
       <PromptBox
         prompt={prompt}
         setPrompt={setPrompt}

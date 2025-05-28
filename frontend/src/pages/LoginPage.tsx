@@ -1,7 +1,7 @@
 import { Container, Title, Text } from '@mantine/core';
 import { LoginButton } from '../components/LoginButton';
 
-export const HomePage = () => {
+export const LoginPage = () => {
     return (
         <Container size="sm" mt="xl">
             <Title order={1}>
