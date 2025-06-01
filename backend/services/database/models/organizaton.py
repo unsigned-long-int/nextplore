@@ -1,9 +1,8 @@
 import uuid
 from sqlalchemy import Column, Text, TIMESTAMP, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship, declarative_base
 
-Base = declarative_base()
+from .base import Base
 
 class Organization(Base):
     __tablename__ = 'organizations'

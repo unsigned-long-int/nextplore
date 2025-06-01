@@ -1,19 +1,17 @@
 import { Routes, Route, Navigate, BrowserRouter } from 'react-router-dom';
-import { ProtectedRoute } from '../components/ProtectedRoute';
-import { HomePage } from '../pages/LoginPage';
+import { NavigationPage } from '../pages/NavigationPage';
 import { QueryPage } from '../pages/QueryPage';
 import { UserProfilePage } from '../pages/UserProfilePage';
-import { AppLayout } from '../components/AppLayout';
+import { IntegrationPage } from '../pages/IntegrationPage';
+
 
 export const AppRoutes = () => (
-    <BrowserRouter>
-        <Routes>
-            <Route path='/' element={<HomePage />} />
-            <Route path='querypage' element={<ProtectedRoute><QueryPage /></ProtectedRoute>} />
-            <Route path='user' element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
-            <Route path='/auth-callback' element={<div>Signing you in...</div>} />
-        </Routes>
-  </BrowserRouter>
-);
-
-export default App;
+    <Routes>
+        <Route path='/' element={<NavigationPage />} >
+            <Route path='user' element={<UserProfilePage />} />
+            <Route path='query' element={<QueryPage />} />
+            <Route path='integrations' element={<IntegrationPage/>} />
+        </Route>
+        <Route path='/auth-callback' element={<div>Signing you in...</div>} />
+    </Routes>
+); 
