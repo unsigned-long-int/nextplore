@@ -1,77 +1,76 @@
 import { useState } from 'react';
 import cx from 'clsx';
-import { Avatar, Checkbox, Group, ScrollArea, Table, Text } from '@mantine/core';
+import { Checkbox, Group, ScrollArea, Table, Text } from '@mantine/core';
 import classes from '../styles/IntegrationsList.module.css';
+import { useIntegrations } from '../hooks/useIntegrations';
+import {
+  IconBrandSnowflake,
+  IconSql,
+  IconBrandMysql,
+} from '@tabler/icons-react';
+import { cibPostgresql } from '@coreui/icons';
+import { useMantineTheme } from '@mantine/core';
+import CIcon from '@coreui/icons-react';
 
-const data = [
+
+export const INTEGRATION_ICONS = [
   {
-    id: '1',
-    avatar:
-      'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-1.png',
-    name: 'Robert Wolfkisser',
-    job: 'Engineer',
-    email: 'rob_wolf@gmail.com',
+    key: 'snowflake',
+    icon: (theme: any) => <IconBrandSnowflake size={16} color={theme.colors.blue[6]} stroke={1.5} />,
   },
   {
-    id: '2',
-    avatar:
-      'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-7.png',
-    name: 'Jill Jailbreaker',
-    job: 'Engineer',
-    email: 'jj@breaker.com',
+    key: 'sqlserver',
+    icon: (theme: any) => <IconSql size={16} color={theme.colors.pink[6]} stroke={1.5} />,
   },
   {
-    id: '3',
-    avatar:
-      'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png',
-    name: 'Henry Silkeater',
-    job: 'Designer',
-    email: 'henry@silkeater.io',
+    key: 'postgresql',
+    icon: () => <CIcon icon={cibPostgresql} style={{ width: 16, height: 16 }} />,
   },
   {
-    id: '4',
-    avatar:
-      'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-3.png',
-    name: 'Bill Horsefighter',
-    job: 'Designer',
-    email: 'bhorsefighter@gmail.com',
-  },
-  {
-    id: '5',
-    avatar:
-      'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-10.png',
-    name: 'Jeremy Footviewer',
-    job: 'Manager',
-    email: 'jeremy@foot.dev',
+    key: 'mysql',
+    icon: (theme: any) => <IconBrandMysql size={16} color={theme.colors.violet[6]} stroke={1.5} />,
   },
 ];
 
+
 export const IntegrationsList = () => {
+  const theme = useMantineTheme();
+  const { integrations, loading, error } = useIntegrations();
   const [selection, setSelection] = useState(['1']);
+
+  if (loading) return <Text>Getting integrations data...</Text>;
+  if (error) return <Text c="red">{error}</Text>;
+  if (!integrations) return <Text>No integrations data available.</Text>;
+
   const toggleRow = (id: string) =>
     setSelection((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
     );
   const toggleAll = () =>
-    setSelection((current) => (current.length === data.length ? [] : data.map((item) => item.id)));
+    setSelection((current) => (current.length === integrations.length ? [] : integrations.map((integration) => integration.id)));
 
-  const rows = data.map((item) => {
-    const selected = selection.includes(item.id);
+    const getIntegrationIcon = (service_type: string) => {
+      const match = INTEGRATION_ICONS.find((entry) => entry.key === service_type.toLowerCase());
+      return match ? match.icon(theme) : null;
+    };
+  const rows = integrations.map((integration) => {
+    const selected = selection.includes(integration.id);
     return (
-      <Table.Tr key={item.id} className={cx({ [classes.rowSelected]: selected })}>
+      <Table.Tr key={integration.id} className={cx({ [classes.rowSelected]: selected })}>
         <Table.Td>
-          <Checkbox checked={selection.includes(item.id)} onChange={() => toggleRow(item.id)} />
+          <Checkbox checked={selection.includes(integration.id)} onChange={() => toggleRow(integration.id)} />
         </Table.Td>
         <Table.Td>
           <Group gap="sm">
-            <Avatar size={26} src={item.avatar} radius={26} />
+          {getIntegrationIcon(integration.service_type)}
             <Text size="sm" fw={500}>
-              {item.name}
+              {integration.service_type}
             </Text>
           </Group>
         </Table.Td>
-        <Table.Td>{item.email}</Table.Td>
-        <Table.Td>{item.job}</Table.Td>
+        <Table.Td>{integration.connection_name}</Table.Td>
+        <Table.Td>{integration.database_name}</Table.Td>
+        <Table.Td>{integration.auth_method}</Table.Td>
       </Table.Tr>
     );
   });
@@ -84,13 +83,14 @@ export const IntegrationsList = () => {
             <Table.Th w={40}>
               <Checkbox
                 onChange={toggleAll}
-                checked={selection.length === data.length}
-                indeterminate={selection.length > 0 && selection.length !== data.length}
+                checked={selection.length === integrations.length}
+                indeterminate={selection.length > 0 && selection.length !== integrations.length}
               />
             </Table.Th>
-            <Table.Th>User</Table.Th>
-            <Table.Th>Email</Table.Th>
-            <Table.Th>Job</Table.Th>
+            <Table.Th>Service Type</Table.Th>
+            <Table.Th>Connection Name</Table.Th>
+            <Table.Th>Database Name</Table.Th>
+            <Table.Th>Authentication Method</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
