@@ -1,116 +1,112 @@
 import {
-  TextInput,
-  PasswordInput,
-  Textarea,
-  NumberInput,
-  Select,
-  Button,
-  Group,
-  Box,
-  Title,
+    TextInput,
+    PasswordInput,
+    Textarea,
+    NumberInput,
+    Select,
+    Button,
+    Group,
+    Box,
+    Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useState } from 'react';
+import { useTestIntegration } from '../hooks/useTestIntegration';
 
-export interface Integration {
-  organization_id: string;
-  created_by: string;
-  type: string;
-  method: string;
-  name: string;
-  host?: string | null;
-  port?: number | null;
-  database?: string | null;
-  username?: string | null;
-  password_encrypted?: string | null;
-  api_key_encrypted?: string | null;
-  kerberos_principal?: string | null;
-  kerberos_keytab_encrypted?: string | null;
-  connection_uri?: string | null;
-  extra?: Record<string, any> | null;
-  created_at?: string;
-  updated_at?: string;
-};
+import type { IntegrationCreateRequest, IntegrationFormProps } from '../interface/integration_create_request';
+  
 
-interface IntegrationFormProps {
-  organization_id: string,
-  created_by: string,
-  type: string,
-  onSubmit: (data: Integration) => void;
-}
+export const IntegrationForm:  React.FC<IntegrationFormProps> = ({ service_type, onSubmit }) => {
+    const [testResult, setTestResult] = useState<string | null>(null);
+    const [testing, setTesting] = useState(false);
+    const { testIntegration } = useTestIntegration();
 
-export const IntegrationForm = ({organization_id, created_by, type, onSubmit }: IntegrationFormProps) => {
-  const form = useForm({
-    initialValues: {
-      method: '',
-      name: '',
-      host: '',
-      port: undefined,
-      database: '',
-      username: '',
-      password: '',
-      api_key: '',
-      kerberos_principal: '',
-      kerberos_keytab: '',
-      connection_uri: '',
-      extra: '',
-    },
-  });
 
-  const handleSubmit = (values: typeof form.values) => {
-    const payload = {
-      organization_id: organization_id,
-      created_by: created_by,
-      type: type,
-      method: values.method,
-      name: values.name,
-      host: values.host,
-      port: values.port,
-      database: values.database,
-      username: values.username,
-      password_encrypted: values.password ? btoa(values.password) : null,
-      api_key_encrypted: values.api_key ? btoa(values.api_key) : null,
-      kerberos_principal: values.kerberos_principal || null,
-      kerberos_keytab_encrypted: values.kerberos_keytab ? btoa(values.kerberos_keytab) : null,
-      connection_uri: values.connection_uri || null,
-      extra: values.extra ? JSON.parse(values.extra) : null
+    const integrationRequestForm = useForm<IntegrationCreateRequest>({
+        initialValues: {
+            service_type: service_type,
+            auth_method: '',
+            connection_name: '',
+            host: '',
+            port: 0,
+            database_name: '',
+            username: null,
+            password: null,
+            kerberos_principal: null,
+            windows_domain: null,
+            extra_options: null
+        }
+    });
+    
+    const handleSubmit = (values: IntegrationCreateRequest) => {
+        onSubmit(values);
     };
 
-    onSubmit(payload);
-  };
+    const handleTest = async (values: IntegrationCreateRequest) => {
+        setTesting(true);
+        setTestResult(null);
+        try {
+            const response = await testIntegration(values);
+            console.log(response);
+            if (response.success) {
+                setTestResult('Connection successful!');
+            } else {
+                setTestResult('Connection failed: ' + (response.data.message || 'Unknown error'));
+            }
+        } catch (error: any) {
+            setTestResult('Error testing connection: ' + (error.response?.data?.detail || error.message));
+        } finally {
+            setTesting(false);
+        }
+    };
 
-  return (
-    <Box maw={600} mx="auto">
-      <Title order={3} mb="md">Create Integration</Title>
-
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Select
-          label="Method"
-          placeholder="e.g. direct, ODBC, JDBC"
-          data={['direct', 'odbc', 'jdbc', 'kerberos']}
-          {...form.getInputProps('method')}
-        />
-
-        <TextInput label="Name" {...form.getInputProps('name')} />
-        <TextInput label="Host" {...form.getInputProps('host')} />
-        <NumberInput label="Port" {...form.getInputProps('port')} />
-        <TextInput label="Database" {...form.getInputProps('database')} />
-        <TextInput label="Username" {...form.getInputProps('username')} />
-        <PasswordInput label="Password" {...form.getInputProps('password')} />
-        <PasswordInput label="API Key" {...form.getInputProps('api_key')} />
-        <TextInput label="Kerberos Principal" {...form.getInputProps('kerberos_principal')} />
-        <PasswordInput label="Kerberos Keytab (Base64)" {...form.getInputProps('kerberos_keytab')} />
-        <TextInput label="Connection URI" {...form.getInputProps('connection_uri')} />
-        <Textarea
-          label="Extra (JSON)"
-          placeholder='{"ssl": true, "timeout": 10}'
-          minRows={3}
-          {...form.getInputProps('extra')}
-        />
-
-        <Group justify="flex-end" mt="md">
-          <Button type="submit">Create Integration</Button>
-        </Group>
-      </form>
-    </Box>
-  );
+    return (
+        <Box maw={600} mx="auto">
+            <Title order={3} mb="md">Create Integration</Title>
+    
+            <form onSubmit={integrationRequestForm.onSubmit(handleSubmit)}>
+                <TextInput
+                    label="Service Type"
+                    value={service_type}
+                    readOnly
+                />
+                <Select
+                    label="Auth Method"
+                    placeholder="e.g. direct, ODBC, JDBC"
+                    data={['direct', 'odbc', 'jdbc', 'kerberos']}
+                    {...integrationRequestForm.getInputProps('auth_method')}
+                />
+                <TextInput label="Connection Name" {...integrationRequestForm.getInputProps('connection_name')} />
+                <TextInput label="Host" {...integrationRequestForm.getInputProps('host')} />
+                <NumberInput label="Port" {...integrationRequestForm.getInputProps('port')} />
+                <TextInput label="Database Name" {...integrationRequestForm.getInputProps('database_name')} />
+                <TextInput label="Username" {...integrationRequestForm.getInputProps('username')} />
+                <PasswordInput label="Password" {...integrationRequestForm.getInputProps('password')} />
+                <TextInput label="Kerberos Principal" {...integrationRequestForm.getInputProps('kerberos_principal')} />
+                <TextInput label="Windows Domain" {...integrationRequestForm.getInputProps('windows_domain')} />
+                <Textarea
+                    label="Extra (JSON)"
+                    placeholder='{"ssl": true, "timeout": 10}'
+                    minRows={3}
+                    {...integrationRequestForm.getInputProps('extra_options')}
+                />
+        
+                <Group justify="flex-end" mt="md">
+                    <Button
+                        variant="default"
+                        onClick={() => handleTest(integrationRequestForm.values)}
+                        loading={testing}
+                    >
+                        Test Integration
+                    </Button>                    
+                    <Button type="submit">Create Integration</Button>
+                </Group>
+            </form>
+            {testResult && (
+                <Box mt="md" style={{ color: testResult.includes('successful') ? 'green' : 'red' }}>
+                    {testResult}
+                </Box>
+            )}
+          </Box>
+      );
 }

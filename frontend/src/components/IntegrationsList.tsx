@@ -49,10 +49,10 @@ export const IntegrationsList = () => {
   const toggleAll = () =>
     setSelection((current) => (current.length === integrations.length ? [] : integrations.map((integration) => integration.id)));
 
-    const getIntegrationIcon = (service_type: string) => {
-      const match = INTEGRATION_ICONS.find((entry) => entry.key === service_type.toLowerCase());
-      return match ? match.icon(theme) : null;
-    };
+  const getIntegrationIcon = (service_type: string) => {
+    const match = INTEGRATION_ICONS.find((entry) => entry.key === service_type.toLowerCase());
+    return match ? match.icon(theme) : null;
+  };
   const rows = integrations.map((integration) => {
     const selected = selection.includes(integration.id);
     return (
@@ -62,7 +62,7 @@ export const IntegrationsList = () => {
         </Table.Td>
         <Table.Td>
           <Group gap="sm">
-          {getIntegrationIcon(integration.service_type)}
+            {getIntegrationIcon(integration.service_type)}
             <Text size="sm" fw={500}>
               {integration.service_type}
             </Text>

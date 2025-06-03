@@ -9,26 +9,28 @@ import { CIcon } from '@coreui/icons-react';
 import { cibPostgresql } from '@coreui/icons';
 import { Button, Menu, Text, useMantineTheme, Modal } from '@mantine/core';
 
-import { IntegrationForm } from './IntegrationForm';
+import { IntegrationForm } from './integrationForm';
+import { useCreateIntegration } from '../hooks/useCreateIntegration';
+import type { IntegrationCreateRequest } from '../interface/integration_create_request';
 
 const INTEGRATIONS = [
     {
-      key: 'snowflake',
-      label: 'Snowflake',
-      icon: (theme: any) => <IconBrandSnowflake size={16} color={theme.colors.blue[6]} stroke={1.5} />,
-      shortcut: 'Ctrl + P',
+        key: 'snowflake',
+        label: 'Snowflake',
+        icon: (theme: any) => <IconBrandSnowflake size={16} color={theme.colors.blue[6]} stroke={1.5} />,
+        shortcut: 'Ctrl + P',
     },
     {
-      key: 'sqlserver',
-      label: 'SQL Server',
-      icon: (theme: any) => <IconSql size={16} color={theme.colors.pink[6]} stroke={1.5} />,
-      shortcut: 'Ctrl + T',
+        key: 'sqlserver',
+        label: 'SQL Server',
+        icon: (theme: any) => <IconSql size={16} color={theme.colors.pink[6]} stroke={1.5} />,
+        shortcut: 'Ctrl + T',
     },
     {
-      key: 'postgresql',
-      label: 'PostgreSQL',
-      icon: () => <CIcon icon={cibPostgresql} style={{ width: 16, height: 16 }} />,
-      shortcut: 'Ctrl + U',
+        key: 'postgresql',
+        label: 'PostgreSQL',
+        icon: () => <CIcon icon={cibPostgresql} style={{ width: 16, height: 16 }} />,
+        shortcut: 'Ctrl + U',
     },
     {
       key: 'mysql',
@@ -37,19 +39,21 @@ const INTEGRATIONS = [
       shortcut: 'Ctrl + E',
     },
   ];
-  
+
+
 export const CreateIntegrationButton = () => {
     const theme = useMantineTheme();
     const [modalOpened, setModalOpened] = useState(false);
     const [selectedIntegration, setSelectedIntegration] = useState<string>('');
+    const { createIntegration } = useCreateIntegration();
 
     const openModalFor = (integrationKey: string) => {
         setSelectedIntegration(integrationKey);
         setModalOpened(true);
       };
 
-    const handleFormSubmit = (data: any) => {
-        console.log('Form submitted:', data);
+    const handleFormSubmit = async(data: IntegrationCreateRequest) => {
+        await createIntegration(data);
         setModalOpened(false);
       };
 
@@ -91,9 +95,7 @@ export const CreateIntegrationButton = () => {
             size='lg'
         >
             <IntegrationForm
-                organization_id='your-org-uuid' 
-                created_by='user-uuid'
-                type={selectedIntegration}
+                service_type={selectedIntegration}
                 onSubmit={handleFormSubmit}
             />
         </Modal>

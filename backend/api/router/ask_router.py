@@ -18,7 +18,6 @@ from core.database.database_metadata_retriever import (
     CSVRetrievalService
 )
 from core.orm_factory import generate_orm_statement
-from sqlalchemy.orm import sessionmaker
 from services.sql_connection_service import fetch_engine, fetch_session_maker, session_scope
 
 

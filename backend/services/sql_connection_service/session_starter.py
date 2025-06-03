@@ -4,8 +4,8 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker, scoped_session
 
 
-def fetch_engine(sql_connection_string: str) -> Engine:
-    return create_engine(sql_connection_string)
+def fetch_engine(sql_connection_string: str, **kwargs) -> Engine:
+    return create_engine(sql_connection_string, **kwargs)
 
 def fetch_session_maker(engine: Engine) -> scoped_session[Session]:
     session_factory = sessionmaker(bind=engine)

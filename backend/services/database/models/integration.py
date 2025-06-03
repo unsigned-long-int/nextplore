@@ -8,6 +8,7 @@ from .base import Base
 
 class Integration(Base):
     __tablename__ = 'integrations'
+    __table_args__ = {'schema': 'embeddings'}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organization_id = Column(UUID(as_uuid=True), ForeignKey(Organization.id))

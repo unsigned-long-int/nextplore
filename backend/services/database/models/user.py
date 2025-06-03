@@ -7,6 +7,7 @@ from .base import Base
 
 class User(Base):
     __tablename__ = 'users'
+    __table_args__ = {'schema': 'auth'}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(Text, unique=True, nullable=False)
@@ -15,4 +16,3 @@ class User(Base):
     sub = Column(Text, unique=True)
     role = Column(Text)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    
