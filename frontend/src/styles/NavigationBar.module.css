@@ -23,7 +23,7 @@
   border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 }
 
-.link {
+.location {
   display: flex;
   align-items: center;
   text-decoration: none;

@@ -1,12 +1,12 @@
+import uuid
 import pandas as pd
 
-from queue import Queue
 from openai import OpenAI
 from dataclasses import dataclass
 
-from infrastructure.vector_generation_service import VectorGenerator
-from infrastructure.storage.ingestion_service import IngestionServiceProtocol
-from infrastructure.storage.database_inspection_service import DatabaseDescriptor
+from core.vector_generation_service import VectorGenerator
+from core.database.database_metadata_ingestor import IngestionServiceProtocol
+from core.database.user_database_inspector import DatabaseDescriptor
 
 
 @dataclass
@@ -15,11 +15,8 @@ class UpsertOrchestrationService:
     database_descriptor: DatabaseDescriptor
     ingestion_service: IngestionServiceProtocol
 
-    def upsert_storage(self, progress_queue: Queue) -> None:
-        progress_queue.put('generating meta vectors...')
+    def upsert_storage(self) -> None:
         orm_vectors = self.generate_vectors()
-        progress_queue.put(
-            f'upserting vectors to: {self.ingestion_service}...')
         self.ingestion_service.ingest_vectors(orm_vectors)
 
     def generate_vectors(self) -> pd.DataFrame:
@@ -33,9 +30,10 @@ class UpsertOrchestrationService:
             vector = embedding_generator.generate_vector()
 
             orm_vectors.append({
+                'id': uuid.uuid4(),
                 'schema_name': table_meta['schema_name'],
                 'table_name': table_meta['table_name'],
                 'table_meta': repr(table_meta),
-                'embedding': vector
+                'vector': vector
             })
         return pd.DataFrame(orm_vectors)

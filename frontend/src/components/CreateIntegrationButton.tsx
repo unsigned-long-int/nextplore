@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import axios from 'axios';
 import {
     IconChevronDown,
     IconBrandSnowflake,
     IconSql,
     IconBrandMysql
 } from '@tabler/icons-react';
+import { useState } from 'react';
 import { CIcon } from '@coreui/icons-react';
 import { cibPostgresql } from '@coreui/icons';
 import { Button, Menu, Text, useMantineTheme, Modal } from '@mantine/core';
 
 import { IntegrationForm } from './integrationForm';
-import { useCreateIntegration } from '../hooks/useCreateIntegration';
+import { useTokenProvider } from '../authentication/useTokenProvider';
 import type { IntegrationCreateRequest } from '../interface/integration_create_request';
 
 const INTEGRATIONS = [
@@ -33,19 +34,35 @@ const INTEGRATIONS = [
         shortcut: 'Ctrl + U',
     },
     {
-      key: 'mysql',
-      label: 'MySQL',
-      icon: (theme: any) => <IconBrandMysql size={16} color={theme.colors.violet[6]} stroke={1.5} />,
-      shortcut: 'Ctrl + E',
+        key: 'mysql',
+        label: 'MySQL',
+        icon: (theme: any) => <IconBrandMysql size={16} color={theme.colors.violet[6]} stroke={1.5} />,
+        shortcut: 'Ctrl + E',
     },
-  ];
+];
 
+export const createIntegration = async (data: IntegrationCreateRequest, token: string | null) => {
+    try {
+        const response = await axios.post(
+            '/api/createintegration',
+            data,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            }
+        );
+        return response.data
+    } catch (e) {
+        console.log('Create integration failed: ' + e);
+    };
+};
 
 export const CreateIntegrationButton = () => {
     const theme = useMantineTheme();
     const [modalOpened, setModalOpened] = useState(false);
     const [selectedIntegration, setSelectedIntegration] = useState<string>('');
-    const { createIntegration } = useCreateIntegration();
+    const { getToken } = useTokenProvider();
 
     const openModalFor = (integrationKey: string) => {
         setSelectedIntegration(integrationKey);
@@ -53,7 +70,8 @@ export const CreateIntegrationButton = () => {
       };
 
     const handleFormSubmit = async(data: IntegrationCreateRequest) => {
-        await createIntegration(data);
+        const token = await getToken();
+        await createIntegration(data, token);
         setModalOpened(false);
       };
 

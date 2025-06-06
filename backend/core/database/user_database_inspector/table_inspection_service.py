@@ -1,4 +1,5 @@
 from sqlalchemy import Inspector
+from pgvector.sqlalchemy import Vector
 from typing import Dict, Set, Optional
 
 from services.event_orchestration_service.event_orchestrator import EventOrchestrator

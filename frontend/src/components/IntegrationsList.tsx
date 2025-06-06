@@ -1,16 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { cibPostgresql } from '@coreui/icons';
+import { useMantineTheme } from '@mantine/core';
+import CIcon from '@coreui/icons-react';
 import cx from 'clsx';
-import { Checkbox, Group, ScrollArea, Table, Text } from '@mantine/core';
-import classes from '../styles/IntegrationsList.module.css';
-import { useIntegrations } from '../hooks/useIntegrations';
+import { 
+  Checkbox, 
+  Group, 
+  ScrollArea, 
+  Table, 
+  Text 
+} from '@mantine/core';
 import {
   IconBrandSnowflake,
   IconSql,
   IconBrandMysql,
 } from '@tabler/icons-react';
-import { cibPostgresql } from '@coreui/icons';
-import { useMantineTheme } from '@mantine/core';
-import CIcon from '@coreui/icons-react';
+
+import classes from '../styles/IntegrationsList.module.css';
+import { useIntegrations } from '../hooks/useIntegrations';
+import type { IntegrationProfile } from '../interface/integration_profile';
 
 
 export const INTEGRATION_ICONS = [
@@ -35,8 +43,27 @@ export const INTEGRATION_ICONS = [
 
 export const IntegrationsList = () => {
   const theme = useMantineTheme();
-  const { integrations, loading, error } = useIntegrations();
+  const { fetchIntegrations } = useIntegrations();
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [integrations, setIntegrations] = useState<IntegrationProfile[]>([])
   const [selection, setSelection] = useState(['1']);
+
+  useEffect(() => {
+    const getIntegrations = async () => {
+      try {
+        const integrations_data = await fetchIntegrations();
+        setIntegrations(integrations_data);
+      } catch (e) {
+        setError('Failed to load integrations ' + e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getIntegrations();
+  }, []);
+
 
   if (loading) return <Text>Getting integrations data...</Text>;
   if (error) return <Text c="red">{error}</Text>;

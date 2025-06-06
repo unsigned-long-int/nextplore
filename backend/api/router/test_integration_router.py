@@ -1,12 +1,10 @@
-import uuid
-import json
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
 from services.authentication import get_active_user
-from services.sql_connection_service import fetch_engine
+from services.sql_connection_service import fetch_engine, build_connection_string
 from api.models import IntegrationCreateRequest
 
 
@@ -17,9 +15,8 @@ def test_integration(
     integration_create_request: IntegrationCreateRequest,
     user=Depends(get_active_user)
     ):
-
     try:
-        connection_string = integration_create_request.connection_name
+        connection_string = build_connection_string(integration_create_request)
         engine = fetch_engine(connection_string, connect_args={'connect_timeout': 5})
 
         with engine.connect() as connection:

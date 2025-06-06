@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Optional
 from pydantic import BaseModel
 
 class IntegrationCreateRequest(BaseModel):
@@ -12,4 +12,4 @@ class IntegrationCreateRequest(BaseModel):
     password: Optional[str]
     kerberos_principal: Optional[str]
     windows_domain: Optional[str]
-    extra_options: Optional[Dict[str, Any]]
+    extra_options: Optional[str]

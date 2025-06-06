@@ -1,13 +1,15 @@
 import uuid
 import json
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 
 from services.encryption import encrypt_secret
+from services.sql_connection_service import build_connection_string
 from services.database.dependencies import backend_session_scope
 from services.database.models import User, Integration
 from services.authentication import get_active_user
 from api.models import IntegrationCreateRequest
+from core.database.database_upsert_orchestrator import upsert_metadata
 
 
 router = APIRouter()
@@ -15,6 +17,7 @@ router = APIRouter()
 @router.post('')
 def create_integration(
     integration_create_request: IntegrationCreateRequest,
+    background_tasks: BackgroundTasks,
     user=Depends(get_active_user)
     ):
     with backend_session_scope() as scoped_session:
@@ -44,6 +47,9 @@ def create_integration(
         )
         scoped_session.add(integration)
         scoped_session.flush()
+
+        connection_string = build_connection_string(integration_create_request)
+        background_tasks.add_task(upsert_metadata, connection_string)
 
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,

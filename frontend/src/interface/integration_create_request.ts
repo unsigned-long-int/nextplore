@@ -9,10 +9,10 @@ export interface IntegrationCreateRequest {
     password: string | null;
     kerberos_principal: string | null;
     windows_domain: string | null;
-    extra_options: JSON | null
-}
+    extra_options: string | null;
+};
 
 export interface IntegrationFormProps {
     service_type: string;
     onSubmit: (values: IntegrationCreateRequest) => void;
-}
+};

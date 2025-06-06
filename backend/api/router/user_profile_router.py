@@ -22,11 +22,9 @@ def get_user_profile(
     sub = user.get("sub")
     roles = user.get("roles", [])
     domain = email.split("@")[-1]
-    print(name)
 
     with backend_session_scope() as scoped_session:
         org = scoped_session.query(Organization).filter_by(domain=domain).first()
-        print(org)
         if not org:
             org = Organization(
                 id=uuid.uuid4(),
