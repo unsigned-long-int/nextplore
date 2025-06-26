@@ -1,7 +1,6 @@
 from openai import OpenAI, OpenAIError
 from typing import Optional
 
-from services.credentials_loader import load_credentials
 from services.event_orchestration_service.event_orchestrator import EventOrchestrator
 from services.event_orchestration_service.events import events
 
