@@ -19,25 +19,32 @@ async def get_jwks():
 
 async def verify_token(token: str):
     jwks = await get_jwks()
-    
     try:
-        for key in jwks["keys"]:
-            print(key)
+        for key in jwks['keys']:
             try:
                 payload = jwt.decode(
                     token,
                     key,
-                    algorithms=["RS256"],
+                    algorithms=['RS256'],
                     audience=settings.AZURE_CLIENT_ID,
-                    issuer=settings.ISSUER
+                    options={
+                        'verify_iss': False
+                        }
                 )
+
+                tenant_id = payload.get('tid')
+                actual_issuer = payload.get('iss')
+                expected_issuer = f'https://login.microsoftonline.com/{tenant_id}/v2.0'
+
+                if actual_issuer != expected_issuer:
+                    raise HTTPException(401, detail='Invalid issuer')
                 return payload
-            except JWTError:
+            except JWTError as e:
                 continue
     except Exception as e:
-        print("Token verification error:", e)
+        print('Token verification error:', e)
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or expired token"
+        detail='Invalid or expired token'
     )

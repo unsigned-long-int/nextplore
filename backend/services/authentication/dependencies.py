@@ -9,10 +9,14 @@ async def get_active_user(
         creds: HTTPAuthorizationCredentials = Depends(bearer_scheme)
 ):
     token = creds.credentials
+    print(token)
 
     try:
+        print('verifying')
         claims = await verify_token(token)
-    except ValueError:
+        print('successfully verified')
+    except ValueError as e:
+        print(str(e))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Invalid or expired token'
