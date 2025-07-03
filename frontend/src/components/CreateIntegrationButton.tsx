@@ -12,7 +12,7 @@ import { Button, Menu, Text, useMantineTheme, Modal } from '@mantine/core';
 
 import { IntegrationForm } from './integrationForm';
 import { useTokenProvider } from '../authentication/useTokenProvider';
-import type { IntegrationCreateRequest } from '../interface/integration_create_request';
+import type { IntegrationCreateRequest } from '../interface/integration-create-request.interface';
 
 const INTEGRATIONS = [
     {

@@ -1,10 +1,10 @@
 from urllib.parse import quote_plus
 
-from api.models import IntegrationCreateRequest
+from .integration_metadata import IntegrationMetadata
 
 
-def build_connection_string(integration_create_request: IntegrationCreateRequest) -> str:
-    stype = integration_create_request.service_type.lower()
+def build_connection_string(integration_metadata: IntegrationMetadata) -> str:
+    stype = integration_metadata.service_type.lower()
     scheme_map = {
         'postgresql': 'postgresql+psycopg2',
         'mysql': 'mysql+pymysql',
@@ -17,31 +17,31 @@ def build_connection_string(integration_create_request: IntegrationCreateRequest
         raise ValueError(f'Unsupported service type: {stype}')
 
     auth = ''
-    if integration_create_request.auth_method == 'basic' and integration_create_request.username and integration_create_request.password:
-        auth = f'{quote_plus(integration_create_request.username)}:{quote_plus(integration_create_request.password)}@'
-    elif integration_create_request.auth_method == 'windows' and integration_create_request.username and integration_create_request.windows_domain:
-        domain_user = f'{integration_create_request.windows_domain}\\{integration_create_request.username}'
-        auth = f'{quote_plus(domain_user)}:{quote_plus(integration_create_request.password or '')}@'
-    elif integration_create_request.auth_method == 'kerberos':
+    if integration_metadata.auth_method == 'basic' and integration_metadata.username and integration_metadata.password:
+        auth = f'{quote_plus(integration_metadata.username)}:{quote_plus(integration_metadata.password)}@'
+    elif integration_metadata.auth_method == 'windows' and integration_metadata.username and integration_metadata.windows_domain:
+        domain_user = f'{integration_metadata.windows_domain}\\{integration_metadata.username}'
+        auth = f'{quote_plus(domain_user)}:{quote_plus(integration_metadata.password or '')}@'
+    elif integration_metadata.auth_method == 'kerberos':
         auth = ''
     else:
         auth = ''
 
-    host = integration_create_request.host
-    port = integration_create_request.port
-    db = integration_create_request.database_name or ''
+    host = integration_metadata.host
+    port = integration_metadata.port
+    db = integration_metadata.database_name or ''
 
     query = ''
-    if integration_create_request.extra_options:
+    if integration_metadata.extra_options:
         query = '&'.join(
             f'{quote_plus(str(k))}={quote_plus(str(v))}'
-            for k, v in integration_create_request.extra_options.items()
+            for k, v in integration_metadata.extra_options.items()
         )
         query = f'?{query}'
 
     if stype == 'snowflake':
         account = host
-        schema = integration_create_request.extra_options.get('schema', '') if integration_create_request.extra_options else ''
+        schema = integration_metadata.extra_options.get('schema', '') if integration_metadata.extra_options else ''
         db_path = f'/{db}/{schema}' if schema else f'/{db}'
         return f'{scheme}://{auth}{account}{db_path}{query}'
 

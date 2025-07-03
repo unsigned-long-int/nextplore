@@ -1,0 +1,1 @@
+from .integration_registry_inspection_service import inspect_integration_registry

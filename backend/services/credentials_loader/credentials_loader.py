@@ -3,9 +3,6 @@ import os
 from dotenv import load_dotenv
 from typing import Optional, NamedTuple
 
-from services.event_orchestration_service.events import events
-from services.event_orchestration_service.event_orchestrator import EventOrchestrator
-
 load_dotenv()
 
 

@@ -2,8 +2,8 @@ import json
 import traceback
 from typing import NamedTuple, Dict, Any, Optional
 
-from services.event_orchestration_service.events import events
-from services.event_orchestration_service.event_orchestrator import EventOrchestrator
+from services.events_handler.events import events
+from services.events_handler.events_orchestrator import EventOrchestrator
 
 
 class Manifest(NamedTuple):

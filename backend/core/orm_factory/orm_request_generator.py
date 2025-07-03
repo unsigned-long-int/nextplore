@@ -1,5 +1,5 @@
 from sqlalchemy import select, func, Select
-from typing import Any, Dict, List
+from typing import Any, Dict
 from .ai_orm_factory import ORMRequest
 
 OPERATOR_DISPATCHER: Dict[str, Any] = {

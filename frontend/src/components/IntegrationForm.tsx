@@ -13,7 +13,7 @@ import { useForm } from '@mantine/form';
 import { useState } from 'react';
 
 import { useTestIntegration } from '../hooks/useTestIntegration';
-import type { IntegrationCreateRequest, IntegrationFormProps } from '../interface/integration_create_request';
+import type { IntegrationCreateRequest, IntegrationFormProps } from '../interface/integration-create-request.interface';
   
 
 export const IntegrationForm:  React.FC<IntegrationFormProps> = ({ service_type, onSubmit }) => {
@@ -72,7 +72,7 @@ export const IntegrationForm:  React.FC<IntegrationFormProps> = ({ service_type,
                 <Select
                     label='Auth Method'
                     placeholder='e.g. direct, ODBC, JDBC'
-                    data={['direct', 'odbc', 'jdbc', 'kerberos']}
+                    data={['basic', 'odbc', 'jdbc', 'kerberos']}
                     {...integrationRequestForm.getInputProps('auth_method')}
                 />
                 <TextInput label='Connection Name' {...integrationRequestForm.getInputProps('connection_name')} />

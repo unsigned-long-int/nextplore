@@ -10,6 +10,7 @@ import {
 import { PromptBox } from '../components/PromptBox';
 import { QueryPreview } from '../components/QueryPreview';
 import { ResultTable } from '../components/ResultTable';
+import { useAIQueryRequest } from '../hooks/useAIQueryRequest';
 import { askQuery } from '../services/api';
 
 export const QueryPage = () => {

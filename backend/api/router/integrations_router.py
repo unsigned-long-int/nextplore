@@ -2,34 +2,24 @@ from fastapi import APIRouter, Depends
 from typing import List
 
 from services.database.dependencies import backend_session_scope
-from services.database.models import Organization, User, Integration
+from services.database.models import IntegrationORM
 from services.authentication import get_active_user
+from services.identity_service import resolve_user_identity
 from api.models import IntegrationProfile
 
 router = APIRouter()
 
 @router.get('', response_model=List[IntegrationProfile])
-def get_integrations(
-    user=Depends(get_active_user)
-) ->  List[IntegrationProfile]:
+def get_integrations(user=Depends(get_active_user)) ->  List[IntegrationProfile]:
+    azure_user_id = user.get('oid')
+    azure_tenant_id = user.get('tid')
+
+    user_identity = resolve_user_identity(azure_tenant_id, azure_user_id)
     with backend_session_scope() as scoped_session:
-        sub = user.get('sub')
-
-        user = (
-            scoped_session.query(User)
-            .filter_by(sub=sub)
-            .first()
+        integrations_orm = (
+            scoped_session.query(IntegrationORM)
+            .filter_by(organization_id=user_identity.organization_id, user_id=user_identity.user_id)
         )
-        org = (
-            scoped_session.query(Organization)
-            .filter_by(id=user.organization_id)
-            .first()
-        )
-
-        integrations = (
-            scoped_session.query(Integration)
-            .filter_by(organization_id=org.id, user_id=user.id)
-            )
 
         return [
             IntegrationProfile(
@@ -39,5 +29,5 @@ def get_integrations(
                 database_name=integration.database_name,
                 auth_method=integration.auth_method
             )
-            for integration in integrations
+            for integration in integrations_orm
         ]
