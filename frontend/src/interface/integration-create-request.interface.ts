@@ -10,6 +10,7 @@ export interface IntegrationCreateRequest {
     kerberos_principal: string | null;
     windows_domain: string | null;
     extra_options: string | null;
+    autosync_on: boolean;
 };
 
 export interface IntegrationFormProps {

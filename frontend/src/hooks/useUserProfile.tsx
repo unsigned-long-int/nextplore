@@ -1,20 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useTokenProvider } from '../authentication/useTokenProvider';
 import axios from 'axios';
 
+import { useTokenProvider } from '../authentication/useTokenProvider';
+import type { UserProfile } from '../interface/user-profile.interface';
 
-export interface User {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    organization: string;
-    organization_id: string;
-  };
+
 
 export const useUserProfile = () => {
     const { getToken } = useTokenProvider();
-    const [profile, setProfile] = useState<User | null>(null);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 

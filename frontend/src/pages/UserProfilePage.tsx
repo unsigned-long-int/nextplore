@@ -1,7 +1,8 @@
-import { IconAt, IconPhoneCall } from '@tabler/icons-react';
-import classes from '../styles/UserInfoIcons.module.css';
 import { Avatar, Group, Text } from '@mantine/core';
+import { IconAddressBook, IconAt } from '@tabler/icons-react';
+import classes from '../styles/UserInfoIcons.module.css';
 
+import { Stats } from '../components/user_profile/UserStats';
 import { useUserProfile } from '../hooks/useUserProfile';
 
 export const UserProfilePage = () => {
@@ -32,12 +33,15 @@ export const UserProfilePage = () => {
                         </Text>
                     </Group>
                     <Group wrap="nowrap" gap={10} mt={5}>
-                        <IconPhoneCall stroke={1.5} size={16} className={classes.icon} />
+                        <IconAddressBook stroke={1.5} size={16} className={classes.icon} />
                         <Text fz="xs" c="dimmed">
                             {profile.organization}
                         </Text>
                     </Group>
                 </div>
+            </Group>
+            <Group>
+                <Stats/>
             </Group>
         </div>
     );

@@ -1,18 +1,17 @@
-import { useState } from 'react';
 import {
-    Title,
-    Text,
-    Box,
-    Loader,
-    Divider,
-    Transition
+  Box,
+  Divider,
+  Loader,
+  Text,
+  Title,
+  Transition
 } from '@mantine/core';
-import { PromptBox } from '../components/PromptBox';
-import { QueryPreview } from '../components/QueryPreview';
-import { ResultTable } from '../components/ResultTable';
+import { useState } from 'react';
+import { PromptBox } from '../components/ai_queries/PromptBox';
+import { QueryPreview } from '../components/ai_queries/QueryPreview';
+import { ResultTable } from '../components/ai_queries/ResultTable';
 
 import { useAIQueryRequest } from "../hooks/useAIQueryRequest";
-import type { AIQueryRequest } from "../interface/ai-query-request.interface";
 
 export const AIQueryPage = () => {
     const [prompt, setPrompt] = useState<string>('');

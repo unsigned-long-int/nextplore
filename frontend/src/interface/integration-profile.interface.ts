@@ -4,4 +4,5 @@ export interface IntegrationProfile {
     connection_name: string;
     database_name: string;
     auth_method: string;
+    autosync_on: boolean;
 };

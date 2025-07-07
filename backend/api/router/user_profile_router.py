@@ -1,4 +1,3 @@
-import uuid
 from fastapi import APIRouter, Depends
 
 from services.database.dependencies import backend_session_scope
@@ -12,7 +11,6 @@ router = APIRouter()
 def get_user_profile(
     user=Depends(get_active_user)
 ) -> UserProfile:
-    print(user)
     email = user.get('preferred_username')
     if not email:
         raise ValueError('preferred_username claim is missing')

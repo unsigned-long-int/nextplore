@@ -27,7 +27,8 @@ def get_integrations(user=Depends(get_active_user)) ->  List[IntegrationProfile]
                 service_type=integration.service_type,
                 connection_name=integration.connection_name,
                 database_name=integration.database_name,
-                auth_method=integration.auth_method
+                auth_method=integration.auth_method,
+                autosync_on=integration.autosync_on
             )
             for integration in integrations_orm
         ]

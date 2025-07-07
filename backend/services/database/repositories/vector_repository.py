@@ -24,3 +24,12 @@ class VectorRepository:
             )
 
             return scoped_session.execute(vector_query).all()
+        
+    def get_user_vectors_number(self, integration_ids: List[UUID]) -> int:
+        with backend_session_scope() as scoped_session:
+            vectors_number = (
+                scoped_session.query(VectorORM)
+                .filter(VectorORM.integration_id.in_(integration_ids))
+                .count()
+            )
+            return vectors_number

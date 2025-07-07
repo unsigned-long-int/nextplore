@@ -13,3 +13,4 @@ class IntegrationCreateRequest(BaseModel):
     kerberos_principal: Optional[str]
     windows_domain: Optional[str]
     extra_options: Optional[str]
+    autosync_on: bool

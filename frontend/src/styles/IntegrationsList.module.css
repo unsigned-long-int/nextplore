@@ -1,3 +1,8 @@
 .rowSelected {
     background-color: var(--mantine-color-blue-light);
+}
+.switch {
+  & * {
+    cursor: pointer;
   }
+}

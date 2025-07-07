@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Text, TIMESTAMP, func, ForeignKey, Integer
+from sqlalchemy import Column, Text, TIMESTAMP, func, ForeignKey, Integer, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 
 from .organization_orm import OrganizationORM
@@ -24,5 +24,6 @@ class IntegrationORM(Base):
     encrypted_kerberos_principal = Column(Text, nullable=True)
     encrypted_windows_domain = Column(Text, nullable=True)
     encrypted_extra_options = Column(Text, nullable=True)
+    autosync_on = Column(Boolean, nullable=False, default=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())

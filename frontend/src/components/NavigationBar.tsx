@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  IconFingerprint,
   IconLogout,
   IconSettings,
   IconSwitchHorizontal,
@@ -21,7 +20,6 @@ const data = [
   { location: '/query', label: 'AI Queries', icon: IconInputAi },
   { location: '/integrations', label: 'Integrations', icon: IconCloudDataConnection },
   { location: '/metadata', label: 'Metadata', icon: IconVector },
-  { location: '/mysecrets', label: 'My Secrets', icon: IconFingerprint },
   { location: '/othersettings', label: 'Other Settings', icon: IconSettings },
 ];
 

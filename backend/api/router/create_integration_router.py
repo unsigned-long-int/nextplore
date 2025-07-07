@@ -39,7 +39,8 @@ def create_integration(
             encrypted_password = encrypt_secret(integration_create_request.password) if integration_create_request.password else None,
             encrypted_kerberos_principal = encrypt_secret(integration_create_request.kerberos_principal) if integration_create_request.kerberos_principal else None,
             encrypted_windows_domain = encrypt_secret(integration_create_request.windows_domain) if integration_create_request.windows_domain else None,
-            encrypted_extra_options = encrypt_secret(json.dumps(integration_create_request.extra_options)) if integration_create_request.extra_options else None
+            encrypted_extra_options = encrypt_secret(json.dumps(integration_create_request.extra_options)) if integration_create_request.extra_options else None,
+            autosync_on=integration_create_request.autosync_on
         )
         scoped_session.add(integration_orm)
         scoped_session.flush()

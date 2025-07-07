@@ -1,14 +1,12 @@
-import { Group } from '@mantine/core'
-import { CreateIntegrationButton } from '../components/CreateIntegrationButton'
-import { IntegrationsList } from '../components/IntegrationsList'
+import { CreateIntegrationButton } from '../components/integrations/CreateIntegrationButton';
+import { IntegrationsList } from '../components/integrations/IntegrationList';
+
 
 export const IntegrationPage = () => {
     return (
-    <div>
-        <Group wrap="wrap">
+        <div>
             <CreateIntegrationButton/>
             <IntegrationsList/>
-        </Group>
-    </div>
+        </div>
     )
-}
+};

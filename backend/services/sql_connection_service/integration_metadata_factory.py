@@ -1,9 +1,11 @@
 from functools import singledispatch
+from typing import Set
 
-from api.models import IntegrationCreateRequest
+from api.models import IntegrationCreateRequest, IntegrationUpdateRequest
 from services.database.models import IntegrationORM
 from services.encryption import decrypt_secret
 from .integration_metadata import IntegrationMetadata
+
 
 @singledispatch
 def create_integration_metadata(integration) -> IntegrationMetadata:
@@ -15,7 +17,6 @@ def _(integration: IntegrationCreateRequest) -> IntegrationMetadata:
 
 @create_integration_metadata.register
 def _(integration: IntegrationORM) -> IntegrationMetadata:
-    print()
     return IntegrationMetadata(
         service_type=integration.service_type,
         auth_method=integration.auth_method,
@@ -27,5 +28,17 @@ def _(integration: IntegrationORM) -> IntegrationMetadata:
         password=decrypt_secret(integration.encrypted_password) if integration.encrypted_password else '',
         kerberos_principal=decrypt_secret(integration.encrypted_kerberos_principal) if integration.encrypted_kerberos_principal else '',
         windows_domain=decrypt_secret(integration.encrypted_windows_domain) if integration.encrypted_windows_domain else '',
-        extra_options=decrypt_secret(integration.encrypted_extra_options) if integration.encrypted_extra_options else ''
+        extra_options=decrypt_secret(integration.encrypted_extra_options) if integration.encrypted_extra_options else '',
+        autosync_on=integration.autosync_on
+    )
+
+@create_integration_metadata.register
+def _(integration: IntegrationUpdateRequest) -> IntegrationMetadata:
+    update_fields = {
+        field: value
+        for field, value in integration.dump_model().items()
+        if field != 'id'
+    }
+    return IntegrationMetadata(
+        **update_fields
     )

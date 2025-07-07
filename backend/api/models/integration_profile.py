@@ -6,3 +6,4 @@ class IntegrationProfile(BaseModel):
     connection_name: str
     database_name: str
     auth_method: str 
+    autosync_on: bool
