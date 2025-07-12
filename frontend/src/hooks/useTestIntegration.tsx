@@ -9,7 +9,7 @@ export const useTestIntegration = () => {
         const token = await getToken();
 
         const response = await axios.post(
-            '/api/testintegration',
+            '/nextplore-orchestrator/testintegration',
             data,
             {
                 headers: {

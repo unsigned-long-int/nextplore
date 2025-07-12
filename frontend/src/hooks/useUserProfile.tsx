@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 import { useTokenProvider } from '../authentication/useTokenProvider';
 import type { UserProfile } from '../interface/user-profile.interface';
@@ -16,7 +16,7 @@ export const useUserProfile = () => {
         const fetchUser = async () => {
             try {
                 const token = await getToken();
-                const response = await axios.get('/api/me', {
+                const response = await axios.get('/nextplore-orchestrator/me', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

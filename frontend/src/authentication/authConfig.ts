@@ -1,5 +1,5 @@
+import type { Configuration, PopupRequest } from '@azure/msal-browser';
 import { LogLevel } from '@azure/msal-browser';
-import type { PopupRequest, Configuration } from '@azure/msal-browser';
 
 export const msalConfig: Configuration = {
     auth: {

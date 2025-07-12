@@ -1,0 +1,1 @@
+from .handle_vectorization import handle_crawl_meta_vectorization, handle_query_vectorization
