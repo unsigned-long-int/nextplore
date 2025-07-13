@@ -22,7 +22,7 @@ class Vectorizer:
 
 def vectorize(datastream: str) -> List[float]:
     vectorizer = Vectorizer(
-        client=load_open_ai_client(os.getenv('OPEN_AI_API_KEY')),
+        client=load_open_ai_client(os.getenv('OPENAI_API_KEY')),
         datastream=datastream
     )
 

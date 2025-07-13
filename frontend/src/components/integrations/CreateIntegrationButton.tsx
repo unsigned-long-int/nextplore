@@ -54,7 +54,7 @@ export const createIntegration = async (
     token: string | null
 ) => {
     try {
-        const response = await axios.post("/api/createintegration", data, {
+        const response = await axios.post("http://localhost:8003/nextplore-orchestrator/createintegration", data, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

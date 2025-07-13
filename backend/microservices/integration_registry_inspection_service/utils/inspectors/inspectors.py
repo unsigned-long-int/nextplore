@@ -1,8 +1,8 @@
 import logging
+from typing import Tuple
 from uuid import UUID
 from sqlalchemy import quoted_name
 from sqlalchemy.engine.reflection import Inspector
-from typing import Tuple
 
 from utils.catalogs import (
     SchemaCatalog,

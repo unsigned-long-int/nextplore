@@ -2,10 +2,12 @@ from typing import List, Dict, Any
 from uuid import UUID
 
 from shared.database.models import IntegrationORM
-from internal_services.identity_service import UserIdentity
-from shared.encryption import ENCRYPTED_FIELDS, encrypt_secret
+from shared.identity_service import UserIdentity
+from shared.database.connection_builder import (
+    create_integration_metadata,
+    IntegrationMetadata
+)
 from shared.database.dependencies import backend_session_scope
-from api.models import IntegrationUpdateRequest, IntegrationDeleteRequest
 
 
 class IntegrationUpdateFailed(Exception):
@@ -26,6 +28,19 @@ class IntegrationRepository:
             )
             return [integration_orm.id for integration_orm in integrations_orm]
         
+    def get_integration_metadata(self, user_identity: UserIdentity, integration_id: str) -> IntegrationMetadata:
+        with backend_session_scope() as scoped_session:
+            integration_orm = (
+                scoped_session.query(IntegrationORM)
+                .filter_by(
+                    organization_id=user_identity.organization_id, 
+                    user_id=user_identity.user_id,
+                    id=integration_id
+                )
+                .first()
+            )
+            return create_integration_metadata(integration_orm)
+        
     def get_user_integration_number(self, user_identity: UserIdentity) -> int:
         with backend_session_scope() as scoped_session:
             integration_number = (
@@ -35,28 +50,24 @@ class IntegrationRepository:
             )
             return integration_number
         
-    def update_integration(self, user_identity: UserIdentity, integration_update_request: IntegrationUpdateRequest) -> None:
-        update_args = {
-            field: encrypt_secret(value) if field in ENCRYPTED_FIELDS else value for field, value in integration_update_request.model_dump().items()
-            if value is not None and field != 'id'
-        }
+    def update_integration(self, user_identity: UserIdentity, integration_id: str, update_args: Dict[str, Any]) -> None:
         with backend_session_scope() as active_session:
             result = active_session.query(IntegrationORM).filter_by(
-                id=integration_update_request.id,
+                id=integration_id,
                 organization_id=user_identity.organization_id,
                 user_id=user_identity.user_id
             ).update(update_args)
 
             if result == 0:
-                raise IntegrationUpdateFailed(f'Integration update failed. Integration not found for integration id: {integration_update_request.id}')
+                raise IntegrationUpdateFailed(f'Integration update failed. Integration not found for integration id: {integration_id}')
         
-    def delete_integration(self, user_identity: UserIdentity, integration_delete_request: IntegrationDeleteRequest) -> None:
+    def delete_integration(self, user_identity: UserIdentity, integration_id: str) -> None:
         with backend_session_scope() as active_session:
             result = active_session.query(IntegrationORM).filter_by(
-                    id=integration_delete_request.id,
+                    id=integration_id,
                     organization_id=user_identity.organization_id,
                     user_id=user_identity.user_id
                 ).delete()
             
             if result == 0:
-                raise IntegrationDeleteFailed(f'Integration delete failed. Integration not found for integration id: {integration_delete_request.id}')
+                raise IntegrationDeleteFailed(f'Integration delete failed. Integration not found for integration id: {integration_id}')

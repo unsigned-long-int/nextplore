@@ -7,11 +7,12 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-    command: npm run dev
+      - "5173:5173"
     environment:
       - NODE_ENV=development
     networks:
-      - .:/app
+      - app-network
+
+networks:
+  app-network:
+    external: true

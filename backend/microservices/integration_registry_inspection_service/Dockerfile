@@ -23,11 +23,13 @@ WORKDIR /app
 
 COPY microservices/integration_registry_inspection_service /app/
 COPY messaging /app/messaging
-COPY shared/database/crawler /app/database/crawler
+COPY shared/database/crawler /app/shared/database/crawler
 COPY shared/database/models /app/shared/database/models
 COPY shared/database/dependencies /app/shared/database/dependencies
 COPY shared/database/connection_builder /app/shared/database/connection_builder
 COPY shared/database/sql_connection_service /app/shared/database/sql_connection_service
+COPY shared/encryption /app/shared/encryption
+COPY shared/contracts/integration_service /app/shared/contracts/integration_service
 
 
 RUN pip install --no-cache-dir -r requirements.txt 

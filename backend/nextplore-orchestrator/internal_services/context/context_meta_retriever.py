@@ -1,5 +1,5 @@
 import pandas as pd
-
+from uuid import UUID
 from typing import List, Dict, Tuple, Optional
 
 from internal_services.cosine_similarity import cosine_similarity
@@ -9,7 +9,7 @@ def retrieve_context_meta(
         query_vector: List[float],
         orm_vectors: pd.DataFrame,
         context_size: Optional[int] = 5
-) -> Tuple[List[str], Dict[str, List[str]], Dict[str, List[str]]]:
+) -> Tuple[List[UUID], Dict[UUID, List[str]], Dict[UUID, List[str]]]:
     context_cosine_matrix = [
         (
             row['integration_id'],
@@ -31,10 +31,10 @@ def retrieve_context_meta(
     context_cosine_matrix.sort(key=lambda similarity: similarity[4], reverse=True)
     context_cosine_matrix = context_cosine_matrix[:context_size - 1]
 
-    integrations: List[str] = list({row[0] for row in context_cosine_matrix})
+    integrations: List[UUID] = list({row[0] for row in context_cosine_matrix})
 
-    schemas: Dict[str, List[str]] = {}
-    tables: Dict[str, List[str]] = {}
+    schemas: Dict[UUID, List[str]] = {}
+    tables: Dict[UUID, List[str]] = {}
 
     for row in context_cosine_matrix:
         integration_id = row[0]

@@ -60,7 +60,7 @@ export const ResultTable = ({ data }: { data: any[] }) => {
             <Button variant="light" size="xs" onClick={exportToCSV} leftSection={<IconDownload size={14} />}>
                 Export CSV
             </Button>
-            <Pagination page={page} onChange={setPage} total={totalPages} size="sm" />
+            <Pagination value={page} onChange={setPage} total={totalPages} size="sm" />
             </Group>
         </Group>
         <ScrollArea>

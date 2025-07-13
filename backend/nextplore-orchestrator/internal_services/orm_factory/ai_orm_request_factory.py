@@ -18,8 +18,9 @@ class AIORMRequestFactory:
     vectors_meta: List[Row]
 
     def retrieve_orm_request(self, query: str) -> ORMRequest:
-        vectorization_client = VectorizationClient(base_url)
-        query_vector = vectorization_client.vectorize(query)
+        vectorization_client = VectorizationClient()
+        query_vector_response = vectorization_client.vectorize(query)
+        query_vector = query_vector_response.vector
 
         orm_vectors = pd.DataFrame([dict(row._mapping) for row in self.vectors_meta])
         integrations, schemas, tables = retrieve_context_meta(
@@ -27,8 +28,8 @@ class AIORMRequestFactory:
             orm_vectors=orm_vectors
         )
 
-        integration_registry_inspection_client = IntegrationRegistryInspectionClient(base_url)
-        integration_registry = integration_registry_inspection_client.inspect_integration_registry(
+        integration_registry_inspection_client = IntegrationRegistryInspectionClient()
+        integration_registry = integration_registry_inspection_client.fetch_filtered_integration_registry(
             integrations=integrations,
             schemas=schemas,
             tables=tables
@@ -149,6 +150,7 @@ class AIORMRequestFactory:
 
         return ORMRequest(
             orm_model=orm_model,
+            integration_id=args['integration'],
             selected_columns=args['column_names'],
             aggregates=args['column_aggregates'],
             filters=args['column_filters']

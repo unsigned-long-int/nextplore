@@ -4,7 +4,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from shared.database.repositories import IntegrationRepository, IntegrationUpdateFailed
 from internal_services.authentication import get_active_user
-from internal_services.identity_service import resolve_user_identity
+from shared.encryption import ENCRYPTED_FIELDS, encrypt_secret
+from shared.identity_service import resolve_user_identity
 from api.models import IntegrationUpdateRequest
 
 
@@ -22,7 +23,15 @@ def update_integration(
 
     integration_repo = IntegrationRepository()
     try:
-        integration_repo.update_integration(user_identity, integration_update_request)
+        update_args = {
+            field: encrypt_secret(value) if field in ENCRYPTED_FIELDS else value for field, value in integration_update_request.model_dump().items()
+            if value is not None and field != 'id'
+        }
+        integration_repo.update_integration(
+            user_identity=user_identity, 
+            integration_id=integration_update_request.id, 
+            update_args=update_args
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

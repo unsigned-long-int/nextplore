@@ -4,6 +4,7 @@ import os
 
 from typing import Dict, List, Optional, Callable, Type
 from threading import Thread 
+from pydantic.json import pydantic_encoder
 from kafka import KafkaProducer, KafkaConsumer
 
 from messaging.events import events 
@@ -17,13 +18,13 @@ class KafkaMessageBus:
     def __init__(self) -> None:
         self.producer = KafkaProducer(
             bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS'),
-            value_serializer=lambda value: json.dumps(value).encode('utf-8')
+            value_serializer=lambda value: json.dumps(value, default=pydantic_encoder).encode('utf-8')
         )
         self.handlers: Dict[str, List[Callable[[events.Event]], None]] = {}
 
     def publish(self, event: events.Event) -> None:
         for topic in event.get_topics():
-            payload = json.loads(event.model_dump())
+            payload = event.model_dump()
             payload.update({
                 'event_name': event.event_name,
                 'version': event.version

@@ -10,7 +10,7 @@ export const useUpdateIntegration = () => {
     const updateIntegration = async (data: IntegrationUpdateRequest) => {
         const token = await getToken();
         const response = await axios.post(
-            '/nextplore-orchestrator/updateintegration',
+            'http://localhost:8003/nextplore-orchestrator/updateintegration',
             data,
             {
                 headers: {

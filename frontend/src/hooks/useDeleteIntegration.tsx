@@ -10,7 +10,7 @@ export const useDeleteIntegration = () => {
     const deleteIntegration = async (integration_delete_request: IntegrationDeleteRequest) => {
         const token = await getToken();
         const response = await axios.post(
-            '/nextplore-orchestrator/deleteintegration',
+            'http://localhost:8003/nextplore-orchestrator/deleteintegration',
             integration_delete_request,
             {
                 headers: {

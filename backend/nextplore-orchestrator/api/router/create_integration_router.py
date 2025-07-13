@@ -3,11 +3,12 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
 from internal_services.authentication import get_active_user
-from internal_services.identity_service import resolve_user_identity
-from internal_services.clients import IntegrationRegistryInspectionClient
 from shared.encryption import encrypt_secret
+from shared.identity_service import resolve_user_identity
 from shared.database.dependencies import backend_session_scope
 from shared.database.models import IntegrationORM
+from messaging.message_bus import get_kafka_message_bus
+from messaging.events import events
 from api.models import IntegrationCreateRequest
 
 
@@ -20,7 +21,6 @@ def create_integration(
 ) -> None:
     azure_user_id = user.get('oid')
     azure_tenant_id = user.get('tid')
-
     user_identity = resolve_user_identity(azure_tenant_id, azure_user_id)
 
     with backend_session_scope() as scoped_session:
@@ -45,8 +45,8 @@ def create_integration(
 
         connection_name = integration_orm.connection_name
         integration_id = integration_orm.id
-
-    IntegrationRegistryInspectionClient.inspect_initial_integation(integration_id=integration_id)
+    
+    get_kafka_message_bus().publish(events.IntegrationCreated(integration_id=integration_id))
 
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,

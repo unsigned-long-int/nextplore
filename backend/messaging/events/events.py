@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, ClassVar
 from abc import ABC, abstractmethod
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, UUID4
 from datetime import datetime, timezone
 
 class Event(BaseModel, ABC):
@@ -14,11 +14,21 @@ class Event(BaseModel, ABC):
         raise NotImplementedError
     
 
+class IntegrationCreated(Event):
+    event_name: ClassVar[str] = 'integration.created'
+    version: ClassVar[str] = 'v1'
+
+    integration_id: UUID4
+
+    def get_topics(self) -> List[str]:
+        return [self.event_name]
+
+
 class IntegrationMetaCrawled(Event):
     event_name: ClassVar[str] = 'integrationmeta.crawled'
     version: ClassVar[str] = 'v1'
 
-    table_metas: List[Dict[str, str]]
+    table_metas: List[Dict[str, UUID4 | str | List[str]]]
 
     def get_topics(self) -> List[str]:
         return [self.event_name]
@@ -28,7 +38,7 @@ class CrawlMetaVectorized(Event):
     event_name: ClassVar[str] = 'crawlmeta.vectorized'
     version: ClassVar[str] = 'v1'
 
-    orm_vectors: List[Dict[str, str]]
+    orm_vectors: List[Dict[str, str | List[float]]]
 
     def get_topics(self) -> List[str]:
         return [self.event_name]

@@ -1,10 +1,7 @@
-#from api.models import IntegrationCreateRequest
 from shared.database.models import IntegrationORM
 from shared.encryption import decrypt_secret
 from .integration_metadata import IntegrationMetadata
 
-def _(integration) -> IntegrationMetadata:
-    return IntegrationMetadata(**integration.model_dump())
 
 def create_integration_metadata(integration: IntegrationORM) -> IntegrationMetadata:
     return IntegrationMetadata(

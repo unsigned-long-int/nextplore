@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 
 from internal_services.authentication import get_active_user
 from shared.database.sql_connection_service import fetch_engine
-from shared.database.connection_builder import build_connection_string, create_integration_metadata
+from shared.database.connection_builder import build_connection_string, IntegrationMetadata
 from api.models import IntegrationCreateRequest
 
 
@@ -17,8 +17,8 @@ def test_integration(
     user=Depends(get_active_user)
 ) -> JSONResponse:
     try:
-        integration = create_integration_metadata(integration_create_request)
-        connection_string = build_connection_string(integration)
+        integration_metadata = IntegrationMetadata(**integration_create_request.model_dump())
+        connection_string = build_connection_string(integration_metadata)
         engine = fetch_engine(connection_string, connect_args={'connect_timeout': 5})
 
         with engine.connect() as connection:

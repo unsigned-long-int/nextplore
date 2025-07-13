@@ -1,9 +1,9 @@
-uvicorn==0.34.2
-fastapi==0.115.12
-SQLAlchemy==2.0.38
-pgvector==0.4.1
 cryptography==45.0.3
-pydantic-settings==2.9.1
+fastapi==0.115.12
 kafka-python==2.2.15
+pydantic==2.10.6
+pgvector==0.4.1
 psycopg2==2.9.10
 pyodbc==5.2.0
+SQLAlchemy==2.0.38
+uvicorn==0.34.2

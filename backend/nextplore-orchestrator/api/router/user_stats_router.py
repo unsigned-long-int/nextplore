@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends
-from typing import List
 
 from shared.database.repositories import IntegrationRepository, VectorRepository
 from internal_services.authentication import get_active_user
-from internal_services.identity_service import resolve_user_identity
+from shared.identity_service import resolve_user_identity
 from api.models import UserStats
 
 router = APIRouter()

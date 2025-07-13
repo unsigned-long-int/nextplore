@@ -1,10 +1,10 @@
-import { Routes, Route } from 'react-router-dom';
-import { NavigationPage } from '../pages/NavigationPage';
+import { Route, Routes } from 'react-router-dom';
+import { OtherSettingsCards } from '../components/OtherSettingsCards';
 import { AIQueryPage } from '../pages/AIQueryPage';
-import { UserProfilePage } from '../pages/UserProfilePage';
 import { IntegrationPage } from '../pages/IntegrationPage';
 import { MetadataPage } from '../pages/MetadataPage';
-import { OtherSettingsCards } from '../components/otherSettingsCards';
+import { NavigationPage } from '../pages/NavigationPage';
+import { UserProfilePage } from '../pages/UserProfilePage';
 
 
 export const AppRoutes = () => (

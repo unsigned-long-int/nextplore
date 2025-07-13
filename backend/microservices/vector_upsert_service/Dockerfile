@@ -6,7 +6,6 @@ RUN groupadd -r nextplore-group \
 USER root 
 RUN apt-get update && apt-get install -y \
     gcc \
-    gnupg \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean

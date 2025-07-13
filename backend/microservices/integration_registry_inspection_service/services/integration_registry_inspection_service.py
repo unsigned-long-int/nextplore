@@ -19,9 +19,8 @@ def inspect_integration_registry(
     integrations = []
 
     for integration_id in integration_ids:
-        integration_id = UUID(integration_id)
+        integration_id = integration_id
         integration_meta_candidate = IntegrationCatalog(id=integration_id)
-        print(f'integration is satisfied: {integration_spec.is_satisfied_by(integration_meta_candidate)}')
         if not integration_spec.is_satisfied_by(integration_meta_candidate):
             continue
         

@@ -1,6 +1,8 @@
 from sqlalchemy import select, func, Select
 from typing import Any, Dict
-from .ai_orm_factory import ORMRequest
+
+from .ai_orm_request_factory import ORMRequest
+
 
 OPERATOR_DISPATCHER: Dict[str, Any] = {
     '==': lambda stmt, field, value: stmt.where(field == value),

@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from internal_services.authentication import get_active_user
-from internal_services.identity_service import resolve_user_identity
+from shared.identity_service import resolve_user_identity
 from shared.database.repositories import IntegrationRepository, IntegrationDeleteFailed
 from api.models import IntegrationDeleteRequest
 
@@ -22,7 +22,10 @@ def delete_integration(
 
     integration_repo = IntegrationRepository()
     try:
-        integration_repo.delete_integration(user_identity, integration_delete_request)
+        integration_repo.delete_integration(
+            user_identity=user_identity, 
+            integration_id=integration_delete_request.id
+        )
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

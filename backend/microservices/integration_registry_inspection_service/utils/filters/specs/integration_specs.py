@@ -8,7 +8,6 @@ from utils.catalogs import IntegrationCatalog
 class IntegrationIdSpec(Specification):
     def __init__(self, integration_ids: Set[UUID]) -> None:
         self.allowed = integration_ids
-        print(f'allowed integrations: {self.allowed}')
 
     def is_satisfied_by(self, candidate: IntegrationCatalog) -> bool:
         print(candidate.id)

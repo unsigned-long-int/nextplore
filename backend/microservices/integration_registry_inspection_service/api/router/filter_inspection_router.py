@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from api.models import FilteredInspectionRequest, InspectionResponse
+from shared.contracts.integration_service import FilteredInspectionRequest, InspectionResponse
 from api.handlers import handle_filtered_inspection
 
 

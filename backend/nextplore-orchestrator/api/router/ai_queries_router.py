@@ -3,8 +3,9 @@ from fastapi import APIRouter, Depends
 from api.models import AIQueryRequest, AIQueryResponse
 
 from internal_services.authentication import get_active_user
-from internal_services.identity_service import resolve_user_identity
 from internal_services.orm_factory import generate_orm_statement, AIORMRequestFactory
+from shared.identity_service import resolve_user_identity
+from shared.database.connection_builder import build_connection_string
 from shared.database.sql_connection_service import fetch_engine, fetch_session_maker, session_scope
 from shared.database.repositories import IntegrationRepository, VectorRepository
 from shared.open_ai_client_loader import load_open_ai_client
@@ -41,6 +42,11 @@ def ai_query(request: AIQueryRequest, user=Depends(get_active_user)) -> AIQueryR
     )
 
     orm_request = ai_orm_factory.retrieve_orm_request(request.prompt)
+    integration_metadata = integration_repo.get_integration_metadata(
+        user_identity=user_identity,
+        integration_id=orm_request.integration_id
+    )
+    engine = fetch_engine(sql_connection_string=build_connection_string(integration_metadata))
     session_factory = fetch_session_maker(engine)
 
     with session_scope(session_factory) as session:

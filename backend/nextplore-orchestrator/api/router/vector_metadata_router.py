@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from typing import List
 
-
 from shared.database.repositories import VectorRepository
 from internal_services.authentication import get_active_user
 from api.models import VectorMetadata, VectorMetadataRequest
@@ -13,7 +12,6 @@ def get_vectors_metadata(
     vector_metadata_request: VectorMetadataRequest,
     user=Depends(get_active_user)
 ) -> List[VectorMetadata]:
-    print(vector_metadata_request)
     vector_repo = VectorRepository()
     
     vectors_orm = vector_repo.get_integration_vectors([vector_metadata_request.integration_id])

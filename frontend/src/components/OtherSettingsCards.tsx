@@ -1,4 +1,13 @@
 import {
+    Anchor,
+    Card,
+    Group,
+    SimpleGrid,
+    Text,
+    UnstyledButton,
+    useMantineTheme,
+} from '@mantine/core';
+import {
     IconBuildingBank,
     IconCashBanknote,
     IconCoin,
@@ -8,17 +17,8 @@ import {
     IconReceiptTax,
     IconRepeat,
     IconReport,
-  } from '@tabler/icons-react';
-  import {
-    Anchor,
-    Card,
-    Group,
-    SimpleGrid,
-    Text,
-    UnstyledButton,
-    useMantineTheme,
-  } from '@mantine/core';
-  import classes from '../styles/otherSettingsCards.module.css';
+} from '@tabler/icons-react';
+import classes from '../styles/OtherSettingsCards.module.css';
   
   const mockdata = [
     { title: 'Credit cards', icon: IconCreditCard, color: 'violet' },
@@ -32,29 +32,29 @@ import {
     { title: 'Cashback', icon: IconCashBanknote, color: 'orange' },
   ];
   
-  export const OtherSettingsCards = () => {
+export const OtherSettingsCards = () => {
     const theme = useMantineTheme();
-  
+
     const items = mockdata.map((item) => (
-      <UnstyledButton key={item.title} className={classes.item}>
+        <UnstyledButton key={item.title} className={classes.item}>
         <item.icon color={theme.colors[item.color][6]} size={32} />
         <Text size="xs" mt={7}>
-          {item.title}
+            {item.title}
         </Text>
-      </UnstyledButton>
+        </UnstyledButton>
     ));
-  
+
     return (
-      <Card withBorder radius="md" className={classes.card}>
+        <Card withBorder radius="md" className={classes.card}>
         <Group justify="space-between">
-          <Text className={classes.title}>Services</Text>
-          <Anchor size="xs" c="dimmed" style={{ lineHeight: 1 }}>
+            <Text className={classes.title}>Services</Text>
+            <Anchor size="xs" c="dimmed" style={{ lineHeight: 1 }}>
             + 21 other services
-          </Anchor>
+            </Anchor>
         </Group>
         <SimpleGrid cols={3} mt="md">
-          {items}
+            {items}
         </SimpleGrid>
-      </Card>
+        </Card>
     );
-  }
+}

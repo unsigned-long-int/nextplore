@@ -39,21 +39,11 @@ services:
       - PYTHONUNBUFFERED=1
       - FERNET_KEY=${FERNET_KEY}
       - KAFKA_GROUP_PREFIX=${KAFKA_GROUP_PREFIX}
-      - OPEN_API_KEY=${OPENAI_API_KEY}
-      - DATABASE_URL=${DATABASE_URL}
-      - SQL_CONNECTION_STRING=${SQL_CONNECTION_STRING}
-      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
-      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
-      - JWT_AUDIENCE=${JWT_AUDIENCE}
-      - ISSUER=${ISSUER}
-      - JWKS_URL=${JWKS_URL}
-      - JWT_ALGORITHMS=${JWT_ALGORITHMS}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
-
     depends_on:
       - kafka
     restart: on-failure
@@ -71,7 +61,7 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1
       - KAFKA_GROUP_PREFIX=${KAFKA_GROUP_PREFIX}
-      - OPEN_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - kafka
     restart: on-failure
@@ -103,16 +93,18 @@ services:
       context: .
       dockerfile: nextplore-orchestrator/Dockerfile
     container_name: orchestration_service
+    depends_on:
+      - kafka
     ports:
       - "${ORCHESTRATION_PORT:-8003}:8001"
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1
-      - FERNET_KEY=${FERNET_KEY}
       - KAFKA_GROUP_PREFIX=${KAFKA_GROUP_PREFIX}
-      - OPEN_API_KEY=${OPENAI_API_KEY}
-      - DATABASE_URL=${DATABASE_URL}
-      - SQL_CONNECTION_STRING=${SQL_CONNECTION_STRING}
+      - FERNET_KEY=${FERNET_KEY}
+      - VECTORIZATION_PORT=${VECTORIZATION_PORT}
+      - INSPECTION_PORT=${INSPECTION_PORT}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
       - AZURE_TENANT_ID=${AZURE_TENANT_ID}
       - JWT_AUDIENCE=${JWT_AUDIENCE}
@@ -124,12 +116,10 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
-    depends_on:
-      - kafka
     restart: on-failure
     networks:
       - app-network
 
 networks:
   app-network:
-    driver: bridge
+    external: true

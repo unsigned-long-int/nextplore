@@ -1,5 +1,5 @@
-uvicorn==0.34.2
 fastapi==0.115.12
 kafka-python==2.2.15
 openai==1.64.0
-pydantic-settings==2.9.1
+pydantic==2.10.6
+uvicorn==0.34.2
