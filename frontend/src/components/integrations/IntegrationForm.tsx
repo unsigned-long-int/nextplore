@@ -11,6 +11,11 @@ import {
     Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { showNotification } from '@mantine/notifications';
+import {
+    IconCheck,
+    IconX
+} from "@tabler/icons-react";
 import { useState } from "react";
 
 import { useTestIntegration } from "../../hooks/useTestIntegration";
@@ -23,7 +28,6 @@ export const IntegrationForm: React.FC<IntegrationFormProps> = ({
   service_type,
   onSubmit,
 }) => {
-  const [testResult, setTestResult] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
   const { testIntegration } = useTestIntegration();
 
@@ -50,23 +54,22 @@ export const IntegrationForm: React.FC<IntegrationFormProps> = ({
 
   const handleTest = async (values: IntegrationCreateRequest) => {
         setTesting(true);
-        setTestResult(null);
         try {
-        const response = await testIntegration(values);
-        if (response.success) {
-            setTestResult("Connection successful!");
-        } else {
-            setTestResult(
-            "Connection failed: " + (response.data.message || "Unknown error")
-            );
-        }
-        } catch (error: any) {
-        setTestResult(
-            "Error testing connection: " +
-            (error.response?.data?.detail || error.message)
-        );
+            const result = await testIntegration(values);
+            if (!result.success) throw new Error(!result.message ? 'Unhandled Error': result.message);
+            showNotification({
+                title: 'Integration Test Successful',
+                message: `Connection: ${values.connection_name} was successful.`,
+                icon: <IconCheck size={16} />, color: 'green'
+            });
+        } catch (e) {
+            showNotification({
+                title: 'Test Failed',
+                message: `Connection: ${values.connection_name} failed with error ${e}`,
+                icon: <IconX size={16} />, color: 'red'
+            });
         } finally {
-        setTesting(false);
+            setTesting(false);
         }
   };
 
@@ -142,14 +145,6 @@ export const IntegrationForm: React.FC<IntegrationFormProps> = ({
           <Button type="submit">Create Integration</Button>
         </Group>
       </form>
-      {testResult && (
-        <Box
-          mt="md"
-          style={{ color: testResult.includes("successful") ? "green" : "red" }}
-        >
-          {testResult}
-        </Box>
-      )}
     </Box>
   );
 };

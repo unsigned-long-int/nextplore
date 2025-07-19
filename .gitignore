@@ -2,7 +2,6 @@ __pycache__
 .env
 *~*
 .idea
-config
 logs
 *#*
 .DS_Store

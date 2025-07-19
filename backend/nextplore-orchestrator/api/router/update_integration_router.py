@@ -1,55 +1,38 @@
-from fastapi import APIRouter, Depends, status
-from fastapi.responses import JSONResponse
-from sqlalchemy.exc import SQLAlchemyError
+from fastapi import APIRouter, Depends, HTTPException
 
-from shared.database.repositories import IntegrationRepository, IntegrationUpdateFailed
-from internal_services.authentication import get_active_user
-from shared.encryption import ENCRYPTED_FIELDS, encrypt_secret
+from dependencies.authentication import get_active_user
+from dependencies.microservices import get_integration_client
+from api.models import IntegrationUpdateRequest, IntegrationUpdateResponse
+from shared.encryptor import ENCRYPTED_FIELDS, encrypt_secret
+from shared.contracts.integration_service import PreparedIntegrationUpdateRequest
 from shared.identity_service import resolve_user_identity
-from api.models import IntegrationUpdateRequest
 
 
 router = APIRouter()
 
 @router.post('')
-def update_integration(
+async def update_integration(
     integration_update_request: IntegrationUpdateRequest,
-    user=Depends(get_active_user)
-) -> JSONResponse:
+    user=Depends(get_active_user),
+    integration_client=Depends(get_integration_client)
+) -> IntegrationUpdateResponse:
     azure_tenant_id = user.get('tid')
     azure_user_id = user.get('oid')
 
     user_identity = resolve_user_identity(azure_tenant_id, azure_user_id)
 
-    integration_repo = IntegrationRepository()
+    update_args = {
+        field: encrypt_secret(value) if field in ENCRYPTED_FIELDS else value for field, value in integration_update_request.model_dump().items()
+        if value is not None and field != 'id'
+    }
+    payload = PreparedIntegrationUpdateRequest(
+        integration_id = integration_update_request.id,
+        user_id = user_identity.user_id,
+        organization_id = user_identity.organization_id,
+        update_args = update_args
+    )
     try:
-        update_args = {
-            field: encrypt_secret(value) if field in ENCRYPTED_FIELDS else value for field, value in integration_update_request.model_dump().items()
-            if value is not None and field != 'id'
-        }
-        integration_repo.update_integration(
-            user_identity=user_identity, 
-            integration_id=integration_update_request.id, 
-            update_args=update_args
-        )
-
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={'success': True}
-        )
-    
-    except IntegrationUpdateFailed as e:
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={'success': False, 'message': str(e)}
-        )
-    except SQLAlchemyError as e:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={'success': False, 'message': str(e)}
-        )
-    except Exception as e:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={'success': False, 'message': str(e)}
-        )
+        await integration_client.update_integration(payload)
+        return IntegrationUpdateResponse(success=True)
+    except HTTPException as e:
+        return IntegrationUpdateResponse(success=False, message=str(e.detail))

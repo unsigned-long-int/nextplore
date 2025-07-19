@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 from shared.database.dependencies import backend_session_scope
 from shared.database.models import OrganizationORM, UserORM
-from internal_services.authentication import get_active_user
+from dependencies.authentication import get_active_user
 from api.models import UserProfile
 
 router = APIRouter()

@@ -7,7 +7,7 @@ from threading import Thread
 from pydantic.json import pydantic_encoder
 from kafka import KafkaProducer, KafkaConsumer
 
-from messaging.events import events 
+from messaging.events.base import BaseEvent 
 from messaging.registry import register_event, get_event_cls
 
 
@@ -20,9 +20,9 @@ class KafkaMessageBus:
             bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS'),
             value_serializer=lambda value: json.dumps(value, default=pydantic_encoder).encode('utf-8')
         )
-        self.handlers: Dict[str, List[Callable[[events.Event]], None]] = {}
+        self.handlers: Dict[str, List[Callable[[BaseEvent]], None]] = {}
 
-    def publish(self, event: events.Event) -> None:
+    def publish(self, event: BaseEvent) -> None:
         for topic in event.get_topics():
             payload = event.model_dump()
             payload.update({
@@ -34,7 +34,7 @@ class KafkaMessageBus:
 
         self.producer.flush()
 
-    def subscribe(self, event_cls: Type[events.Event], handler: Callable[[events.Event], None]) -> None:
+    def subscribe(self, event_cls: Type[BaseEvent], handler: Callable[[BaseEvent], None]) -> None:
         register_event(event_cls)
         topic = event_cls.event_name
         self.handlers.setdefault(topic, []).append(handler)

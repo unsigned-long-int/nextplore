@@ -1,1 +1,0 @@
-from .vectorize_router import router as vectorize_router

@@ -1,17 +1,21 @@
 import { cibPostgresql } from "@coreui/icons";
 import { CIcon } from "@coreui/icons-react";
 import { Button, Menu, Modal, Text, useMantineTheme } from "@mantine/core";
+import { showNotification } from '@mantine/notifications';
 import {
     IconBrandMysql,
     IconBrandSnowflake,
+    IconCheck,
     IconChevronDown,
     IconSql,
+    IconX,
 } from "@tabler/icons-react";
 import axios from "axios";
 import { useState } from "react";
 
 import { useTokenProvider } from "../../authentication/useTokenProvider";
 import type { IntegrationCreateRequest } from "../../interface/integration-create-request.interface";
+import type { IntegrationCreateResponse } from "../../interface/integration-create-response-interface";
 import { IntegrationForm } from "./IntegrationForm";
 
 const INTEGRATIONS = [
@@ -52,17 +56,13 @@ const INTEGRATIONS = [
 export const createIntegration = async (
     data: IntegrationCreateRequest,
     token: string | null
-) => {
-    try {
-        const response = await axios.post("http://localhost:8003/nextplore-orchestrator/createintegration", data, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        return response.data;
-    } catch (e) {
-        console.log("Create integration failed: " + e);
-    }
+): Promise<IntegrationCreateResponse> => {
+    const response = await axios.post("http://localhost:8004/nextplore-orchestrator/create-integration", data, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
 };
 
 export const CreateIntegrationButton = () => {
@@ -78,8 +78,22 @@ export const CreateIntegrationButton = () => {
 
     const handleFormSubmit = async (data: IntegrationCreateRequest) => {
         const token = await getToken();
-        await createIntegration(data, token);
-        setModalOpened(false);
+        const result = await createIntegration(data, token);
+        try {
+            if (!result.success) throw new Error(!result.message ? 'Unhandled Error': result.message);
+            showNotification({
+                title: 'Integration Created',
+                message: `${data.connection_name} was successfully created and will be vectorized`,
+                icon: <IconCheck size={16} />, color: 'green'
+            });
+            setModalOpened(false);
+        } catch (e) {
+            showNotification({
+                title: 'Create Failed',
+                message: `Could not create ${data.connection_name}. Failed: ${e}`,
+                icon: <IconX size={16} />, color: 'red'
+            });
+        }
     };
 
     return (

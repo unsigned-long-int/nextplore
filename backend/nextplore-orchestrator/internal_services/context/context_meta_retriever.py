@@ -7,7 +7,7 @@ from internal_services.cosine_similarity import cosine_similarity
 
 def retrieve_context_meta(
         query_vector: List[float],
-        orm_vectors: pd.DataFrame,
+        embedded_tables_df: pd.DataFrame,
         context_size: Optional[int] = 5
 ) -> Tuple[List[UUID], Dict[UUID, List[str]], Dict[UUID, List[str]]]:
     context_cosine_matrix = [
@@ -15,20 +15,15 @@ def retrieve_context_meta(
             row['integration_id'],
             row['schema_name'],
             row['table_name'],
-            row['table_meta'],
             cosine_similarity(
                 query_embedding=query_vector,
-                knowledge_embedding=row['vector']
+                knowledge_embedding=row['embeddings']
             )
         )
-        for _, row in orm_vectors.iterrows()
+        for _, row in embedded_tables_df.iterrows()
     ]
-    context_cosine_matrix.sort(
-        key=lambda similarity: similarity[4],
-        reverse=True
-    )
     
-    context_cosine_matrix.sort(key=lambda similarity: similarity[4], reverse=True)
+    context_cosine_matrix.sort(key=lambda similarity: similarity[3], reverse=True)
     context_cosine_matrix = context_cosine_matrix[:context_size - 1]
 
     integrations: List[UUID] = list({row[0] for row in context_cosine_matrix})

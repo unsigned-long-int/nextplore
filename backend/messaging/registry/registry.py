@@ -1,13 +1,13 @@
 from typing import Dict, Type 
 
-from messaging.events import events 
+from messaging.events.base import BaseEvent 
 
 
-_EVENT_REGISTRY: Dict[str, Type[events.Event]] = {}
+_EVENT_REGISTRY: Dict[str, Type[BaseEvent]] = {}
 
-def register_event(event_cls: Type[events.Event]) -> None:
+def register_event(event_cls: Type[BaseEvent]) -> None:
     _EVENT_REGISTRY[event_cls.event_name] = event_cls
 
 
-def get_event_cls(event_name: str) -> Type[events.Event]:
+def get_event_cls(event_name: str) -> Type[BaseEvent]:
     return _EVENT_REGISTRY[event_name]

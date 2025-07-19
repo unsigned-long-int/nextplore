@@ -1,5 +1,0 @@
-kafka-python==2.2.15
-psycopg2==2.9.10
-pandas==2.2.3
-pydantic==2.10.6
-SQLAlchemy==2.0.38

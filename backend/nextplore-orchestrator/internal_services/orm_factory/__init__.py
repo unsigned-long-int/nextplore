@@ -1,2 +1,3 @@
 from .ai_orm_request_factory import AIORMRequestFactory
 from .orm_request_generator import generate_orm_statement
+from .embedded_table import EmbeddedTable

@@ -10,7 +10,7 @@ export const useAIQueryRequest = () => {
         const token = await getToken();
 
         const response = await axios.post(
-            'http://localhost:8003/nextplore-orchestrator/aiquery',
+            'http://localhost:8004/nextplore-orchestrator/ai-query',
             {
                 prompt,
                 integration_id: null

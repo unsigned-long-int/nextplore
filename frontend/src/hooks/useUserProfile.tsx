@@ -16,7 +16,7 @@ export const useUserProfile = () => {
         const fetchUser = async () => {
             try {
                 const token = await getToken();
-                const response = await axios.get('http://localhost:8003/nextplore-orchestrator/me', {
+                const response = await axios.get('http://localhost:8004/nextplore-orchestrator/me', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

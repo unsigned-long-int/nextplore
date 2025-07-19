@@ -1,41 +1,38 @@
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-from fastapi import APIRouter, Depends, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends
+from httpx import HTTPStatusError
 
-from internal_services.authentication import get_active_user
-from shared.database.sql_connection_service import fetch_engine
-from shared.database.connection_builder import build_connection_string, IntegrationMetadata
-from api.models import IntegrationCreateRequest
+from dependencies.authentication import get_active_user
+from dependencies.microservices import get_integration_client
+from shared.contracts.integration_service import PreparedIntegrationTestRequest
+from api.models import IntegrationCreateRequest, IntegrationTestResponse
 
 
 router = APIRouter()
 
 @router.post('')
-def test_integration(
+async def test_integration(
     integration_create_request: IntegrationCreateRequest,
-    user=Depends(get_active_user)
-) -> JSONResponse:
+    user=Depends(get_active_user),
+    integration_client=Depends(get_integration_client)
+) -> IntegrationTestResponse:
+    payload = PreparedIntegrationTestRequest(
+        service_type=integration_create_request.service_type,
+        auth_method=integration_create_request.auth_method,
+        connection_name=integration_create_request.connection_name,
+        host=integration_create_request.host,
+        port=integration_create_request.port,
+        database_name=integration_create_request.database_name,
+        username=integration_create_request.username,
+        password=integration_create_request.password,
+        kerberos_principal=integration_create_request.kerberos_principal,
+        windows_domain=integration_create_request.windows_domain,
+        extra_options=integration_create_request.extra_options,
+        autosync_on=integration_create_request.autosync_on
+    )
+
     try:
-        integration_metadata = IntegrationMetadata(**integration_create_request.model_dump())
-        connection_string = build_connection_string(integration_metadata)
-        engine = fetch_engine(connection_string, connect_args={'connect_timeout': 5})
+        await integration_client.test_integration(payload)
+        return IntegrationTestResponse(success=True)
+    except HTTPStatusError as e:
+        return IntegrationTestResponse(success=False, message=str(e))
 
-        with engine.connect() as connection:
-            connection.execute(text('SELECT 1'))
-
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={'success': True}
-        )
-    except SQLAlchemyError as e:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={'success': False, 'message': str(e)}
-        )
-    except Exception as e:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={'success': False, 'message': str(e)}
-        )
-        

@@ -1,6 +1,15 @@
 version: "3.9"
 
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: on-failure
+    networks:
+      - app-network
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
@@ -27,16 +36,17 @@ services:
     networks:
       - app-network
 
-  inspection_service:
+  integration_service:
     build:
       context: .
-      dockerfile: microservices/integration_registry_inspection_service/Dockerfile
-    container_name: inspection_service
+      dockerfile: microservices/integration_service/Dockerfile
+    container_name: integration_service
     ports:
-      - "${INSPECTION_PORT:-8001}:8001"
+      - "${INTEGRATION_PORT:-8001}:8001"
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1
+      - REDIS_URL=${REDIS_URL}
       - FERNET_KEY=${FERNET_KEY}
       - KAFKA_GROUP_PREFIX=${KAFKA_GROUP_PREFIX}
       - DB_HOST=${DB_HOST}
@@ -46,44 +56,51 @@ services:
       - DB_NAME=${DB_NAME}
     depends_on:
       - kafka
+      - redis
     restart: on-failure
     networks:
       - app-network
 
-  vectorization_service:
+  embedding_service:
     build:
       context: .
-      dockerfile: microservices/vectorization_service/Dockerfile
-    container_name: vectorization_service
+      dockerfile: microservices/embedding_service/Dockerfile
+    container_name: embedding_service
     ports:
-      - "${VECTORIZATION_PORT:-8002}:8001"
+      - "${EMBEDDING_PORT:-8002}:8001"
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1
+      - REDIS_URL=${REDIS_URL}
       - KAFKA_GROUP_PREFIX=${KAFKA_GROUP_PREFIX}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - kafka
+      - redis
     restart: on-failure
     networks:
       - app-network
 
-  vector_upsert_service:
+  vector_service:
     build:
       context: .
-      dockerfile: microservices/vector_upsert_service/Dockerfile
-    container_name: vector_upsert_service
-    depends_on:
-      - kafka
+      dockerfile: microservices/vector_service/Dockerfile
+    container_name: vector_service
+    ports:
+      - "${VECTOR_PORT:-8003}:8001"
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1
+      - REDIS_URL=${REDIS_URL}
       - KAFKA_GROUP_PREFIX=${KAFKA_GROUP_PREFIX}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
+    depends_on:
+      - kafka
+      - redis
     restart: on-failure
     networks:
       - app-network
@@ -95,15 +112,14 @@ services:
     container_name: orchestration_service
     depends_on:
       - kafka
+      - redis
     ports:
-      - "${ORCHESTRATION_PORT:-8003}:8001"
+      - "${ORCHESTRATION_PORT:-8004}:8001"
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1
       - KAFKA_GROUP_PREFIX=${KAFKA_GROUP_PREFIX}
       - FERNET_KEY=${FERNET_KEY}
-      - VECTORIZATION_PORT=${VECTORIZATION_PORT}
-      - INSPECTION_PORT=${INSPECTION_PORT}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
       - AZURE_TENANT_ID=${AZURE_TENANT_ID}

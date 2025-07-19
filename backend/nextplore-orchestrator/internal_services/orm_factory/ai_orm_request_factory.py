@@ -4,10 +4,14 @@ import pandas as pd
 from dataclasses import dataclass
 from typing import List
 from openai import OpenAI
-from sqlalchemy.engine import Row
 
-from internal_services.clients import VectorizationClient, IntegrationRegistryInspectionClient
+from shared.contracts.integration_service import IntegrationMetadataRequest
+from shared.database.connection_builder import build_connection_string, ConnectionMeta
+from shared.identity_service import UserIdentity
+from shared.contracts.integration_service import FilteredCrawlRequest
 from internal_services.context import retrieve_context_meta
+from clients import EmbeddingClient, IntegrationClient
+from .embedded_table import EmbeddedTable
 from .orm_factory import ORMFactory
 from .orm_request import ORMRequest
 
@@ -15,25 +19,33 @@ from .orm_request import ORMRequest
 @dataclass 
 class AIORMRequestFactory:
     client: OpenAI
-    vectors_meta: List[Row]
+    embedded_tables: List[EmbeddedTable]
+    user_identity: UserIdentity
+    integration_client: IntegrationClient
+    embedding_client: EmbeddingClient
 
-    def retrieve_orm_request(self, query: str) -> ORMRequest:
-        vectorization_client = VectorizationClient()
-        query_vector_response = vectorization_client.vectorize(query)
-        query_vector = query_vector_response.vector
 
-        orm_vectors = pd.DataFrame([dict(row._mapping) for row in self.vectors_meta])
+    async def retrieve_orm_request(self, query: str) -> ORMRequest:
+        query_vector_response = await self.embedding_client.embed(query)
+        query_vector = query_vector_response.embedding
+        embedded_tables_df = pd.DataFrame([{
+            'integration_id': str(et.integration_id),
+            'schema_name': et.schema_name,
+            'table_name': et.table_name,
+            'embeddings': et.embeddings
+            } for et in self.embedded_tables])
+        print(embedded_tables_df)
         integrations, schemas, tables = retrieve_context_meta(
             query_vector=query_vector,
-            orm_vectors=orm_vectors
+            embedded_tables_df=embedded_tables_df
         )
 
-        integration_registry_inspection_client = IntegrationRegistryInspectionClient()
-        integration_registry = integration_registry_inspection_client.fetch_filtered_integration_registry(
+        payload = FilteredCrawlRequest(
             integrations=integrations,
             schemas=schemas,
             tables=tables
         )
+        integration_registry = await self.integration_client.crawl_filtered_integration(payload)
 
         tools = [{'type': 'function',
                   'function': {
@@ -138,11 +150,32 @@ class AIORMRequestFactory:
         tool_call = request.choices[0].message.tool_calls[0]
         args = json.loads(tool_call.function.arguments)
 
+        integration_metadata_request = IntegrationMetadataRequest(
+            integration_id=args['integration'],
+            user_id=self.user_identity.user_id,
+            organization_id=self.user_identity.organization_id
+        )
+        integration = await self.integration_client.get_integration(integration_metadata_request)
+        connection_meta = ConnectionMeta(
+            service_type=integration.service_type,
+            auth_method=integration.auth_method,
+            host=integration.host,
+            port=integration.port,
+            database_name=integration.database_name,
+            username=integration.username,
+            password=integration.password,
+            kerberos_principal=integration.kerberos_principal,
+            windows_domain=integration.windows_domain,
+            extra_options=integration.extra_options
+        )
+        connection_string = build_connection_string(connection_meta)
+
         orm_factory = ORMFactory(
             integration_id=args['integration'],
             schema_name=args['schema_name'],
             class_name=args['class_name'],
-            table_name=args['table_name']
+            table_name=args['table_name'],
+            connection_string=connection_string
         )
 
 

@@ -10,7 +10,7 @@ export const useVectorMetadata = () => {
         const token = await getToken();
 
         const response = await axios.post(
-            'http://localhost:8003/nextplore-orchestrator/vectormetadata', 
+            'http://localhost:8004/nextplore-orchestrator/vector-metadata', 
             vector_metadata_request,
             {
             headers: {

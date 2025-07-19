@@ -5,7 +5,9 @@ import logging.config
 def setup_logger() -> None:
     env = os.getenv('ENV', 'prod').lower()
     config_file = (
-        'config/logging-dev.conf' if env == 'local' else 'config/logging-prod.conf'
+        'shared/logging/config/logging-dev.conf' 
+        if env == 'local' else 
+        'shared/logging/config/logging-prod.conf'
     )
     if env == 'local':
         os.makedirs('./logs', exist_ok=True)

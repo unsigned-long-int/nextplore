@@ -1,0 +1,1 @@
+from .integration_registry_crawl_service import crawl_integration_registry

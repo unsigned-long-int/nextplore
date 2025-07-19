@@ -1,0 +1,34 @@
+from fastapi import APIRouter
+
+from database.repositories import IntegrationRepository
+from utils.encryption import decrypt_integration
+from shared.contracts.integration_service import IntegrationMetadataRequest, IntegrationMetadataResponse
+
+
+router = APIRouter(prefix='/v1/integration', tags=['Integration'])
+
+@router.post('/get-integration', response_model=IntegrationMetadataResponse)
+def get_integration(payload: IntegrationMetadataRequest) -> IntegrationMetadataResponse:
+    integration_repo = IntegrationRepository()
+    encrypted_integration = integration_repo.get_integration(
+        user_id=payload.user_id,
+        organization_id=payload.organization_id,
+        integration_id=payload.integration_id
+    )
+
+    decrypted_integration = decrypt_integration(encrypted_integration)
+    return IntegrationMetadataResponse(
+        service_type=decrypted_integration.service_type,
+        auth_method=decrypted_integration.auth_method,
+        connection_name=decrypted_integration.connection_name,
+        host=decrypted_integration.host,
+        port=decrypted_integration.port,
+        database_name=decrypted_integration.database_name,
+        username=decrypted_integration.username,
+        password=decrypted_integration.password,
+        kerberos_principal=decrypted_integration.kerberos_principal,
+        windows_domain=decrypted_integration.windows_domain,
+        extra_options=decrypted_integration.extra_options,
+        autosync_on=decrypted_integration.autosync_on
+    )
+ 

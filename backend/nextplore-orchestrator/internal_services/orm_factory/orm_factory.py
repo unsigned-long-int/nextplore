@@ -6,7 +6,7 @@ from sqlalchemy.orm import registry
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import quoted_name
 
-from shared.database.crawler import get_crawler
+from shared.database.crawler_factory import get_crawler
 
 
 _dynamic_bases: Dict[str, registry] = {}
@@ -31,6 +31,7 @@ class ORMFactory:
     schema_name: str
     class_name: str
     table_name: str
+    connection_string: str
 
     def generate_orm_class(self) -> type:
         Base = get_dynamic_base(self.integration_id)
@@ -58,7 +59,7 @@ class ORMFactory:
         )
 
     def _fetch_reflected_columns(self) -> List[ReflectedColumn]:
-        crawler = get_crawler(self.integration_id)
+        crawler = get_crawler(self.connection_string)
         return crawler.get_columns(
             table_name=quoted_name(self.table_name, quote=True),
             schema=quoted_name(self.schema_name, quote=True)

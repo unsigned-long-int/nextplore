@@ -9,3 +9,7 @@ from .vector_metadata import VectorMetadata
 from .user_stats import UserStats
 from .integration_update_request import IntegrationUpdateRequest
 from .integration_delete_request import IntegrationDeleteRequest
+from .integration_update_response import IntegrationUpdateResponse
+from .integration_delete_response import IntegrationDeleteResponse
+from .integration_create_response import IntegrationCreateResponse
+from .integration_test_response import IntegrationTestResponse

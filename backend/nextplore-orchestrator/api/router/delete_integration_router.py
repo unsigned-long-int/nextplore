@@ -1,49 +1,33 @@
-from fastapi import APIRouter, Depends, status
-from fastapi.responses import JSONResponse
-from sqlalchemy.exc import SQLAlchemyError
+from httpx import HTTPStatusError
+from fastapi import APIRouter, Depends
 
-from internal_services.authentication import get_active_user
+from dependencies.authentication import get_active_user
+from dependencies.microservices import get_integration_client
+from shared.contracts.integration_service import PreparedIntegrationDeleteRequest
 from shared.identity_service import resolve_user_identity
-from shared.database.repositories import IntegrationRepository, IntegrationDeleteFailed
-from api.models import IntegrationDeleteRequest
+from api.models import IntegrationDeleteRequest, IntegrationDeleteResponse
 
 
 router = APIRouter()
 
 @router.post('')
-def delete_integration(
+async def delete_integration(
     integration_delete_request: IntegrationDeleteRequest,
-    user=Depends(get_active_user)
-) -> JSONResponse:
+    user=Depends(get_active_user),
+    integration_client=Depends(get_integration_client)
+) -> IntegrationDeleteResponse:
     azure_tenant_id = user.get('tid')
     azure_user_id = user.get('oid')
 
     user_identity = resolve_user_identity(azure_tenant_id, azure_user_id)
 
-    integration_repo = IntegrationRepository()
+    payload = PreparedIntegrationDeleteRequest(
+        integration_id=integration_delete_request.id,
+        user_id=user_identity.user_id,
+        organization_id=user_identity.organization_id
+    )
     try:
-        integration_repo.delete_integration(
-            user_identity=user_identity, 
-            integration_id=integration_delete_request.id
-        )
-
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={'success': True}
-        )
-    
-    except IntegrationDeleteFailed as e:
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={'success': False, 'message': str(e)}
-        )
-    except SQLAlchemyError as e:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={'success': False, 'message': str(e)}
-        )
-    except Exception as e:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={'success': False, 'message': str(e)}
-        )
+        await integration_client.delete_integration(payload)
+        return IntegrationDeleteResponse(success=True)
+    except HTTPStatusError as e:
+        return IntegrationDeleteResponse(success=False, message=str(e.detail))
