@@ -2,8 +2,8 @@ import os
 from fastapi import APIRouter, Depends
 from api.models import AIQueryRequest, AIQueryResponse
 
-from dependencies.authentication import get_active_user
-from dependencies.microservices import (
+from api.dependencies.authentication import get_active_user
+from api.dependencies.microservices import (
     get_integration_client, 
     get_vector_client,
     get_embedding_client
@@ -11,7 +11,6 @@ from dependencies.microservices import (
 from internal_services.orm_factory import generate_orm_statement, AIORMRequestFactory, EmbeddedTable
 from shared.contracts.integration_service import IntegrationStatsRequest, IntegrationMetadataRequest
 from shared.contracts.vector_service import VectorMetaRequest
-from shared.identity_service import resolve_user_identity
 from shared.database.connection_builder import build_connection_string, ConnectionMeta
 from shared.database.sql_connection_service import fetch_engine, fetch_session_maker, session_scope
 from shared.open_ai_client_loader import load_open_ai_client
@@ -25,15 +24,11 @@ router = APIRouter()
 @router.post('', response_model=AIQueryResponse)
 async def ai_query(
     request: AIQueryRequest, 
-    user=Depends(get_active_user),
+    user_identity=Depends(get_active_user),
     integration_client=Depends(get_integration_client),
     vector_client=Depends(get_vector_client),
     embedding_client=Depends(get_embedding_client)
 ) -> AIQueryResponse:
-    azure_user_id = user.get('oid')
-    azure_tenant_id = user.get('tid')
-    user_identity = resolve_user_identity(azure_tenant_id, azure_user_id)
-
     integration_id_filter = [request.integration_id]
 
     if not request.integration_id:
@@ -70,7 +65,7 @@ async def ai_query(
         user_id=user_identity.user_id,
         organization_id=user_identity.organization_id
     )
-    integration = integration_client.get_integration(payload)
+    integration = await integration_client.get_integration(payload)
     connection_meta = ConnectionMeta(
         service_type=integration.service_type,
         auth_method=integration.auth_method,

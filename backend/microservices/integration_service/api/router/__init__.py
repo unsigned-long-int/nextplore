@@ -1,5 +1,4 @@
 from .crawl_filtered_integration_router import router as crawl_filtered_router
-from .crawl_initial_integration_router import router as crawl_initial_router
 from .create_integration_router import router as create_router
 from .delete_integration_router import router as delete_router
 from .get_integrations_router import router as get_router

@@ -2,14 +2,14 @@ from fastapi import APIRouter, Depends
 
 from shared.database.dependencies import backend_session_scope
 from shared.database.models import OrganizationORM, UserORM
-from dependencies.authentication import get_active_user
+from api.dependencies.authentication import get_azure_user
 from api.models import UserProfile
 
 router = APIRouter()
 
 @router.get('', response_model=UserProfile)
-def get_user_profile(
-    user=Depends(get_active_user)
+async def get_user_profile(
+    user=Depends(get_azure_user)
 ) -> UserProfile:
     email = user.get('preferred_username')
     if not email:

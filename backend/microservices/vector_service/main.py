@@ -1,7 +1,7 @@
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from lifecycle import lifespan
+from api.middleware import IdentityMiddleware
 from api.router import vector_metas_router, vector_stats_router
 
 
@@ -12,6 +12,8 @@ app = FastAPI(
     version = '1.0.0',
     lifespan=lifespan
 )
+
+app.add_middleware(IdentityMiddleware)
 
 app.include_router(vector_metas_router)
 app.include_router(vector_stats_router)

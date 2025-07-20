@@ -3,7 +3,6 @@ from fastapi import FastAPI
 from lifecycle import lifespan
 from api.router import (
     crawl_filtered_router,
-    crawl_initial_router,
     create_router,
     delete_router,
     get_router,
@@ -12,6 +11,7 @@ from api.router import (
     integration_stats_router,
     integration_meta_router
 )
+from api.middleware import IdentityMiddleware
 
 
 app = FastAPI(
@@ -20,9 +20,9 @@ app = FastAPI(
     version = '1.0.0',
     lifespan=lifespan
 )
+app.add_middleware(IdentityMiddleware)
 
 app.include_router(crawl_filtered_router)
-app.include_router(crawl_initial_router)
 app.include_router(create_router)
 app.include_router(delete_router)
 app.include_router(get_router)

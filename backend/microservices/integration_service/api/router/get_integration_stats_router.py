@@ -5,6 +5,7 @@ from shared.contracts.integration_service import (
     IntegrationStatsResponse
 )
 from shared.cache.service_caches.integration_cache import integration_service_cache
+from api.context import get_current_identity
 from database.repositories import IntegrationRepository
 
 
@@ -12,7 +13,11 @@ router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/get-integration-stats', response_model=IntegrationStatsResponse)
 async def get_integration_stats(payload: IntegrationStatsRequest) -> IntegrationStatsResponse:
-    cached = await integration_service_cache.get_integration_stats(payload)
+    user_identity = get_current_identity()
+    cached = await integration_service_cache.get_integration_stats(
+        user_identity=user_identity,
+        request=payload
+    )
     if cached:
         return cached
 
@@ -27,5 +32,9 @@ async def get_integration_stats(payload: IntegrationStatsRequest) -> Integration
         integration_ids=integration_ids,
         integration_count=len(integration_ids)
     )
-    await integration_service_cache.set_integration_stats(payload, response)
+    await integration_service_cache.set_integration_stats(
+        user_identity=user_identity,
+        request=payload, 
+        response=response
+    )
     return response

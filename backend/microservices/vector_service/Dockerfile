@@ -24,6 +24,7 @@ WORKDIR /app
 COPY microservices/vector_service /app/
 COPY messaging /app/messaging/
 COPY shared/logging /app/shared/logging
+COPY shared/identity_service/user_identity /app/shared/identity_service/user_identity
 COPY shared/cache/client /app/shared/cache/client
 COPY shared/cache/utils /app/shared/cache/utils
 COPY shared/cache/service_caches/vector_cache /app/shared/cache/service_caches/vector_cache

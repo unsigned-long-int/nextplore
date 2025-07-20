@@ -13,7 +13,7 @@ from shared.contracts.integration_service import PreparedIntegrationCreateReques
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/create-integration', status_code=status.HTTP_204_NO_CONTENT)
-def create_integration(payload: PreparedIntegrationCreateRequest) -> None:
+async def create_integration(payload: PreparedIntegrationCreateRequest) -> None:
     integration_repo = IntegrationRepository()
 
     decrypted_integration = DecryptedIntegration(
@@ -29,7 +29,6 @@ def create_integration(payload: PreparedIntegrationCreateRequest) -> None:
             detail=f'Database error: {str(e)}'
         )
     except Exception as e:
-        print(str(e))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f'Unhandled error: {str(e)}'

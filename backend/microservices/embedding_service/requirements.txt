@@ -2,4 +2,6 @@ fastapi==0.115.12
 kafka-python==2.2.15
 openai==1.64.0
 pydantic==2.10.6
+python-json-logger==3.3.0
+redis==6.1.0
 uvicorn==0.34.2

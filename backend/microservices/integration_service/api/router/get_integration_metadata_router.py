@@ -2,13 +2,23 @@ from fastapi import APIRouter
 
 from database.repositories import IntegrationRepository
 from utils.encryption import decrypt_integration
+from api.context import get_current_identity
+from shared.cache.service_caches.integration_cache import integration_service_cache
 from shared.contracts.integration_service import IntegrationMetadataRequest, IntegrationMetadataResponse
 
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/get-integration', response_model=IntegrationMetadataResponse)
-def get_integration(payload: IntegrationMetadataRequest) -> IntegrationMetadataResponse:
+async def get_integration(payload: IntegrationMetadataRequest) -> IntegrationMetadataResponse:
+    user_identity = get_current_identity()
+    cached = await integration_service_cache.get_integration_metadata(
+        user_identity=user_identity,
+        request=payload
+    )
+    if cached:
+        return cached
+    
     integration_repo = IntegrationRepository()
     encrypted_integration = integration_repo.get_integration(
         user_id=payload.user_id,
@@ -17,7 +27,7 @@ def get_integration(payload: IntegrationMetadataRequest) -> IntegrationMetadataR
     )
 
     decrypted_integration = decrypt_integration(encrypted_integration)
-    return IntegrationMetadataResponse(
+    response = IntegrationMetadataResponse(
         service_type=decrypted_integration.service_type,
         auth_method=decrypted_integration.auth_method,
         connection_name=decrypted_integration.connection_name,
@@ -31,4 +41,10 @@ def get_integration(payload: IntegrationMetadataRequest) -> IntegrationMetadataR
         extra_options=decrypted_integration.extra_options,
         autosync_on=decrypted_integration.autosync_on
     )
+    await integration_service_cache.set_integration_metadata(
+        user_identity=user_identity,
+        request=payload,
+        response=response
+    )
+    return response
  

@@ -9,7 +9,7 @@ from shared.contracts.integration_service import PreparedIntegrationDeleteReques
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/delete-integration', status_code=status.HTTP_204_NO_CONTENT)
-def delete_integration(payload: PreparedIntegrationDeleteRequest) -> JSONResponse:
+async def delete_integration(payload: PreparedIntegrationDeleteRequest) -> JSONResponse:
     integration_repo = IntegrationRepository()
     try:
         integration_repo.delete_integration(

@@ -5,6 +5,7 @@ pydantic==2.10.6
 pgvector==0.4.1
 psycopg2==2.9.10
 pyodbc==5.2.0
+python-json-logger==3.3.0
 redis==6.1.0
 SQLAlchemy==2.0.38
 uvicorn==0.34.2

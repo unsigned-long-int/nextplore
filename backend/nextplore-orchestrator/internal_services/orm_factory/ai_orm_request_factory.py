@@ -7,7 +7,7 @@ from openai import OpenAI
 
 from shared.contracts.integration_service import IntegrationMetadataRequest
 from shared.database.connection_builder import build_connection_string, ConnectionMeta
-from shared.identity_service import UserIdentity
+from shared.identity_service.user_identity import UserIdentity
 from shared.contracts.integration_service import FilteredCrawlRequest
 from internal_services.context import retrieve_context_meta
 from clients import EmbeddingClient, IntegrationClient

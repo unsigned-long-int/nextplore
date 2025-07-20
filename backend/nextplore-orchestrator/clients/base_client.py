@@ -1,7 +1,9 @@
 import httpx 
+from typing import Dict, Any, Optional
 from pydantic import BaseModel 
 from fastapi.encoders import jsonable_encoder
 
+from api.context import get_current_identity
 
 class BaseServiceClient:
     def __init__(self, base_url: str):
@@ -11,8 +13,19 @@ class BaseServiceClient:
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20)    
         )
 
-    async def post(self, path: str, payload: BaseModel):
-        response = await self.client.post(path, json=jsonable_encoder(payload))
+    async def _inject_identity_headers(self, headers: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        identity = get_current_identity()
+        if identity is None:
+            raise RuntimeError('UserIdentity is missing in context')
+        
+        base_headers = headers.copy() if headers else {}
+        base_headers.setdefault('x-user-id', str(identity.user_id))
+        base_headers.setdefault('x-org-id', str(identity.organization_id))
+        return base_headers
+
+    async def post(self, path: str, payload: BaseModel, headers: Optional[Dict[str, Any]] = None):
+        adapted_headers = await self._inject_identity_headers(headers)
+        response = await self.client.post(path, json=jsonable_encoder(payload), headers=adapted_headers)
         response.raise_for_status()
         return response 
     

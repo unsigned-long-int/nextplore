@@ -1,5 +1,5 @@
-from .base_client import BaseServiceClient
 from shared.contracts.embedding_service import EmbeddingResponse, QueryEmbeddingRequest
+from .base_client import BaseServiceClient
 
 
 class EmbeddingClient(BaseServiceClient):

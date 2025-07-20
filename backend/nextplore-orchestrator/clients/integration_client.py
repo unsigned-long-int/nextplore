@@ -1,5 +1,4 @@
 from typing import List
-from uuid import UUID
 
 from .base_client import BaseServiceClient
 from shared.contracts.integration_service import (
@@ -10,7 +9,6 @@ from shared.contracts.integration_service import (
     PreparedIntegrationUpdateRequest,
     IntegrationProfileResponse,
     FilteredCrawlRequest, 
-    InitialCrawlRequest,
     CrawlResponse,
     IntegrationStatsRequest,
     IntegrationStatsResponse,
@@ -40,7 +38,6 @@ class IntegrationClient(BaseServiceClient):
         response.raise_for_status()
         return IntegrationMetadataResponse(**response.json())
     
-
     async def create_integration(self, payload: PreparedIntegrationCreateRequest) -> None:
         response = await self.post('/v1/integration/create-integration', payload)
         response.raise_for_status()
@@ -57,11 +54,6 @@ class IntegrationClient(BaseServiceClient):
         response = await self.post('/v1/integration/crawl-filtered', payload)
         response.raise_for_status()
         return CrawlResponse(**response.json())
-    
-    async def crawl_initial_integration(self, integration_id: UUID) -> None:
-        payload = InitialCrawlRequest(integration_id=integration_id)
-        response = await self.post('/v1/integration/crawl-initial', payload)
-        response.raise_for_status()
 
     async def get_integration_stats(self, payload: IntegrationStatsRequest) -> IntegrationStatsResponse:
         response = await self.post('/v1/integration/get-integration-stats', payload)

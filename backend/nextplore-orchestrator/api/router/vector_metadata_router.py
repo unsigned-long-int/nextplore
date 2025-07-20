@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from typing import List
 
-from dependencies.authentication import get_active_user
-from dependencies.microservices import get_vector_client
+from api.dependencies.authentication import get_active_user
+from api.dependencies.microservices import get_vector_client
 from shared.contracts.vector_service import VectorMetaRequest
 from api.models import VectorMetadata, VectorMetadataRequest
 

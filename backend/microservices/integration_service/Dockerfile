@@ -24,6 +24,7 @@ WORKDIR /app
 COPY microservices/integration_service /app/
 COPY messaging /app/messaging
 COPY shared/logging /app/shared/logging
+COPY shared/identity_service/user_identity /app/shared/identity_service/user_identity
 COPY shared/contracts/integration_service /app/shared/contracts/integration_service
 COPY shared/database/sql_connection_service /app/shared/database/sql_connection_service
 COPY shared/database/connection_builder /app/shared/database/connection_builder

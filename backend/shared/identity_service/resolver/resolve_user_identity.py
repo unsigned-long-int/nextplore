@@ -3,7 +3,7 @@ from shared.database.models import (
     OrganizationORM
 )
 from shared.database.dependencies import backend_session_scope
-from .user_identity import UserIdentity
+from shared.identity_service.user_identity import UserIdentity
 
 
 def resolve_user_identity(azure_tenant_id: str, azure_user_id: str) -> UserIdentity:

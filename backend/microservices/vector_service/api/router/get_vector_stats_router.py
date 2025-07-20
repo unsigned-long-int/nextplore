@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from api.context import get_current_identity
 from shared.cache.service_caches.vector_cache import vector_service_cache
 from shared.contracts.vector_service import VectorMetaRequest, VectorStatsResponse
 from database.repositories import VectorRepository
@@ -8,8 +9,14 @@ from database.repositories import VectorRepository
 router = APIRouter(prefix='/v1/vector', tags=['Vector'])
 
 @router.post('/get-vector-stats', response_model=VectorStatsResponse)
-async def get_vector_stats(payload: VectorMetaRequest) -> VectorStatsResponse:
-    cached = await vector_service_cache.get_vector_stats(payload)
+async def get_vector_stats(
+    payload: VectorMetaRequest
+) -> VectorStatsResponse:
+    user_identity = get_current_identity()
+    cached = await vector_service_cache.get_vector_stats(
+        user_identity=user_identity,
+        request=payload
+    )
     if cached:
         return cached
     
@@ -20,8 +27,9 @@ async def get_vector_stats(payload: VectorMetaRequest) -> VectorStatsResponse:
     )
     response = VectorStatsResponse(vector_count=vector_count)
     await vector_service_cache.set_vector_stats(
-        payload, 
-        response
+        user_identity=user_identity,
+        request=payload, 
+        response=response
     )
     return response
    

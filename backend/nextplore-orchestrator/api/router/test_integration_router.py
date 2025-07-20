@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from httpx import HTTPStatusError
 
-from dependencies.authentication import get_active_user
-from dependencies.microservices import get_integration_client
+from api.dependencies.authentication import get_active_user
+from api.dependencies.microservices import get_integration_client
 from shared.contracts.integration_service import PreparedIntegrationTestRequest
 from api.models import IntegrationCreateRequest, IntegrationTestResponse
 
@@ -12,7 +12,7 @@ router = APIRouter()
 @router.post('')
 async def test_integration(
     integration_create_request: IntegrationCreateRequest,
-    user=Depends(get_active_user),
+    user_identity=Depends(get_active_user),
     integration_client=Depends(get_integration_client)
 ) -> IntegrationTestResponse:
     payload = PreparedIntegrationTestRequest(
