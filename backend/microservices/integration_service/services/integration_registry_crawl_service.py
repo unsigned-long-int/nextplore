@@ -13,7 +13,7 @@ from shared.database.connection_builder import build_connection_string, Connecti
 from shared.database.crawler_factory import get_crawler
 
 
-def crawl_integration_registry(
+async def crawl_integration_registry(
         integration_ids: List[UUID], 
         integration_spec: Specification,
         schema_spec: Specification,
@@ -28,7 +28,7 @@ def crawl_integration_registry(
         if not integration_spec.is_satisfied_by(integration_meta_candidate):
             continue
         
-        encrypted_integration = integration_repo.get_integration_by_id(integration_id)
+        encrypted_integration = await integration_repo.get_integration_by_id(integration_id)
         decrypted_integration = decrypt_integration(encrypted_integration)
         connection_meta = ConnectionMeta(
             service_type=decrypted_integration.service_type,

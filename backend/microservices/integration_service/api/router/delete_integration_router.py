@@ -12,7 +12,7 @@ router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 async def delete_integration(payload: PreparedIntegrationDeleteRequest) -> JSONResponse:
     integration_repo = IntegrationRepository()
     try:
-        integration_repo.delete_integration(
+        await integration_repo.delete_integration(
             integration_id=payload.integration_id,
             user_id=payload.user_id, 
             organization_id=payload.organization_id

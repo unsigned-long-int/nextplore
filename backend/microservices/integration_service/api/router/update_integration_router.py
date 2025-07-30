@@ -12,10 +12,10 @@ from shared.contracts.integration_service import PreparedIntegrationUpdateReques
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/update-integration', status_code=status.HTTP_204_NO_CONTENT)
-def update_integration(payload: PreparedIntegrationUpdateRequest) -> None:
+async def update_integration(payload: PreparedIntegrationUpdateRequest) -> None:
     integration_repo = IntegrationRepository()
     try:
-        integration_repo.update_integration(
+        await integration_repo.update_integration(
             integration_id=payload.integration_id,
             user_id=payload.user_id,
             organization_id=payload.organization_id,

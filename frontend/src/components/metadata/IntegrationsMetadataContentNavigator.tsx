@@ -72,9 +72,10 @@ export const IntegrationsMetadataContentNavigator = () => {
             <Text fw={500} mb="sm">
                 Vectors for: {integrations[active].connection_name}
             </Text>
-            <VectorsMetadataContent vector_metadata_request={{
-                integration_id: integrations[active].id
-            }}/>
+            <VectorsMetadataContent 
+                key={integrations[active].id}
+                vector_profile_request={{ integration_id: integrations[active].id }}
+            />
         </div>
     </div>
     );

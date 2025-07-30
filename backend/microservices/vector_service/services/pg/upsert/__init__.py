@@ -1,0 +1,1 @@
+from .pg_upsert_service import upsert_pg_vector_metadata

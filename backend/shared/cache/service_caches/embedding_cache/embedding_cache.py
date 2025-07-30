@@ -37,5 +37,17 @@ class EmbeddingServiceCache(BaseCache):
             cache_key,
             value=response
         )
+
+    async def delete_embedding(
+            self,
+            user_identity: UserIdentity,
+            request: QueryEmbeddingRequest
+    ) -> None:
+        cache_key = get_cache_key(model=request, prefix='query-embed')
+        await self.delete(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key
+        )
     
 embedding_service_cache = EmbeddingServiceCache()

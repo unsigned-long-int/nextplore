@@ -29,9 +29,7 @@ COPY shared/cache/client /app/shared/cache/client
 COPY shared/cache/utils /app/shared/cache/utils
 COPY shared/cache/service_caches/vector_cache /app/shared/cache/service_caches/vector_cache
 COPY shared/contracts/vector_service /app/shared/contracts/vector_service
-COPY shared/database/models /app/shared/database/models
 COPY shared/database/dependencies /app/shared/database/dependencies
-COPY shared/database/sql_connection_service /app/shared/database/sql_connection_service/
 
 RUN pip install --no-cache-dir -r requirements.txt 
 

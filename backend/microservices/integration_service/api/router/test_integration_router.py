@@ -11,7 +11,7 @@ from shared.contracts.integration_service import PreparedIntegrationTestRequest
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/test-integration', status_code=status.HTTP_204_NO_CONTENT)
-def test_integration(payload: PreparedIntegrationTestRequest) -> None:
+async def test_integration(payload: PreparedIntegrationTestRequest) -> None:
     try:
         connection_meta = ConnectionMeta(
             service_type=payload.service_type,

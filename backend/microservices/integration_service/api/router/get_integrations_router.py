@@ -23,7 +23,7 @@ async def get_integrations(payload: PreparedIntegrationGetRequest) -> List[Integ
         return cached
     
     integration_repo = IntegrationRepository()
-    user_integration_profiles = integration_repo.get_user_integration_profiles(
+    user_integration_profiles = await integration_repo.get_user_integration_profiles(
         user_id=payload.user_id,
         organization_id=payload.organization_id
     )

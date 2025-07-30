@@ -10,9 +10,9 @@ import {
 } from '@mantine/core';
 import { IconChevronDown, IconChevronUp, IconSearch, IconSelector } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
-import { useVectorMetadata } from '../../hooks/useVectorMetadata';
-import type { VectorMetadata } from '../../interface/vector-metadata.interface';
-import type { VectorMetadataRequest } from '../../interface/vector-request.interface';
+import { useVectorProfiles } from '../../hooks/useVectorProfiles';
+import type { VectorProfileRequest } from '../../interface/vector-profile-request.interface';
+import type { VectorProfile } from '../../interface/vector-profile.interface';
 import classes from '../../styles/VectorsMetadata.module.css';
 
 
@@ -42,7 +42,7 @@ return (
 }
 
 
-function filterData(data: VectorMetadata[], search: string) {
+function filterData(data: VectorProfile[], search: string) {
     const query = search.toLowerCase().trim();
     return data.filter((item) =>
       keys(data[0]).some((key) => item[key].toLowerCase().includes(query))
@@ -50,8 +50,8 @@ function filterData(data: VectorMetadata[], search: string) {
 }
 
 function sortData(
-    data: VectorMetadata[],
-    payload: { sortBy: keyof VectorMetadata | null; reversed: boolean; search: string }
+    data: VectorProfile[],
+    payload: { sortBy: keyof VectorProfile | null; reversed: boolean; search: string }
   ) {
     const { sortBy } = payload;
   
@@ -71,21 +71,21 @@ function sortData(
     );
 }
 
-export const VectorsMetadataContent = ({ vector_metadata_request }: { vector_metadata_request: VectorMetadataRequest }) => {
-    const { fetchVectorMetadata } = useVectorMetadata();
+export const VectorsMetadataContent = ({ vector_profile_request }: { vector_profile_request: VectorProfileRequest }) => {
+    const { fetchVectorProfiles } = useVectorProfiles();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [vectors, setVectors] = useState<VectorMetadata[]>([]);
+    const [vectors, setVectors] = useState<VectorProfile[]>([]);
     const [search, setSearch] = useState('');
-    const [sortedData, setSortedData] = useState(vectors);
-    const [sortBy, setSortBy] = useState<keyof VectorMetadata | null>(null);
+    const [sortedData, setSortedData] = useState<VectorProfile[]>([]);
+    const [sortBy, setSortBy] = useState<keyof VectorProfile | null>(null);
     const [reverseSortDirection, setReverseSortDirection] = useState(false);
   
 
     useEffect(() => {
         const getVectorMetadata = async() => {
         try {
-            const vectors_metadata = await fetchVectorMetadata(vector_metadata_request);
+            const vectors_metadata = await fetchVectorProfiles(vector_profile_request);
             setVectors(vectors_metadata);
             setSortedData(vectors_metadata)
         } catch (e) {
@@ -95,13 +95,13 @@ export const VectorsMetadataContent = ({ vector_metadata_request }: { vector_met
         }
     };
     getVectorMetadata();
-    }, []);
+    }, [vector_profile_request]);
 
     if (loading) return <Text>Getting integrations data...</Text>;
     if (error) return <Text c="red">{error}</Text>;
-    if (!vectors) return <Text>No vectors data available.</Text>;
+    if (!vectors || vectors.length == 0) return <Text>No vectors data available.</Text>;
 
-    const setSorting = (field: keyof VectorMetadata) => {
+    const setSorting = (field: keyof VectorProfile) => {
         const reversed = field === sortBy ? !reverseSortDirection : false;
         setReverseSortDirection(reversed);
         setSortBy(field);
@@ -170,7 +170,7 @@ export const VectorsMetadataContent = ({ vector_metadata_request }: { vector_met
                 rows
               ) : (
                 <Table.Tr>
-                  <Table.Td colSpan={Object.keys(vectors[0]).length}>
+                  <Table.Td colSpan={vectors[0] ? Object.keys(vectors[0]).length : 1}>
                     <Text fw={500} ta="center">
                       Nothing found
                     </Text>

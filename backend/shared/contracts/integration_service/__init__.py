@@ -3,7 +3,6 @@ from .prepared_integration_delete_request import PreparedIntegrationDeleteReques
 from .prepared_integration_test_request import PreparedIntegrationTestRequest
 from .prepared_integration_get_request import PreparedIntegrationGetRequest
 from .prepared_integration_update_request import PreparedIntegrationUpdateRequest
-from .initial_crawl_request import InitialCrawlRequest
 from .filtered_crawl_request import FilteredCrawlRequest
 from .crawl_response import CrawlResponse
 from .integration_profile_response import IntegrationProfileResponse

@@ -22,19 +22,18 @@ async def get_vector_metas(payload: VectorMetaRequest) -> List[VectorMetaRespons
     
     vector_repo = VectorRepository()
 
-    vector_metas = vector_repo.get_integration_vectors(
-        integration_ids=payload.integration_ids
+    vector_metas = await vector_repo.get_vectors(
+        vector_ids=payload.vector_ids
     )
     response = [
         VectorMetaResponse(
             integration_id=vector_meta.integration_id,
             schema_name=vector_meta.schema_name,
             table_name=vector_meta.table_name,
-            table_meta=json.loads(vector_meta.table_meta),
-            vectors=vector_meta.vector
+            table_meta=json.loads(vector_meta.table_meta)
         ) for vector_meta in vector_metas
     ]
-    await vector_service_cache.set_vectors_meta(
+    await vector_service_cache.set_vector_metas(
         user_identity=user_identity,
         request=payload,
         response=response

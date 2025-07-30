@@ -1,2 +1,4 @@
 from .get_vector_metas_router import router as vector_metas_router
 from .get_vector_stats_router import router as vector_stats_router
+from .get_qdrant_vectors_router import router as qdrant_vectors_router
+from .get_vector_profiles_router import router as vector_profiles_router

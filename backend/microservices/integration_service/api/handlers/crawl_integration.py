@@ -1,5 +1,4 @@
 from shared.contracts.integration_service import (
-    InitialCrawlRequest, 
     FilteredCrawlRequest, 
     CrawlResponse
 )
@@ -7,29 +6,35 @@ from services import crawl_integration_registry
 from utils.filters.logic import AlwaysTrueSpec
 from utils.filters.factory import create_specs
 from messaging.message_bus import get_kafka_message_bus
-from messaging.events.integration_service import IntegrationMetaCrawled
+from messaging.events.integration_service import IntegrationMetaCrawled, IntegrationCreated
 
 
 
-def crawl_initial_integration_metadata(inspection_request: InitialCrawlRequest) -> None:
-    integration_registry = crawl_integration_registry(
-        integration_ids=[inspection_request.integration_id],
+async def crawl_initial_integration_metadata(event: IntegrationCreated) -> None:
+    integration_registry = await crawl_integration_registry(
+        integration_ids=[event.integration_id],
         integration_spec=AlwaysTrueSpec(),
         schema_spec = AlwaysTrueSpec(),
         table_spec=AlwaysTrueSpec()
     )
     print(f'metadata crawled: {integration_registry}')
-    get_kafka_message_bus().publish(IntegrationMetaCrawled(table_metas=integration_registry.table_metas))
+    await get_kafka_message_bus().publish(
+        IntegrationMetaCrawled(
+            user_id=event.user_id,
+            organization_id=event.organization_id,
+            table_metas=integration_registry.table_metas
+        )
+    )
 
 
-def craw_filtered_integration_metadata(inspection_request: FilteredCrawlRequest) -> CrawlResponse:
+async def craw_filtered_integration_metadata(inspection_request: FilteredCrawlRequest) -> CrawlResponse:
     integration_spec, schema_spec, table_spec = create_specs(
         integrations=inspection_request.integrations,
         schemas=inspection_request.schemas,
         tables=inspection_request.tables
     )
 
-    integration_registry = crawl_integration_registry(
+    integration_registry = await crawl_integration_registry(
         integration_ids=inspection_request.integrations,
         integration_spec=integration_spec,
         schema_spec=schema_spec,

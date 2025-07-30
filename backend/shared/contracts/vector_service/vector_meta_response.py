@@ -14,4 +14,3 @@ class VectorMetaResponse(BaseModel):
     schema_name: str
     table_name: str
     table_meta: TableMeta
-    vectors: List[float]

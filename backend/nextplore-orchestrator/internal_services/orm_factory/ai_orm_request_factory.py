@@ -1,17 +1,17 @@
 import json
-import pandas as pd
 
 from dataclasses import dataclass
 from typing import List
 from openai import OpenAI
 
 from shared.contracts.integration_service import IntegrationMetadataRequest
+from shared.contracts.vector_service import QDrantVectorRequest
+from shared.contracts.vector_service import VectorMetaRequest
 from shared.database.connection_builder import build_connection_string, ConnectionMeta
 from shared.identity_service.user_identity import UserIdentity
 from shared.contracts.integration_service import FilteredCrawlRequest
 from internal_services.context import retrieve_context_meta
-from clients import EmbeddingClient, IntegrationClient
-from .embedded_table import EmbeddedTable
+from clients import EmbeddingClient, IntegrationClient, VectorClient
 from .orm_factory import ORMFactory
 from .orm_request import ORMRequest
 
@@ -19,26 +19,24 @@ from .orm_request import ORMRequest
 @dataclass 
 class AIORMRequestFactory:
     client: OpenAI
-    embedded_tables: List[EmbeddedTable]
     user_identity: UserIdentity
+    vector_client: VectorClient
     integration_client: IntegrationClient
     embedding_client: EmbeddingClient
 
 
     async def retrieve_orm_request(self, query: str) -> ORMRequest:
-        query_vector_response = await self.embedding_client.embed(query)
-        query_vector = query_vector_response.embedding
-        embedded_tables_df = pd.DataFrame([{
-            'integration_id': str(et.integration_id),
-            'schema_name': et.schema_name,
-            'table_name': et.table_name,
-            'embeddings': et.embeddings
-            } for et in self.embedded_tables])
-        print(embedded_tables_df)
-        integrations, schemas, tables = retrieve_context_meta(
-            query_vector=query_vector,
-            embedded_tables_df=embedded_tables_df
+        embedding = await self._get_query_embedding(query)
+        payload = QDrantVectorRequest(
+            embedding=embedding
         )
+        response = await self.vector_client.get_qdrant_vectors(payload)
+
+        payload = VectorMetaRequest(
+            vector_ids=response.vector_ids
+        )
+        vectors_meta = await self.vector_client.get_vector_metas(payload)
+        integrations, schemas, tables = retrieve_context_meta(vectors_meta)
 
         payload = FilteredCrawlRequest(
             integrations=integrations,
@@ -140,7 +138,7 @@ class AIORMRequestFactory:
                         }
                     }
                 ]
-        
+        print(tools)
         request = self.client.chat.completions.create(
             model='gpt-4o',
             messages=[{'role': 'user', 'content': query}],
@@ -178,7 +176,6 @@ class AIORMRequestFactory:
             connection_string=connection_string
         )
 
-
         orm_model = orm_factory.generate_orm_class()
 
         return ORMRequest(
@@ -189,3 +186,7 @@ class AIORMRequestFactory:
             filters=args['column_filters']
         )
     
+    async def _get_query_embedding(self, query: str) -> List[float]:
+        query_vector_response = await self.embedding_client.embed(query)
+        query_vector = query_vector_response.embedding
+        return query_vector

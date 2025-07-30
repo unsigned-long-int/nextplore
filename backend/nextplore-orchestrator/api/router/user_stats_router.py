@@ -4,7 +4,7 @@ from api.models import UserStats
 from api.dependencies.authentication import get_active_user
 from api.dependencies.microservices import get_integration_client, get_vector_client
 from shared.contracts.integration_service import IntegrationStatsRequest
-from shared.contracts.vector_service import VectorMetaRequest
+from shared.contracts.vector_service import VectorStatsRequest
 
 
 router = APIRouter()
@@ -21,7 +21,7 @@ async def get_user_stats(
     )
     integration_stats = await integration_client.get_integration_stats(payload)
 
-    payload = VectorMetaRequest(
+    payload = VectorStatsRequest(
         integration_ids=integration_stats.integration_ids
     )
     vector_stats = await vector_client.get_vector_stats(payload)

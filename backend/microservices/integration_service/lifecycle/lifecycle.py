@@ -10,7 +10,12 @@ from api.handlers import crawl_initial_integration_metadata
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logger()
-    get_kafka_message_bus().subscribe(
+    kafka_message_bus = get_kafka_message_bus()
+    await kafka_message_bus.start()
+    await kafka_message_bus.subscribe(
         event_cls=IntegrationCreated, handler=crawl_initial_integration_metadata
     )
+
     yield
+
+    await kafka_message_bus.stop()

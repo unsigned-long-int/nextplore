@@ -3,4 +3,3 @@ from typing import Optional
 
 class AIQueryRequest(BaseModel):
     prompt: str
-    integration_id: Optional[str]

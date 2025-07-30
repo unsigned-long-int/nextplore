@@ -1,6 +1,5 @@
 from pydantic import BaseModel, UUID4
 
 
-class VectorMetadataRequest(BaseModel):
+class VectorProfileRequest(BaseModel):
     integration_id: UUID4
-    

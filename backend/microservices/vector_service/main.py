@@ -2,7 +2,12 @@ from fastapi import FastAPI
 
 from lifecycle import lifespan
 from api.middleware import IdentityMiddleware
-from api.router import vector_metas_router, vector_stats_router
+from api.router import (
+    vector_metas_router, 
+    vector_stats_router, 
+    qdrant_vectors_router,
+    vector_profiles_router
+)
 
 
 
@@ -17,3 +22,5 @@ app.add_middleware(IdentityMiddleware)
 
 app.include_router(vector_metas_router)
 app.include_router(vector_stats_router)
+app.include_router(qdrant_vectors_router)
+app.include_router(vector_profiles_router)

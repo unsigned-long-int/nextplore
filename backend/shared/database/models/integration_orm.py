@@ -9,7 +9,7 @@ from .base import Base
 
 class IntegrationORM(Base):
     __tablename__ = 'integrations'
-    __table_args__ = {'schema': 'embeddings'}
+    __table_args__ = {'schema': 'integration'}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organization_id = Column(UUID(as_uuid=True), ForeignKey(OrganizationORM.id))

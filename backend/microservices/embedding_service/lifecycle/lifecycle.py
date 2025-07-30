@@ -11,8 +11,13 @@ from api.handlers import handle_crawl_meta_embedding
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logger()
-    get_kafka_message_bus().subscribe(
+    kafka_message_bus = get_kafka_message_bus()
+    await kafka_message_bus.start()
+    await kafka_message_bus.subscribe(
         event_cls=IntegrationMetaCrawled, 
         handler=handle_crawl_meta_embedding
     )
+    
     yield
+
+    await kafka_message_bus.stop()

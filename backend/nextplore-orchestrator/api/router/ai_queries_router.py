@@ -8,9 +8,8 @@ from api.dependencies.microservices import (
     get_vector_client,
     get_embedding_client
 )
-from internal_services.orm_factory import generate_orm_statement, AIORMRequestFactory, EmbeddedTable
-from shared.contracts.integration_service import IntegrationStatsRequest, IntegrationMetadataRequest
-from shared.contracts.vector_service import VectorMetaRequest
+from internal_services.orm_factory import generate_orm_statement, AIORMRequestFactory
+from shared.contracts.integration_service import IntegrationMetadataRequest
 from shared.database.connection_builder import build_connection_string, ConnectionMeta
 from shared.database.sql_connection_service import fetch_engine, fetch_session_maker, session_scope
 from shared.open_ai_client_loader import load_open_ai_client
@@ -29,32 +28,11 @@ async def ai_query(
     vector_client=Depends(get_vector_client),
     embedding_client=Depends(get_embedding_client)
 ) -> AIQueryResponse:
-    integration_id_filter = [request.integration_id]
-
-    if not request.integration_id:
-        payload = IntegrationStatsRequest(
-            user_id=user_identity.user_id,
-            organization_id=user_identity.organization_id
-        )
-        integration_stats = await integration_client.get_integration_stats(payload)
-        integration_id_filter = integration_stats.integration_ids
     
-    if not integration_id_filter:
-        vector_metas = []
-    else:
-        payload = VectorMetaRequest(integration_ids=integration_stats.integration_ids)
-        vector_metas = await vector_client.get_vector_metas(payload)
-
-    embedded_tables = [EmbeddedTable(
-        integration_id=vm.integration_id,
-        schema_name=vm.schema_name,
-        table_name=vm.table_name,
-        embeddings=vm.vectors
-    ) for vm in vector_metas]
     ai_orm_factory = AIORMRequestFactory(
         client=client, 
-        embedded_tables=embedded_tables,
         user_identity=user_identity,
+        vector_client=vector_client,
         integration_client=integration_client,
         embedding_client=embedding_client
     )

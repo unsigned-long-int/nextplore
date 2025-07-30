@@ -4,8 +4,8 @@ from .introspect import IntrospectRequest
 from .user_profile import UserProfile
 from .integration_profile import IntegrationProfile
 from .integration_create_request import IntegrationCreateRequest
-from .vector_metadata_request import VectorMetadataRequest
-from .vector_metadata import VectorMetadata
+from .vector_profile_request import VectorProfileRequest
+from .vector_profile_response import VectorProfileResponse
 from .user_stats import UserStats
 from .integration_update_request import IntegrationUpdateRequest
 from .integration_delete_request import IntegrationDeleteRequest

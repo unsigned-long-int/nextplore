@@ -98,6 +98,8 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
+      - QDRANT_CLUSTER_HOST=${QDRANT_CLUSTER_HOST}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
     depends_on:
       - kafka
       - redis

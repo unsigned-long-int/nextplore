@@ -21,14 +21,21 @@ async def create_integration(payload: PreparedIntegrationCreateRequest) -> None:
     )
     try:
         encrypted_integration = encrypt_integration(decrypted_integration)
-        integration_id = integration_repo.create_integration(encrypted_integration)
-        get_kafka_message_bus().publish(IntegrationCreated(integration_id=integration_id))
+        integration_id = await integration_repo.create_integration(encrypted_integration)
+        await get_kafka_message_bus().publish(
+            IntegrationCreated(
+                user_id=encrypted_integration.user_id,
+                organization_id=encrypted_integration.organization_id,
+                integration_id=integration_id
+            )
+        )
     except SQLAlchemyError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f'Database error: {str(e)}'
         )
     except Exception as e:
+        print(str(e))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f'Unhandled error: {str(e)}'

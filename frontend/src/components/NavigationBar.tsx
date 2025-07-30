@@ -1,26 +1,24 @@
-import { useState } from 'react';
-import {
-  IconLogout,
-  IconSettings,
-  IconSwitchHorizontal,
-  IconUser,
-  IconInputAi,
-  IconVector,
-  IconCloudDataConnection
-} from '@tabler/icons-react';
-import { Code, Group } from '@mantine/core';
-import classes from '../styles/NavigationBar.module.css';
 import { useMsal } from '@azure/msal-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Code, Group } from '@mantine/core';
+import {
+    IconCloudDataConnection,
+    IconInputAi,
+    IconLogout,
+    IconSwitchHorizontal,
+    IconUser,
+    IconVector
+} from '@tabler/icons-react';
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import classes from '../styles/NavigationBar.module.css';
 
-import svg from '../assets/trace.svg'
+import svg from '../assets/trace.svg';
 
 const data = [
   { location: '/user', label: 'User Profile', icon: IconUser },
   { location: '/query', label: 'AI Queries', icon: IconInputAi },
   { location: '/integrations', label: 'Integrations', icon: IconCloudDataConnection },
-  { location: '/metadata', label: 'Metadata', icon: IconVector },
-  { location: '/othersettings', label: 'Other Settings', icon: IconSettings },
+  { location: '/metadata', label: 'Metadata', icon: IconVector }
 ];
 
 export const NavigationBar = () => {

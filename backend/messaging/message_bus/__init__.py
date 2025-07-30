@@ -1,1 +1,1 @@
-from .kafka_message_bus import get_kafka_message_bus
+from .async_kafka_message_bus import get_kafka_message_bus

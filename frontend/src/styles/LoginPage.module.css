@@ -1,61 +1,64 @@
-.wrapper {
-    position: relative;
-    box-sizing: border-box;
-    background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-8));
-}
-
-.inner {
-    position: relative;
-    padding-top: 200px;
-    padding-bottom: 120px;
-
-    @media (max-width: $mantine-breakpoint-sm) {
-        padding-bottom: 80px;
-        padding-top: 80px;
+:root {
+    --brand-color: #5c7cfa;
+    --text-color: #1a1b1e;
+    --bg-start: #1f1f2f;
+    --bg-end: #3b3b5c;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text-color: #ffffff;
+      --bg-start: #0e0e1a;
+      --bg-end: #1a1a2f;
     }
-}
-
-.title {
-    font-family: Outfit, var(--mantine-font-family);
-    font-size: 62px;
-    font-weight: 500;
-    line-height: 1.1;
-    margin: 0;
-    padding: 0;
-    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-
-    @media (max-width: $mantine-breakpoint-sm) {
-        font-size: 42px;
-        line-height: 1.2;
+  }
+  
+  .wrapper {
+    height: 100vh;
+    width: 100%;
+    background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  .card {
+    max-width: 480px;
+    width: 100%;
+    background-color: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .card {
+      background-color: #1a1b1e;
     }
-}
-
-.description {
-    margin-top: var(--mantine-spacing-xl);
-    font-size: 24px;
-
-    @media (max-width: $mantine-breakpoint-sm) {
-        font-size: 18px;
-    }
-}
-
-.controls {
-    margin-top: calc(var(--mantine-spacing-xl) * 2);
-
-    @media (max-width: $mantine-breakpoint-sm) {
-        margin-top: var(--mantine-spacing-xl);
-    }
-}
-
-.control {
-    height: 54px;
-    padding-left: 38px;
-    padding-right: 38px;
-
-    @media (max-width: $mantine-breakpoint-sm) {
-        height: 54px;
-        padding-left: 18px;
-        padding-right: 18px;
-        flex: 1;
-        }
-}
+  }
+  
+  .title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text-color);
+    text-align: center;
+  }
+  
+  .brand {
+    color: var(--brand-color);
+  }
+  
+  .description {
+    color: #adb5bd;
+    text-align: center;
+  }
+  

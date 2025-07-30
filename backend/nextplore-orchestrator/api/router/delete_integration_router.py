@@ -25,4 +25,4 @@ async def delete_integration(
         await integration_client.delete_integration(payload)
         return IntegrationDeleteResponse(success=True)
     except HTTPStatusError as e:
-        return IntegrationDeleteResponse(success=False, message=str(e.detail))
+        return IntegrationDeleteResponse(success=False, message=str(e))

@@ -18,7 +18,7 @@ async def embed(payload: QueryEmbeddingRequest) -> EmbeddingResponse:
     if cached:
         return cached
     
-    response = handle_query_embedding(payload)
+    response = await handle_query_embedding(payload)
     await embedding_service_cache.set_embedding(
         user_identity=user_identity,
         request=payload,

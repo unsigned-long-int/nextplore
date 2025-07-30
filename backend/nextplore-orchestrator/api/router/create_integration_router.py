@@ -24,4 +24,4 @@ async def create_integration(
         await integration_client.create_integration(payload)
         return IntegrationCreateResponse(success=True)
     except HTTPStatusError as e:
-        return IntegrationCreateResponse(success=False, message=str(e.detail))
+        return IntegrationCreateResponse(success=False, message=str(e))

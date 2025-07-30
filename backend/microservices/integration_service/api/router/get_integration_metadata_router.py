@@ -20,7 +20,7 @@ async def get_integration(payload: IntegrationMetadataRequest) -> IntegrationMet
         return cached
     
     integration_repo = IntegrationRepository()
-    encrypted_integration = integration_repo.get_integration(
+    encrypted_integration = await integration_repo.get_integration(
         user_id=payload.user_id,
         organization_id=payload.organization_id,
         integration_id=payload.integration_id

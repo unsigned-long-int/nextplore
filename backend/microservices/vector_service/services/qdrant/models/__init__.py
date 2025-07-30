@@ -1,0 +1,1 @@
+from .qdrant_vector_point import QdrantVectorPoint

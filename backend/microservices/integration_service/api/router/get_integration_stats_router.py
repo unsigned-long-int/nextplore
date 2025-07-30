@@ -23,7 +23,7 @@ async def get_integration_stats(payload: IntegrationStatsRequest) -> Integration
 
     integration_repo = IntegrationRepository()
 
-    integration_ids = integration_repo.get_user_integration_ids(
+    integration_ids = await integration_repo.get_user_integration_ids(
         user_id=payload.user_id,
         organization_id=payload.organization_id
     )

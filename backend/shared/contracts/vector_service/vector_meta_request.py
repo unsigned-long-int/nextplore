@@ -3,4 +3,4 @@ from typing import List
 
 
 class VectorMetaRequest(BaseModel):
-    integration_ids: List[UUID4]
+    vector_ids: List[UUID4]

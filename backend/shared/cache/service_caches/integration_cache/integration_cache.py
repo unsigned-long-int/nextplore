@@ -19,7 +19,7 @@ class IntegrationServiceCache(BaseCache):
     def __init__(self) -> None:
         super().__init__(namespace='integration_service', version='v1')
 
-    async def crawl_filtered_integration(
+    async def get_filtered_integration(
             self, 
             user_identity: UserIdentity, 
             request: FilteredCrawlRequest
@@ -46,6 +46,17 @@ class IntegrationServiceCache(BaseCache):
             value=response
         )
 
+    async def delete_filtered_integration(
+            self,
+            user_identity: UserIdentity,
+            request: FilteredCrawlRequest
+    ) -> None:
+        cache_key = get_cache_key(model=request, prefix='filtered-crawl')
+        await self.delete(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key
+        )
     
     async def get_integration_stats(
             self, 
@@ -72,6 +83,18 @@ class IntegrationServiceCache(BaseCache):
             user_identity.user_id,
             cache_key, 
             value=response
+        )
+
+    async def delete_integration_stats(
+            self,
+            user_identity: UserIdentity,
+            request: IntegrationStatsRequest
+    ) -> None:
+        cache_key = get_cache_key(model=request, prefix='stats')
+        await self.delete(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key
         )
 
     async def get_integration_metadata(
@@ -101,6 +124,18 @@ class IntegrationServiceCache(BaseCache):
             value=response
         )
 
+    async def delete_integration_metadata(
+            self,
+            user_identity: UserIdentity,
+            request: IntegrationMetadataRequest
+    ) -> None:
+        cache_key = get_cache_key(model=request, prefix='metas')
+        await self.delete(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key
+        )
+
     async def get_integrations(
         self,
         user_identity: UserIdentity,
@@ -126,6 +161,18 @@ class IntegrationServiceCache(BaseCache):
             user_identity.user_id,
             cache_key,
             value=response
+        )
+
+    async def delete_integrations(
+            self,
+            user_identity: UserIdentity,
+            request: PreparedIntegrationGetRequest
+    ) -> None:
+        cache_key = get_cache_key(model=request, prefix='profile')
+        await self.delete(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key
         )
         
 

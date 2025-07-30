@@ -1,1 +1,1 @@
-from .database_backend_connector import backend_session_scope
+from .database_backend_connector import DatabaseBackendConnector

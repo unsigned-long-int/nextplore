@@ -29,4 +29,4 @@ async def update_integration(
         await integration_client.update_integration(payload)
         return IntegrationUpdateResponse(success=True)
     except HTTPException as e:
-        return IntegrationUpdateResponse(success=False, message=str(e.detail))
+        return IntegrationUpdateResponse(success=False, message=str(e))
