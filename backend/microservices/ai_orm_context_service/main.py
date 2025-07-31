@@ -1,0 +1,21 @@
+from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
+
+
+from lifecycle import lifespan
+from api.router import orm_context_router, models_router
+from api.middleware import IdentityMiddleware
+
+
+app = FastAPI(
+    title='AI ORM Service',
+    description='Provides range of LLM models for fetching ORM context for user query',
+    version = '1.0.0',
+    lifespan=lifespan
+)
+app.add_middleware(IdentityMiddleware)
+app.include_router(orm_context_router)
+app.include_router(models_router)
+
+Instrumentator().instrument(app).expose(app)
+

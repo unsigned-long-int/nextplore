@@ -1,0 +1,1 @@
+from .qdrant_delete_service import delete_qdrant_vectors

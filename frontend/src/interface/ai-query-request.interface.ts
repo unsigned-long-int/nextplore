@@ -1,4 +1,4 @@
 export interface AIQueryRequest {
+    model_id: string;
     prompt: string;
-    integration_id?: string | null;
 };

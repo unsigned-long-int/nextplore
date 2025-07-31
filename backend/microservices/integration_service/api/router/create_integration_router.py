@@ -1,19 +1,20 @@
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 
-
+from api.context import get_current_identity
 from database.repositories import IntegrationRepository
 from utils.encryption import encrypt_integration, DecryptedIntegration
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationCreated
 from shared.contracts.integration_service import PreparedIntegrationCreateRequest
-
+from shared.cache.service_caches.integration_cache import integration_service_cache
 
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/create-integration', status_code=status.HTTP_204_NO_CONTENT)
 async def create_integration(payload: PreparedIntegrationCreateRequest) -> None:
+    user_identity = get_current_identity()
     integration_repo = IntegrationRepository()
 
     decrypted_integration = DecryptedIntegration(
@@ -29,13 +30,17 @@ async def create_integration(payload: PreparedIntegrationCreateRequest) -> None:
                 integration_id=integration_id
             )
         )
+
+        await integration_service_cache.delete_by_prefix(
+            user_identity.organization_id,
+            user_identity.user_id
+        )
     except SQLAlchemyError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f'Database error: {str(e)}'
         )
     except Exception as e:
-        print(str(e))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f'Unhandled error: {str(e)}'

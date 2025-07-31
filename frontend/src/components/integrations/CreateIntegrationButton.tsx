@@ -57,7 +57,7 @@ export const createIntegration = async (
     data: IntegrationCreateRequest,
     token: string | null
 ): Promise<IntegrationCreateResponse> => {
-    const response = await axios.post("http://localhost:8004/nextplore-orchestrator/create-integration", data, {
+    const response = await axios.post("http://localhost:8005/nextplore-orchestrator/create-integration", data, {
         headers: {
             Authorization: `Bearer ${token}`,
         },

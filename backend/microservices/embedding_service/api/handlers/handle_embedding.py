@@ -1,7 +1,7 @@
 import asyncio
 from typing import List
 
-from services import embed
+from services.embedding_service import embed
 from shared.contracts.embedding_service import QueryEmbeddingRequest, EmbeddingResponse
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationMetaCrawled
@@ -27,7 +27,7 @@ async def handle_crawl_meta_embedding(event: IntegrationMetaCrawled) -> None:
             embedding=vector
         ))
 
-    print(f"[Embedding] Successfully vectorized {len(orm_embeddings)} tables.")
+    print(f'Embedding Successfully vectorized {len(orm_embeddings)} tables.')
 
     await get_kafka_message_bus().publish(CrawlMetaEmbedded(
         user_id=event.user_id,

@@ -3,10 +3,6 @@ from sqlalchemy.engine.reflection import Inspector
 from shared.database.sql_connection_service import fetch_engine
 
 
-class IntegrationNotFoundError(Exception):
-    pass
-
-
 def get_crawler(sql_connection_string: str) -> Inspector:
     engine = fetch_engine(sql_connection_string)
     inspector = inspect(engine)

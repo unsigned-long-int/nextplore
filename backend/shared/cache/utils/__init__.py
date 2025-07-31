@@ -1,1 +1,1 @@
-from .key_factory import get_cache_key
+from .key_factory import get_cache_key, get_string_cache_key

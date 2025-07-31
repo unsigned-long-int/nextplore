@@ -1,6 +1,6 @@
 from typing import List
 from uuid import UUID
-from sqlalchemy import select, func
+from sqlalchemy import select, delete, func
 from sqlalchemy.engine import Row
 
 from database.models import VectorORM
@@ -60,3 +60,23 @@ class VectorRepository:
         async with self.database_backend_connector.session_scope() as scoped_session:
             scoped_session.add_all(vectors_orm)
             await scoped_session.flush()
+    
+    async def delete_vector_meta(self, integration_id: UUID) -> None:
+        async with self.database_backend_connector.session_scope() as scoped_session:
+            stmt = (
+                delete(VectorORM)
+                .where(
+                    VectorORM.integration_id == integration_id
+                )
+            )
+            await scoped_session.execute(stmt)
+
+    async def get_qdrant_vector_ids(self, integration_id: UUID) -> List[UUID]:
+        async with self.database_backend_connector.session_scope() as scoped_session:
+            result = await scoped_session.execute(
+                select(VectorORM.qdrant_vector_id)
+                .where(VectorORM.integration_id == integration_id)
+            )
+            qdrant_vector_ids = result.scalars().all()
+            return qdrant_vector_ids
+        

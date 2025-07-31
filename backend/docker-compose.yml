@@ -107,16 +107,32 @@ services:
     networks:
       - app-network
 
+  ai_orm_context_service:
+    build:
+      context: .
+      dockerfile: microservices/ai_orm_context_service/Dockerfile
+    container_name: ai_orm_context_service
+    depends_on:
+      - redis
+    ports:
+      - "${AI_ORM_CONTEXT_PORT:-8004}:8001"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REDIS_URL=${REDIS_URL}
+    restart: on-failure
+    networks:
+      - app-network
+
   orchestration_service:
     build:
       context: .
-      dockerfile: nextplore-orchestrator/Dockerfile
+      dockerfile: nextplore_orchestrator/Dockerfile
     container_name: orchestration_service
     depends_on:
       - kafka
       - redis
     ports:
-      - "${ORCHESTRATION_PORT:-8004}:8001"
+      - "${ORCHESTRATION_PORT:-8005}:8001"
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1

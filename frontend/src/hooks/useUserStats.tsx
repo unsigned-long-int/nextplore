@@ -13,7 +13,7 @@ export const useUserStats = () => {
         const fetchStats = async () => {
             try {
                 const token = await getToken();
-                const response = await axios.get('http://localhost:8004/nextplore-orchestrator/user-stats', {
+                const response = await axios.get('http://localhost:8005/nextplore-orchestrator/user-stats', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

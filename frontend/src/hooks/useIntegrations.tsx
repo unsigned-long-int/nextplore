@@ -6,7 +6,7 @@ export const useIntegrations = () => {
     const { getToken } = useTokenProvider();
     const fetchIntegrations = useCallback(async () => {
         const token = await getToken();
-        const response = await axios.get('http://localhost:8004/nextplore-orchestrator/integrations', {
+        const response = await axios.get('http://localhost:8005/nextplore-orchestrator/integrations', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

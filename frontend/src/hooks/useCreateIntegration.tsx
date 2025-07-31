@@ -15,7 +15,7 @@ export const useCreateIntegration = (data: IntegrationCreateRequest) => {
             const token = await getToken();
             try {
                 const response = await axios.post(
-                    'http://localhost:8004/nextplore-orchestrator/create-integration',
+                    'http://localhost:8005/nextplore-orchestrator/create-integration',
                     data,
                     {
                         headers: {

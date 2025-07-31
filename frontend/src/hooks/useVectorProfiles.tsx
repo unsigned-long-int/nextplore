@@ -10,7 +10,7 @@ export const useVectorProfiles = () => {
         const token = await getToken();
 
         const response = await axios.post(
-            'http://localhost:8004/nextplore-orchestrator/vector-profiles', 
+            'http://localhost:8005/nextplore-orchestrator/vector-profiles', 
             vector_profile_request,
             {
             headers: {

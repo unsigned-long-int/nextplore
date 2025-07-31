@@ -2,17 +2,20 @@ from fastapi import APIRouter, status, HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 
 
+from api.context import get_current_identity
 from database.repositories import (
     IntegrationRepository,
     IntegrationUpdateFailed
 )
 from shared.contracts.integration_service import PreparedIntegrationUpdateRequest
+from shared.cache.service_caches.integration_cache import integration_service_cache
 
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/update-integration', status_code=status.HTTP_204_NO_CONTENT)
 async def update_integration(payload: PreparedIntegrationUpdateRequest) -> None:
+    user_identity = get_current_identity()
     integration_repo = IntegrationRepository()
     try:
         await integration_repo.update_integration(
@@ -21,7 +24,11 @@ async def update_integration(payload: PreparedIntegrationUpdateRequest) -> None:
             organization_id=payload.organization_id,
             update_args=payload.update_args
         )
-    
+
+        await integration_service_cache.delete_by_prefix(
+            user_identity.organization_id,
+            user_identity.user_id
+        )
     except IntegrationUpdateFailed as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

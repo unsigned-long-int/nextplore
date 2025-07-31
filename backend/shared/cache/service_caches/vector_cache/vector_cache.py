@@ -28,10 +28,10 @@ class VectorServiceCache(BaseCache):
         )
     
     async def set_vector_stats(
-            self, 
-            user_identity: UserIdentity,
-            request: VectorStatsRequest, 
-            response: VectorStatsResponse
+        self, 
+        user_identity: UserIdentity,
+        request: VectorStatsRequest, 
+        response: VectorStatsResponse
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='stats')
         await self.set_one(
@@ -42,9 +42,9 @@ class VectorServiceCache(BaseCache):
         )
 
     async def delete_vector_stats(
-            self,
-            user_identity: UserIdentity,
-            request: VectorStatsRequest
+        self,
+        user_identity: UserIdentity,
+        request: VectorStatsRequest
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='stats')
         await self.delete(
@@ -54,9 +54,9 @@ class VectorServiceCache(BaseCache):
         )
 
     async def get_vector_metas(
-            self, 
-            user_identity: UserIdentity,
-            request: VectorMetaRequest
+        self, 
+        user_identity: UserIdentity,
+        request: VectorMetaRequest
     ) -> List[VectorMetaResponse]:
         cache_key = get_cache_key(model=request, prefix='metas')
         return await self.get_many(
@@ -67,10 +67,10 @@ class VectorServiceCache(BaseCache):
         )
     
     async def set_vector_metas(
-            self, 
-            user_identity: UserIdentity,
-            request: VectorMetaRequest,
-            response: List[VectorMetaResponse]
+        self, 
+        user_identity: UserIdentity,
+        request: VectorMetaRequest,
+        response: List[VectorMetaResponse]
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='metas')
         await self.set_many(
@@ -81,9 +81,9 @@ class VectorServiceCache(BaseCache):
         )
 
     async def delete_vector_metas(
-            self,
-            user_identity: UserIdentity,
-            request: VectorMetaRequest
+        self,
+        user_identity: UserIdentity,
+        request: VectorMetaRequest
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='metas')
         await self.delete(
@@ -93,10 +93,10 @@ class VectorServiceCache(BaseCache):
         )
 
     async def get_qdrant_vectors(
-            self, 
-            user_identity: UserIdentity,
-            request: QDrantVectorRequest
-        ) -> QDrantVectorResponse:
+        self, 
+        user_identity: UserIdentity,
+        request: QDrantVectorRequest
+    ) -> QDrantVectorResponse:
         cache_key = get_cache_key(model=request, prefix='qdrant-vectors')
         return await self.get_one(
             user_identity.organization_id,
@@ -106,10 +106,10 @@ class VectorServiceCache(BaseCache):
         )
     
     async def set_qdrant_vectors(
-            self, 
-            user_identity: UserIdentity,
-            request: QDrantVectorRequest,
-            response: QDrantVectorResponse
+        self, 
+        user_identity: UserIdentity,
+        request: QDrantVectorRequest,
+        response: QDrantVectorResponse
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='qdrant-vectors')
         await self.set_one(
@@ -120,9 +120,9 @@ class VectorServiceCache(BaseCache):
         )
 
     async def delete_qdrant_vectors(
-            self,
-            user_identity: UserIdentity,
-            request: QDrantVectorRequest
+        self,
+        user_identity: UserIdentity,
+        request: QDrantVectorRequest
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='qdrant-vectors')
         await self.delete(
@@ -132,9 +132,9 @@ class VectorServiceCache(BaseCache):
         )
 
     async def get_vector_profiles(
-            self, 
-            user_identity: UserIdentity,
-            request: VectorProfileRequest
+        self, 
+        user_identity: UserIdentity,
+        request: VectorProfileRequest
     ) -> List[VectorProfileResponse]:
         cache_key = get_cache_key(model=request, prefix='vector-profiles')
         return await self.get_many(
@@ -145,10 +145,10 @@ class VectorServiceCache(BaseCache):
         )
     
     async def set_vector_profiles(
-            self, 
-            user_identity: UserIdentity,
-            request: VectorProfileRequest,
-            response: List[VectorProfileResponse]
+        self, 
+        user_identity: UserIdentity,
+        request: VectorProfileRequest,
+        response: List[VectorProfileResponse]
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='vector-profiles')
         await self.set_many(
@@ -159,9 +159,9 @@ class VectorServiceCache(BaseCache):
         )
 
     async def delete_qdrant_vectors(
-            self,
-            user_identity: UserIdentity,
-            request: VectorProfileRequest
+        self,
+        user_identity: UserIdentity,
+        request: VectorProfileRequest
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='vector-profiles')
         await self.delete(

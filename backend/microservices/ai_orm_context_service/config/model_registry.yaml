@@ -1,0 +1,23 @@
+models:
+  mistral:
+    label: "Mistral (Hugging Face)"
+    provider: "huggingface"
+    hf_path: "mistralai/Mistral-7B-Instruct-v0.2"
+    max_new_tokens: 512
+    context_length: 8192
+    tags: [rag, fast, open-source]
+
+  phi3:
+    label: "Phi-3 Mini (Hugging Face)"
+    provider: "huggingface"
+    hf_path: "microsoft/phi-3-mini-128k-instruct"
+    max_new_tokens: 512
+    context_length: 128000
+    tags: [rag, small, open-source]
+
+  gpt-4o:
+    label: "GPT-4o (OpenAI)"
+    provider: "openai"
+    pricing: "usage-based"
+    context_length: 128000
+    tags: [rag, reliable, proprietary]

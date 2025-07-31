@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from shared.cache.utils import get_cache_key
 from shared.cache.client import BaseCache
@@ -20,10 +20,10 @@ class IntegrationServiceCache(BaseCache):
         super().__init__(namespace='integration_service', version='v1')
 
     async def get_filtered_integration(
-            self, 
-            user_identity: UserIdentity, 
-            request: FilteredCrawlRequest
-        ) -> CrawlResponse:
+        self, 
+        user_identity: UserIdentity, 
+        request: FilteredCrawlRequest
+    ) -> CrawlResponse:
         cache_key = get_cache_key(model=request, prefix='filtered-crawl')
         return await self.get_one(
             user_identity.organization_id,
@@ -33,10 +33,10 @@ class IntegrationServiceCache(BaseCache):
         )
     
     async def set_filtered_integration(
-            self, 
-            user_identity: UserIdentity,
-            request: FilteredCrawlRequest, 
-            response: CrawlResponse
+        self, 
+        user_identity: UserIdentity,
+        request: FilteredCrawlRequest, 
+        response: CrawlResponse
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='filtered-crawl')
         await self.set_one(
@@ -47,9 +47,9 @@ class IntegrationServiceCache(BaseCache):
         )
 
     async def delete_filtered_integration(
-            self,
-            user_identity: UserIdentity,
-            request: FilteredCrawlRequest
+        self,
+        user_identity: UserIdentity,
+        request: FilteredCrawlRequest
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='filtered-crawl')
         await self.delete(
@@ -59,10 +59,10 @@ class IntegrationServiceCache(BaseCache):
         )
     
     async def get_integration_stats(
-            self, 
-            user_identity: UserIdentity, 
-            request: IntegrationStatsRequest
-        ) -> IntegrationStatsResponse:
+        self, 
+        user_identity: UserIdentity, 
+        request: IntegrationStatsRequest
+    ) -> IntegrationStatsResponse:
         cache_key = get_cache_key(model=request, prefix='stats')
         return await self.get_one(
             user_identity.organization_id,
@@ -72,10 +72,10 @@ class IntegrationServiceCache(BaseCache):
         )
     
     async def set_integration_stats(
-            self, 
-            user_identity: UserIdentity,
-            request: IntegrationStatsRequest, 
-            response: IntegrationStatsResponse
+        self, 
+        user_identity: UserIdentity,
+        request: IntegrationStatsRequest, 
+        response: IntegrationStatsResponse
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='stats')
         await self.set_one(
@@ -86,9 +86,9 @@ class IntegrationServiceCache(BaseCache):
         )
 
     async def delete_integration_stats(
-            self,
-            user_identity: UserIdentity,
-            request: IntegrationStatsRequest
+        self,
+        user_identity: UserIdentity,
+        request: IntegrationStatsRequest
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='stats')
         await self.delete(
@@ -125,9 +125,9 @@ class IntegrationServiceCache(BaseCache):
         )
 
     async def delete_integration_metadata(
-            self,
-            user_identity: UserIdentity,
-            request: IntegrationMetadataRequest
+        self,
+        user_identity: UserIdentity,
+        request: IntegrationMetadataRequest
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='metas')
         await self.delete(
@@ -164,9 +164,9 @@ class IntegrationServiceCache(BaseCache):
         )
 
     async def delete_integrations(
-            self,
-            user_identity: UserIdentity,
-            request: PreparedIntegrationGetRequest
+        self,
+        user_identity: UserIdentity,
+        request: PreparedIntegrationGetRequest
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='profile')
         await self.delete(
@@ -174,8 +174,6 @@ class IntegrationServiceCache(BaseCache):
             user_identity.user_id,
             cache_key
         )
-        
 
-    
 
 integration_service_cache = IntegrationServiceCache()

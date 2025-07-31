@@ -7,6 +7,7 @@ from database.models import VectorORM
 from services.qdrant.upsert import upsert_qdrant_vectors
 from services.pg.upsert import upsert_pg_vector_metadata
 from services.qdrant.models import QdrantVectorPoint
+from shared.cache.service_caches.vector_cache import vector_service_cache
 
 
 async def handle_vector_upsert(event: CrawlMetaEmbedded) -> None:
@@ -36,4 +37,9 @@ async def handle_vector_upsert(event: CrawlMetaEmbedded) -> None:
     await asyncio.gather(
         upsert_pg_vector_metadata(pg_vectors),
         upsert_qdrant_vectors(qdrant_vectors)
+    )
+
+    await vector_service_cache.delete_by_prefix(
+        event.organization_id,
+        event.user_id
     )

@@ -1,0 +1,85 @@
+from sqlalchemy import select
+from fastapi import APIRouter, Depends
+
+from shared.database.dependencies import DatabaseBackendConnector
+from shared.database.models import OrganizationORM, UserORM
+from shared.cache.service_caches.nextplore_orchestrator_cache import nextplore_orchestrator_service_cache
+from api.dependencies.authentication import get_azure_user
+from shared.contracts.nextplore_orchestrator_service import UserProfile
+
+router = APIRouter()
+
+@router.get('', response_model=UserProfile)
+async def get_user_profile(
+    user=Depends(get_azure_user)
+) -> UserProfile:
+    email = user.get('preferred_username')
+    if not email:
+        raise ValueError('preferred_username claim is missing')
+    
+    name = user.get('name')
+    sub = user.get('sub')
+    roles = user.get('roles', [])
+    azure_tenant_id = user.get('tid')
+    azure_user_id = user.get('oid')
+    domain = email.split('@')[-1]
+
+    cached = await nextplore_orchestrator_service_cache.get_user_profile(
+        azure_tenant_id,
+        azure_user_id
+    )
+    if cached:
+        return cached
+
+    database_backend_connector = DatabaseBackendConnector()
+    async with database_backend_connector.session_scope() as scoped_session:
+        result = await scoped_session.execute(
+            select(OrganizationORM)
+            .where(OrganizationORM.azure_tenant_id==azure_tenant_id)
+        )
+        org = result.scalar_one_or_none()
+        if not org:
+            org = OrganizationORM(
+                azure_tenant_id=azure_tenant_id,
+                name=domain,
+                domain=domain,
+                plan='standard'
+            )
+            scoped_session.add(org)
+            scoped_session.flush()
+
+        result = await scoped_session.execute(
+            select(UserORM)
+            .where(UserORM.azure_user_id == azure_user_id)
+            .where(UserORM.organization_id == org.id)
+        )
+        user = result.scalar_one_or_none()
+        if not user:
+            user = UserORM(
+                azure_user_id=azure_user_id,
+                email=email,
+                name=name,
+                organization_id=org.id,
+                sub=sub,
+                role=','.join(roles) if roles else None,
+            )
+            scoped_session.add(user)
+            scoped_session.flush()
+
+        response = UserProfile(
+            id=user.id,
+            email=user.email,
+            name=user.name,
+            organization=org.name,
+            organization_id=org.id
+        )
+
+        await nextplore_orchestrator_service_cache.set_user_profile(
+            azure_tenant_id,
+            azure_user_id,
+            response=response,
+            ttl=300
+        )
+
+        return response
+    

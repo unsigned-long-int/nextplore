@@ -1,27 +1,38 @@
 import axios from 'axios';
 import { useTokenProvider } from '../authentication/useTokenProvider';
+import type { AIQueryRequest } from '../interface/ai-query-request.interface';
 import type { AIQueryResponse } from '../interface/ai-query-response.interface';
 
 
 export const useAIQueryRequest = () => {
     const { getToken } = useTokenProvider();
 
-    const getAIQueryResponse = async (prompt: string): Promise<AIQueryResponse> => {
+    const getAIQueryResponse = async (request: AIQueryRequest): Promise<AIQueryResponse> => {
         const token = await getToken();
 
-        const response = await axios.post(
-            'http://localhost:8004/nextplore-orchestrator/ai-query',
-            {
-                prompt,
-                integration_id: null
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
+        try {
+            const response = await axios.post(
+                'http://localhost:8005/nextplore-orchestrator/ai-query',
+                request,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
                 }
+            );
+            return response.data;
+        } catch (e: any) {
+            if (axios.isAxiosError(e) && e.response?.data?.detail) {
+                const detail = e.response.data.detail;
+                throw new Error(
+                    typeof detail === 'string'
+                        ? detail
+                        : detail.message || 'Unknown integration error'
+                );
+            } else {
+                throw new Error('AI query failed unexpectedly');
             }
-        );
-        return response.data;
+        }
     };
     return { getAIQueryResponse };
 }
