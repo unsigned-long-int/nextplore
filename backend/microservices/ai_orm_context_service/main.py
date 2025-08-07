@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-
 from lifecycle import lifespan
 from api.router import orm_context_router, models_router
 from api.middleware import IdentityMiddleware
@@ -17,5 +16,4 @@ app.add_middleware(IdentityMiddleware)
 app.include_router(orm_context_router)
 app.include_router(models_router)
 
-Instrumentator().instrument(app).expose(app)
-
+Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)

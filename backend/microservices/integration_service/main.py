@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from lifecycle import lifespan
 from api.router import (
@@ -30,3 +31,5 @@ app.include_router(test_router)
 app.include_router(update_router)
 app.include_router(integration_stats_router)
 app.include_router(integration_meta_router)
+
+Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)

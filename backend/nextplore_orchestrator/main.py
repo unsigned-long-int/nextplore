@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
+
 
 from lifecycle import lifespan
 from api.router import api_router
@@ -15,3 +17,4 @@ app.add_middleware(
 
 app.include_router(api_router, prefix='/nextplore-orchestrator')
 
+Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)
