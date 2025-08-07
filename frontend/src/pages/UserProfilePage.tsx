@@ -15,7 +15,7 @@ export const UserProfilePage = () => {
         <div>
             <Group wrap="nowrap">
                 <Avatar
-                src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png"
+                key={profile.name} name={profile.name} color="initials"
                 size={94}
                 radius="md"
                 />
