@@ -1,0 +1,43 @@
+providers:
+  huggingface:
+    moonshotai:
+      label: moonshotai/Kimi-K2
+      hf_path: moonshotai/Kimi-K2-Instruct
+      hf_url: https://router.huggingface.co/v1
+      inference: novita
+      max_tokens: 4096
+      tags: [fast, open-source, multilingual]
+      model_id: moonshotai
+
+    meta-Llama:
+      label: meta-Llama/3.3
+      hf_path: meta-llama/Llama-3.3-70B-Instruct
+      hf_url: https://router.huggingface.co/v1
+      inference: novita
+      max_tokens: 8192
+      tags: [open-weight, llama3, efficient]
+      model_id: meta-Llama
+
+    qwen:
+      label: Qwen/Qwen3
+      hf_path: Qwen/Qwen3-235B-A22B-Thinking-2507
+      hf_url: https://router.huggingface.co/v1
+      inference: novita
+      max_tokens: 32768
+      tags: [chinese, multilingual, long-context]
+      model_id: qwen-3
+
+    deepseek:
+      label: deepseek-ai/V3
+      hf_path: deepseek-ai/DeepSeek-V3
+      hf_url: https://router.huggingface.co/v1
+      inference: novita
+      max_tokens: 8192
+      tags: [long-context, research, ai]
+      model_id: deepseek
+
+  openai:
+    gpt-4o:
+      label: GPT-4o
+      model_id: gpt-4o
+      tags: [rag, reliable, proprietary]

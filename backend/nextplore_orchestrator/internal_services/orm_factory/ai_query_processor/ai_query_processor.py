@@ -9,28 +9,20 @@ from clients.integration import IntegrationClient
 from clients.ai_orm_context import AIORMContextClient
 from internal_services.orm_factory.orm import get_orm, ORMRequest
 from internal_services.orm_factory.statement import get_statement, StatementRequest
-from internal_services.context import retrieve_context_meta
-from shared.database.sql_connection_service import fetch_engine, fetch_session_maker, session_scope
-from shared.identity_service.user_identity import UserIdentity
-from shared.contracts.embedding_service import EmbeddingResponse
-from shared.contracts.nextplore_orchestrator_service import AIQueryRequest, AIQueryResponse
-from shared.contracts.vector_service import (
-    QDrantVectorResponse, 
-    QDrantVectorRequest,
-    VectorMetaRequest,
-    VectorMetaResponse
-)
-from shared.contracts.integration_service import (
-    CrawlResponse, 
-    FilteredCrawlRequest,
-    IntegrationMetadataRequest
-)
-from shared.contracts.ai_orm_context_service import (
-    ORMContextRequest, 
-    Context, 
-    ORMContextResponse
-)
-from shared.database.connection_builder import build_connection_string, ConnectionMeta
+from internal_services.context import build_rag_context, RAGContext
+from nextplore_shared.database.sql_connection_service.session_starter import fetch_engine, fetch_session_maker, session_scope
+from nextplore_shared.identity_service.identity_model.user_identity import UserIdentity
+from nextplore_shared.contracts.embedding_service.embedding_response import EmbeddingResponse
+from nextplore_shared.contracts.nextplore_orchestrator_service.ai_query_request import AIQueryRequest
+from nextplore_shared.contracts.nextplore_orchestrator_service.ai_query_response import AIQueryResponse
+from nextplore_shared.contracts.vector_service.qdrant_vector_response import QDrantVectorResponse
+from nextplore_shared.contracts.vector_service.qdrant_vector_request import QDrantVectorRequest 
+from nextplore_shared.contracts.vector_service.vector_meta_request import VectorMetaRequest
+from nextplore_shared.contracts.vector_service.vector_meta_response import VectorMetaResponse
+from nextplore_shared.contracts.integration_service.integration_metadata_request import IntegrationMetadataRequest
+from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
+from nextplore_shared.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
+from nextplore_shared.database.connection_builder.database_connection_builder import build_connection_string, ConnectionMeta
 
 
 logger = logging.getLogger(__name__)
@@ -55,13 +47,8 @@ class AIQueryProcessor:
         query_vector_response = await self._embed_prompt(request.prompt)
         nearest_vectors = await self._get_nearest_vectors(query_vector_response.embedding)
         vectors_meta = await self._get_nearest_vector_metas(nearest_vectors.vector_ids)
-        integrations, schemas, tables = retrieve_context_meta(vectors_meta)
-        integration_filter_context = await self._get_integration_filter_context(
-            integrations,
-            schemas,
-            tables
-        )
-        orm_context = await self._get_ai_orm_context(request, integration_filter_context)
+        rag_context = build_rag_context(vectors_meta)
+        orm_context = await self._get_ai_orm_context(request, rag_context)
         ai_query_response = await self._build_ai_query_response(orm_context)
         return ai_query_response
 
@@ -78,22 +65,10 @@ class AIQueryProcessor:
         )
         return await self.vector_client.get_vector_metas(payload)
     
-    async def _get_integration_filter_context(
-            self, 
-            integrations: List[UUID], 
-            schemas: Dict[UUID, List[str]],
-            tables: Dict[UUID, List[str]]
-    ) -> CrawlResponse:
-        payload = FilteredCrawlRequest(
-            integrations=integrations,
-            schemas=schemas,
-            tables=tables
-        )
-        return await self.integration_client.crawl_filtered_integration(payload)
-    
-    async def _get_ai_orm_context(self, request: AIQueryRequest, integration_filter_context: CrawlResponse) -> ORMContextResponse:
-        context = Context(**integration_filter_context.model_dump())
+    async def _get_ai_orm_context(self, request: AIQueryRequest, rag_context: RAGContext) -> ORMContextResponse:
+        context = Context(**rag_context.model_dump())
         orm_context_request = ORMContextRequest(
+            provider=request.provider,
             model_id=request.model_id,
             query=request.prompt,
             context=context

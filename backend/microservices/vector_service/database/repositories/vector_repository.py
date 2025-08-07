@@ -4,7 +4,7 @@ from sqlalchemy import select, delete, func
 from sqlalchemy.engine import Row
 
 from database.models import VectorORM
-from shared.database.dependencies import DatabaseBackendConnector
+from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
 
 
 class VectorRepository:

@@ -29,11 +29,11 @@ async def delete_qdrant_vectors(
         )
     ]
 
-    filter = Filter(must=conditions)
+    qd_filter = Filter(must=conditions)
 
     await qdrant.delete(
         collection_name='nextplore',
         points_selector=FilterSelector(
-            filter=filter
+            filter=qd_filter
         )
     )

@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from api.dependencies.authentication import get_active_user
 from api.dependencies.microservices import get_integration_client
-from shared.contracts.nextplore_orchestrator_service import IntegrationUpdateRequest, IntegrationUpdateResponse
-from shared.encryptor import ENCRYPTED_FIELDS, encrypt_secret
-from shared.contracts.integration_service import PreparedIntegrationUpdateRequest
+from nextplore_shared.contracts.nextplore_orchestrator_service.integration_update_request import IntegrationUpdateRequest
+from nextplore_shared.contracts.nextplore_orchestrator_service.integration_update_response import IntegrationUpdateResponse
+from nextplore_shared.encryptor.encrypted_fields import ENCRYPTED_FIELDS
+from nextplore_shared.encryptor.encryption import encrypt_secret
+from nextplore_shared.contracts.integration_service.prepared_integration_update_request import PreparedIntegrationUpdateRequest
 
 
 router = APIRouter()

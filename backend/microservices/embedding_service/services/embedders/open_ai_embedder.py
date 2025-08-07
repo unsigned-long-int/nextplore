@@ -1,9 +1,7 @@
-import asyncio
 import os
-from dataclasses import dataclass, field 
 from typing import Optional, List
 
-from shared.open_ai_client_loader import load_open_ai_client
+from nextplore_shared.open_ai_client_loader.open_ai_client_loader import load_open_ai_client
 from .embedder_base import EmbedderBase
 
 
@@ -14,8 +12,7 @@ class OpenAIEmbedder(EmbedderBase):
         self.client = load_open_ai_client(os.getenv('OPENAI_API_KEY'))
 
     async def generate_embedding(self, datastream: str, is_query: Optional[bool] = True) -> List[float]:
-        response = await asyncio.to_thread(
-            self.client.embeddings.create,
+        response = await self.client.embeddings.create(
             input=datastream,
             model=self.model_name
         )

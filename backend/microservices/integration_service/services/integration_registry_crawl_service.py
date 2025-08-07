@@ -11,9 +11,10 @@ from utils.crawlers import crawl_schemas
 from utils.filters.logic import Specification
 from utils.encryption import decrypt_integration
 from database.repositories import IntegrationRepository
-from shared.database.sql_connection_service import ConnectionFailed
-from shared.database.connection_builder import build_connection_string, ConnectionMeta
-from shared.database.crawler_factory import get_crawler
+from nextplore_shared.database.sql_connection_service.session_starter import ConnectionFailed
+from nextplore_shared.database.connection_builder.connection_meta import ConnectionMeta
+from nextplore_shared.database.connection_builder.database_connection_builder import build_connection_string
+from nextplore_shared.database.crawler_factory.create_crawler import get_crawler
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,6 @@ async def crawl_integration_registry(
 
     for integration_id in integration_ids:
         try:
-            integration_id = integration_id
             integration_meta_candidate = IntegrationCatalog(id=integration_id)
             if not integration_spec.is_satisfied_by(integration_meta_candidate):
                 logger.info(f'Integration {integration_id} is not satisfied by spec. Skipping.')

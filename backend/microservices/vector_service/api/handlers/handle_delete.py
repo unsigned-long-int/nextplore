@@ -6,7 +6,7 @@ from messaging.events.integration_service import IntegrationDeleted
 from database.repositories import VectorRepository
 from services.qdrant.delete import delete_qdrant_vectors
 from services.pg.delete import delete_pg_vector_metadata
-from shared.cache.service_caches.vector_cache import vector_service_cache
+from nextplore_shared.cache.service_caches.vector_cache.cache import vector_service_cache
 
 
 async def handle_vector_delete(event: IntegrationDeleted) -> None:

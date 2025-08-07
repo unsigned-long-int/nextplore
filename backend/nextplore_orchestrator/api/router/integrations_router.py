@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from typing import List
 
-from shared.contracts.integration_service import PreparedIntegrationGetRequest
+from nextplore_shared.contracts.integration_service.prepared_integration_get_request import PreparedIntegrationGetRequest
+from nextplore_shared.contracts.nextplore_orchestrator_service.integration_profile import IntegrationProfile
 from api.dependencies.authentication import get_active_user
 from api.dependencies.microservices import get_integration_client
-from shared.contracts.nextplore_orchestrator_service import IntegrationProfile
+
 
 router = APIRouter()
 

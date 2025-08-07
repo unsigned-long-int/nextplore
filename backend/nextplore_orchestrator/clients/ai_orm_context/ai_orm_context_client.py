@@ -1,8 +1,6 @@
-from shared.contracts.ai_orm_context_service import (
-    ORMContextRequest, 
-    ORMContextResponse, 
-    AvailableModelsResponse
-)
+from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
+from nextplore_shared.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse 
+from nextplore_shared.contracts.ai_orm_context_service.avilable_models_response import AvailableModelsResponse
 from clients.base import BaseServiceClient
 
 

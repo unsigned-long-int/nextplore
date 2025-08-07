@@ -1,9 +1,10 @@
 from fastapi import APIRouter
 
 from api.context import get_current_identity
-from shared.cache.service_caches.vector_cache import vector_service_cache
-from shared.contracts.vector_service import VectorStatsRequest, VectorStatsResponse
 from database.repositories import VectorRepository
+from nextplore_shared.cache.service_caches.vector_cache.cache import vector_service_cache
+from nextplore_shared.contracts.vector_service.vector_stats_request import VectorStatsRequest
+from nextplore_shared.contracts.vector_service.vector_stats_response import VectorStatsResponse
 
 
 router = APIRouter(prefix='/v1/vector', tags=['Vector'])

@@ -1,7 +1,5 @@
-from shared.contracts.integration_service import (
-    FilteredCrawlRequest, 
-    CrawlResponse
-)
+from nextplore_shared.contracts.integration_service.filtered_crawl_request import FilteredCrawlRequest
+from nextplore_shared.contracts.integration_service.crawl_response import CrawlResponse
 from services import crawl_integration_registry
 from utils.filters.logic import AlwaysTrueSpec
 from utils.filters.factory import create_specs

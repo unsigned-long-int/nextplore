@@ -3,7 +3,10 @@ FROM python:3.13-slim
 RUN groupadd -r nextplore-group \
     && useradd -r -g nextplore-group -m orchestration-service
 
-USER root 
+ARG SHARED_TGZ
+COPY ${SHARED_TGZ} /tmp/nextplore_shared.tar.gz
+RUN pip install --upgrade /tmp/nextplore_shared.tar.gz && rm /tmp/nextplore_shared.tar.gz
+
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
     ca-certificates \
@@ -23,7 +26,6 @@ WORKDIR /app
 
 COPY nextplore_orchestrator /app/
 COPY messaging /app/messaging
-COPY shared /app/shared
 
 RUN pip install --no-cache-dir -r requirements.txt 
 

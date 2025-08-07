@@ -3,8 +3,9 @@ from httpx import HTTPStatusError
 
 from api.dependencies.authentication import get_active_user
 from api.dependencies.microservices import get_integration_client
-from shared.contracts.integration_service import PreparedIntegrationTestRequest
-from shared.contracts.nextplore_orchestrator_service import IntegrationCreateRequest, IntegrationTestResponse
+from nextplore_shared.contracts.integration_service.prepared_integration_test_request import PreparedIntegrationTestRequest
+from nextplore_shared.contracts.nextplore_orchestrator_service.integration_create_request import IntegrationCreateRequest
+from nextplore_shared.contracts.nextplore_orchestrator_service.integration_test_response import IntegrationTestResponse
 
 
 router = APIRouter()

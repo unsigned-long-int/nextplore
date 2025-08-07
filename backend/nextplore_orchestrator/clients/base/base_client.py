@@ -9,7 +9,12 @@ class BaseServiceClient:
     def __init__(self, base_url: str):
         self.client = httpx.AsyncClient(
             base_url=base_url,
-            timeout=httpx.Timeout(20.0, connect=3.0),
+            timeout=httpx.Timeout(
+                read=60.0, 
+                write=20.0,
+                connect=3.0,
+                pool=5.0
+            ),
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20)    
         )
 

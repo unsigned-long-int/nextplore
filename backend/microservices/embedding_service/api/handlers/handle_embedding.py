@@ -2,7 +2,8 @@ import asyncio
 from typing import List
 
 from services.embedding_service import embed
-from shared.contracts.embedding_service import QueryEmbeddingRequest, EmbeddingResponse
+from nextplore_shared.contracts.embedding_service.query_embedding_request import QueryEmbeddingRequest
+from nextplore_shared.contracts.embedding_service.embedding_response import EmbeddingResponse
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationMetaCrawled
 from messaging.events.embedding_service import CrawlMetaEmbedded, ORMEmbedding, TableMeta

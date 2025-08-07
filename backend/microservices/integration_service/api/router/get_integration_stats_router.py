@@ -1,10 +1,8 @@
 from fastapi import APIRouter
 
-from shared.contracts.integration_service import (
-    IntegrationStatsRequest, 
-    IntegrationStatsResponse
-)
-from shared.cache.service_caches.integration_cache import integration_service_cache
+from nextplore_shared.contracts.integration_service.integration_stats_request import IntegrationStatsRequest
+from nextplore_shared.contracts.integration_service.integration_stats_response import IntegrationStatsResponse
+from nextplore_shared.cache.service_caches.integration_cache.cache import integration_service_cache
 from api.context import get_current_identity
 from database.repositories import IntegrationRepository
 

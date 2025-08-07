@@ -2,8 +2,9 @@ import json
 from fastapi import APIRouter
 from typing import List
 
-from shared.cache.service_caches.vector_cache import vector_service_cache
-from shared.contracts.vector_service import VectorMetaRequest, VectorMetaResponse
+from nextplore_shared.cache.service_caches.vector_cache.cache import vector_service_cache
+from nextplore_shared.contracts.vector_service.vector_meta_request import VectorMetaRequest
+from nextplore_shared.contracts.vector_service.vector_meta_response import VectorMetaResponse
 from api.context import get_current_identity
 from database.repositories import VectorRepository
 

@@ -7,8 +7,8 @@ from database.repositories import (
     IntegrationRepository,
     IntegrationUpdateFailed
 )
-from shared.contracts.integration_service import PreparedIntegrationUpdateRequest
-from shared.cache.service_caches.integration_cache import integration_service_cache
+from nextplore_shared.contracts.integration_service.prepared_integration_update_request import PreparedIntegrationUpdateRequest
+from nextplore_shared.cache.service_caches.integration_cache.cache import integration_service_cache
 
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])

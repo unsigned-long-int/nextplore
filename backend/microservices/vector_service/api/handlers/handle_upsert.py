@@ -7,7 +7,7 @@ from database.models import VectorORM
 from services.qdrant.upsert import upsert_qdrant_vectors
 from services.pg.upsert import upsert_pg_vector_metadata
 from services.qdrant.models import QdrantVectorPoint
-from shared.cache.service_caches.vector_cache import vector_service_cache
+from nextplore_shared.cache.service_caches.vector_cache.cache import vector_service_cache
 
 
 async def handle_vector_upsert(event: CrawlMetaEmbedded) -> None:

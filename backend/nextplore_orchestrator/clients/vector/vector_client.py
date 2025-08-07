@@ -1,16 +1,14 @@
 from typing import List
 
 from clients.base import BaseServiceClient
-from shared.contracts.vector_service import (
-    VectorMetaRequest, 
-    VectorMetaResponse,
-    VectorStatsRequest,
-    VectorStatsResponse,
-    QDrantVectorRequest,
-    QDrantVectorResponse,
-    VectorProfileRequest,
-    VectorProfileResponse
-)
+from nextplore_shared.contracts.vector_service.vector_meta_request import VectorMetaRequest
+from nextplore_shared.contracts.vector_service.vector_meta_response import VectorMetaResponse
+from nextplore_shared.contracts.vector_service.vector_stats_request import VectorStatsRequest 
+from nextplore_shared.contracts.vector_service.vector_stats_response import VectorStatsResponse
+from nextplore_shared.contracts.vector_service.qdrant_vector_request import QDrantVectorRequest
+from nextplore_shared.contracts.vector_service.qdrant_vector_response import QDrantVectorResponse
+from nextplore_shared.contracts.vector_service.vector_profile_request import VectorProfileRequest
+from nextplore_shared.contracts.vector_service.vector_profile_response import VectorProfileResponse
 
 
 class VectorClient(BaseServiceClient):

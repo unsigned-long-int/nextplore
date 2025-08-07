@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from config import settings
+from settings import settings
 from clients.embedding import EmbeddingClient
 from clients.integration import IntegrationClient
 from clients.vector import VectorClient

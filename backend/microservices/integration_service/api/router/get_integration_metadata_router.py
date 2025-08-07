@@ -3,8 +3,9 @@ from fastapi import APIRouter
 from database.repositories import IntegrationRepository
 from utils.encryption import decrypt_integration
 from api.context import get_current_identity
-from shared.cache.service_caches.integration_cache import integration_service_cache
-from shared.contracts.integration_service import IntegrationMetadataRequest, IntegrationMetadataResponse
+from nextplore_shared.cache.service_caches.integration_cache.cache import integration_service_cache
+from nextplore_shared.contracts.integration_service.integration_metadata_request import IntegrationMetadataRequest
+from nextplore_shared.contracts.integration_service.integration_metadata_response import IntegrationMetadataResponse
 
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])

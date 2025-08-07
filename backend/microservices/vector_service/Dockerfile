@@ -3,7 +3,10 @@ FROM python:3.13-slim
 RUN groupadd -r nextplore-group \
     && useradd -r -g nextplore-group -m vector-upsert-service
 
-USER root 
+ARG SHARED_TGZ
+COPY ${SHARED_TGZ} /tmp/nextplore_shared.tar.gz
+RUN pip install /tmp/nextplore_shared.tar.gz
+
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
     ca-certificates \
@@ -23,13 +26,6 @@ WORKDIR /app
 
 COPY microservices/vector_service /app/
 COPY messaging /app/messaging/
-COPY shared/logging /app/shared/logging
-COPY shared/identity_service/user_identity /app/shared/identity_service/user_identity
-COPY shared/cache/client /app/shared/cache/client
-COPY shared/cache/utils /app/shared/cache/utils
-COPY shared/cache/service_caches/vector_cache /app/shared/cache/service_caches/vector_cache
-COPY shared/contracts/vector_service /app/shared/contracts/vector_service
-COPY shared/database/dependencies /app/shared/database/dependencies
 
 RUN pip install --no-cache-dir -r requirements.txt 
 

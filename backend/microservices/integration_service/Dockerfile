@@ -3,6 +3,10 @@ FROM python:3.13-slim
 RUN groupadd -r nextplore-group \
     && useradd -r -g nextplore-group -m integration-service
 
+ARG SHARED_TGZ
+COPY ${SHARED_TGZ} /tmp/nextplore_shared.tar.gz
+RUN pip install --upgrade /tmp/nextplore_shared.tar.gz && rm /tmp/nextplore_shared.tar.gz
+
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
     ca-certificates \
@@ -23,19 +27,6 @@ WORKDIR /app
 
 COPY microservices/integration_service /app/
 COPY messaging /app/messaging
-COPY shared/logging /app/shared/logging
-COPY shared/identity_service/user_identity /app/shared/identity_service/user_identity
-COPY shared/contracts/integration_service /app/shared/contracts/integration_service
-COPY shared/database/sql_connection_service /app/shared/database/sql_connection_service
-COPY shared/database/connection_builder /app/shared/database/connection_builder
-COPY shared/database/dependencies /app/shared/database/dependencies
-COPY shared/database/models /app/shared/database/models
-COPY shared/database/crawler_factory /app/shared/database/crawler_factory
-COPY shared/cache/client /app/shared/cache/client
-COPY shared/cache/utils /app/shared/cache/utils
-COPY shared/cache/service_caches/integration_cache /app/shared/cache/service_caches/integration_cache
-COPY shared/encryptor /app/shared/encryptor
-
 
 RUN pip install --no-cache-dir -r requirements.txt 
 

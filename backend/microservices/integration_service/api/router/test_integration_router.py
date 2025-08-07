@@ -1,11 +1,10 @@
 from fastapi import APIRouter, status, HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from fastapi.responses import JSONResponse
 
-from shared.database.sql_connection_service import fetch_engine
-from shared.database.connection_builder import build_connection_string, ConnectionMeta
-from shared.contracts.integration_service import PreparedIntegrationTestRequest
+from nextplore_shared.database.sql_connection_service.session_starter import fetch_engine
+from nextplore_shared.database.connection_builder.database_connection_builder import build_connection_string, ConnectionMeta
+from nextplore_shared.contracts.integration_service.prepared_integration_test_request import PreparedIntegrationTestRequest
 
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])

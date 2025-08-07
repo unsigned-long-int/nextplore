@@ -3,7 +3,8 @@ from typing import List
 
 from api.dependencies.authentication import get_active_user
 from api.dependencies.microservices import get_vector_client
-from shared.contracts.nextplore_orchestrator_service import VectorProfileResponse, VectorProfileRequest
+from nextplore_shared.contracts.nextplore_orchestrator_service.vector_profile_response import VectorProfileResponse
+from nextplore_shared.contracts.nextplore_orchestrator_service.vector_profile_request import VectorProfileRequest
 
 router = APIRouter()
 

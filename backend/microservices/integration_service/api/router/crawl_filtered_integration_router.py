@@ -1,7 +1,8 @@
 from fastapi import APIRouter,  HTTPException, status
 
-from shared.cache.service_caches.integration_cache import integration_service_cache
-from shared.contracts.integration_service import FilteredCrawlRequest, CrawlResponse
+from nextplore_shared.cache.service_caches.integration_cache.cache import integration_service_cache
+from nextplore_shared.contracts.integration_service.filtered_crawl_request import FilteredCrawlRequest
+from nextplore_shared.contracts.integration_service.crawl_response import CrawlResponse
 from services.integration_registry_crawl_service import CrawlIntegrationsFailed
 from api.context import get_current_identity
 from api.handlers import craw_filtered_integration_metadata

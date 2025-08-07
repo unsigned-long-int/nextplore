@@ -1,11 +1,13 @@
 from sqlalchemy import select
 from fastapi import APIRouter, Depends
 
-from shared.database.dependencies import DatabaseBackendConnector
-from shared.database.models import OrganizationORM, UserORM
-from shared.cache.service_caches.nextplore_orchestrator_cache import nextplore_orchestrator_service_cache
+from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_shared.database.models.organization_orm import OrganizationORM
+from nextplore_shared.database.models.user_orm import UserORM
+from nextplore_shared.cache.service_caches.nextplore_orchestrator_cache.cache import nextplore_orchestrator_service_cache
+from nextplore_shared.contracts.nextplore_orchestrator_service.user_profile import UserProfile
 from api.dependencies.authentication import get_azure_user
-from shared.contracts.nextplore_orchestrator_service import UserProfile
+
 
 router = APIRouter()
 

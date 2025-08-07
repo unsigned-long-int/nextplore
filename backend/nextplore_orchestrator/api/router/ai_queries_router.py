@@ -1,6 +1,8 @@
+import logging
 from fastapi import APIRouter, Depends, status, HTTPException
 
-from shared.contracts.nextplore_orchestrator_service import AIQueryRequest, AIQueryResponse
+from nextplore_shared.contracts.nextplore_orchestrator_service.ai_query_request import AIQueryRequest
+from nextplore_shared.contracts.nextplore_orchestrator_service.ai_query_response import AIQueryResponse
 from api.dependencies.authentication import get_active_user
 from api.dependencies.microservices import (
     get_integration_client, 
@@ -11,6 +13,7 @@ from api.dependencies.microservices import (
 from clients.integration import IntegrationCrawlRemoteError
 from internal_services.orm_factory.ai_query_processor import AIQueryProcessor
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -41,6 +44,7 @@ async def ai_query(
             }
         )
     except Exception as e:
+        logger.error(f'ai query response error: {e}', exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={'message': f'Unexpected error: {str(e)}'}

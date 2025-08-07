@@ -6,8 +6,8 @@ from api.context import get_current_identity
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationDeleted
 from database.repositories import IntegrationRepository, IntegrationDeleteFailed
-from shared.cache.service_caches.integration_cache import integration_service_cache
-from shared.contracts.integration_service import PreparedIntegrationDeleteRequest
+from nextplore_shared.cache.service_caches.integration_cache.cache import integration_service_cache
+from nextplore_shared.contracts.integration_service.prepared_integration_delete_request import PreparedIntegrationDeleteRequest
 
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])

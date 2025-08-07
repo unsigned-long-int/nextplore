@@ -6,7 +6,7 @@ import json
 from typing import Dict, Any, Tuple
 from fastapi import HTTPException, status
 
-from shared.cache.jwks_cache import jwks_cache_service
+from nextplore_shared.cache.jwks_cache.cache import jwks_cache_service
 
 
 logger = logging.getLogger(__name__)

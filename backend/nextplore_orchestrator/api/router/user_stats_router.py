@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends
 
 from api.dependencies.authentication import get_active_user
 from api.dependencies.microservices import get_integration_client, get_vector_client
-from shared.contracts.nextplore_orchestrator_service import UserStats
-from shared.contracts.integration_service import IntegrationStatsRequest
-from shared.contracts.vector_service import VectorStatsRequest
-from shared.cache.service_caches.nextplore_orchestrator_cache import nextplore_orchestrator_service_cache
+from nextplore_shared.contracts.nextplore_orchestrator_service.user_stats import UserStats
+from nextplore_shared.contracts.integration_service.integration_stats_request import IntegrationStatsRequest
+from nextplore_shared.contracts.vector_service.vector_stats_request import VectorStatsRequest
+from nextplore_shared.cache.service_caches.nextplore_orchestrator_cache.cache import nextplore_orchestrator_service_cache
 
 
 router = APIRouter()

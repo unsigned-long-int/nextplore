@@ -1,4 +1,5 @@
-from shared.contracts.embedding_service import EmbeddingResponse, QueryEmbeddingRequest
+from nextplore_shared.contracts.embedding_service.embedding_response import EmbeddingResponse
+from nextplore_shared.contracts.embedding_service.query_embedding_request import QueryEmbeddingRequest
 from clients.base import BaseServiceClient
 
 

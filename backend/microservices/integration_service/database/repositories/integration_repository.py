@@ -4,8 +4,8 @@ from sqlalchemy import select, update, delete
 
 from domain_models import IntegrationProfile
 from utils.encryption import EncryptedIntegration
-from shared.database.models import IntegrationORM
-from shared.database.dependencies import DatabaseBackendConnector
+from nextplore_shared.database.models.integration_orm import IntegrationORM
+from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
 
 
 class IntegrationUpdateFailed(Exception):

@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 
-from shared.contracts.embedding_service import QueryEmbeddingRequest, EmbeddingResponse
-from shared.cache.service_caches.embedding_cache import embedding_service_cache
+from nextplore_shared.contracts.embedding_service.query_embedding_request import QueryEmbeddingRequest
+from nextplore_shared.contracts.embedding_service.embedding_response import EmbeddingResponse
+from nextplore_shared.cache.service_caches.embedding_cache.cache import embedding_service_cache
 from api.context import get_current_identity
 from api.handlers import handle_query_embedding
 
