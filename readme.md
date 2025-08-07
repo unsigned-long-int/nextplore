@@ -10,7 +10,7 @@ Nextplore aims to enable developers or general users to interact with a variety 
 
 ## Architecture
 
-[architecture](docs/Entity%20Relationship%20Diagram.jpg)
+![architecture](docs/Entity%20Relationship%20Diagram.jpg)
 
 ## Configuration
 
