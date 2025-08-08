@@ -1,1 +1,2 @@
 from .embedding_client import EmbeddingClient
+from .exceptions import EmbeddingResponseRemoteError

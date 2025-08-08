@@ -22,7 +22,7 @@ class AIORMContextClient(BaseServiceClient):
                     message = detail.get('message', 'Model response failed')
                     raise ModelResponseRemoteError(message)
                 except Exception:
-                    raise ModelResponseRemoteError('Model response failed and error response coult not be parsed')
+                    raise ModelResponseRemoteError('Model response failed and error response could not be parsed')
             raise 
     
     async def get_models(self) -> AvailableModelsResponse:

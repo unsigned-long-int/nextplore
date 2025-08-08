@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
 
 
 class EmbedderBase(ABC):
@@ -7,6 +7,6 @@ class EmbedderBase(ABC):
         self.model_name = model_name
 
     @abstractmethod
-    async def generate_embedding(self, datastream: str, is_query: Optional[bool] = True) -> List[float]:
+    async def generate_embedding(self, datastream: str) -> List[float]:
         pass
     

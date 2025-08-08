@@ -1,9 +1,8 @@
 from typing import Dict, Type
 
-from services.embedders import OpenAIEmbedder, HuggingFaceEmbedder, EmbedderBase
+from services.embedders import OpenAIEmbedder, EmbedderBase
 
 
 EMBEDDERS_REGISTRY: Dict[str, Type[EmbedderBase]] = {
-    'open_ai': OpenAIEmbedder,
-    'hugging_face': HuggingFaceEmbedder
+    'open_ai': OpenAIEmbedder
 }

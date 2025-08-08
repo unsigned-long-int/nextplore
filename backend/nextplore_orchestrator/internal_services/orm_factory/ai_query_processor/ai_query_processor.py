@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict
+from typing import List
 from uuid import UUID
 from sqlalchemy import Select
 

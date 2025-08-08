@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import List
 
 from services.embedding_service import embed
@@ -9,10 +10,11 @@ from messaging.events.integration_service import IntegrationMetaCrawled
 from messaging.events.embedding_service import CrawlMetaEmbedded, ORMEmbedding, TableMeta
 
 
+logger = logging.getLogger(__name__)
+
 async def handle_query_embedding(embedding_request: QueryEmbeddingRequest) -> EmbeddingResponse:
     embedding = await embed(embedding_request.datastream)
     return EmbeddingResponse(embedding=embedding)
-
 
 async def handle_crawl_meta_embedding(event: IntegrationMetaCrawled) -> None:
     embedding_tasks = [embed(repr(meta)) for meta in event.table_metas]
@@ -27,8 +29,6 @@ async def handle_crawl_meta_embedding(event: IntegrationMetaCrawled) -> None:
             table_meta=TableMeta(**meta.model_dump()),
             embedding=vector
         ))
-
-    print(f'Embedding Successfully vectorized {len(orm_embeddings)} tables.')
 
     await get_kafka_message_bus().publish(CrawlMetaEmbedded(
         user_id=event.user_id,

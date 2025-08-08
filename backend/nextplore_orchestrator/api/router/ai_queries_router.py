@@ -11,6 +11,7 @@ from api.dependencies.microservices import (
     get_ai_orm_context_client
 )
 from clients.ai_orm_context import ModelResponseRemoteError
+from clients.embedding import EmbeddingResponseRemoteError
 from internal_services.orm_factory.ai_query_processor import AIQueryProcessor
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ async def ai_query(
             user_identity=user_identity
         )
         return await processor.run(request)
-    except ModelResponseRemoteError as e:
+    except (ModelResponseRemoteError, EmbeddingResponseRemoteError) as e:
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={'message': e.message}

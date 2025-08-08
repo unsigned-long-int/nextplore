@@ -28,7 +28,7 @@ class TestProviderFactoryBase(unittest.TestCase):
 
 
 class TestHFProviderFactory(unittest.TestCase):
-
+    
     @patch('services.provider_factory.factory.dispatch_inference_provider')
     @patch('services.provider_factory.factory.HFModel')
     @patch('services.provider_factory.factory.HFProvider')
