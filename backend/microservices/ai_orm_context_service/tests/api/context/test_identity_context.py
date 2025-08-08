@@ -1,5 +1,3 @@
-# test_identity_context.py
-
 import unittest
 from contextvars import copy_context
 
