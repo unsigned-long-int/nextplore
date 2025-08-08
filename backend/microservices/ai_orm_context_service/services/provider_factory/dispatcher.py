@@ -10,5 +10,4 @@ def dispatch_provider_factory(provider: str, model_meta: Dict[str, Any]) -> Prov
         msg = f'Model provider factory for provider: {provider} not found'
         raise MissingModelProviderFactory(msg)
     provider_cls = PROVIDER_FACTORY_REGISTRY.get(provider)
-    print(f'provider received: {provider_cls}')
     return provider_cls(model_meta)

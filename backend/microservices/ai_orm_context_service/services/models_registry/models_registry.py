@@ -53,7 +53,6 @@ class ModelsRegistry:
             msg = f'Model: {model_id} not found in registry.'
             logger.warning(msg)
             raise ValueError(msg)
-        print(f'model: {model}')
         return model
     
     def get_model_registry(self, provider: str) -> Dict[str, Any]:

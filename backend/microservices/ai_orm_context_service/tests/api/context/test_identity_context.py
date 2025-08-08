@@ -12,9 +12,9 @@ class TestIdentityContext(unittest.TestCase):
         ctx = copy_context()
         result = ctx.run(get_current_identity)
         self.assertIsNone(result)
-
+    
     def test_set_and_get_identity(self):
-        identity = UserIdentity(user_id="abc123", email="user@example.com")
+        identity = UserIdentity(user_id='abc123', organization_id='test-org')
 
         ctx = copy_context()
         def set_and_get():
@@ -23,12 +23,12 @@ class TestIdentityContext(unittest.TestCase):
         
         result = ctx.run(set_and_get)
         self.assertEqual(result, identity)
-        self.assertEqual(result.user_id, "abc123")
-        self.assertEqual(result.email, "user@example.com")
+        self.assertEqual(result.user_id, 'abc123')
+        self.assertEqual(result.organization_id, 'test-org')
 
     def test_identity_is_isolated_in_contexts(self):
-        identity1 = UserIdentity(user_id="user1", email="user1@example.com")
-        identity2 = UserIdentity(user_id="user2", email="user2@example.com")
+        identity1 = UserIdentity(user_id='user1', organization_id='test-org')
+        identity2 = UserIdentity(user_id='user2', organization_id='test-org')
 
         ctx1 = copy_context()
         ctx2 = copy_context()
@@ -39,8 +39,8 @@ class TestIdentityContext(unittest.TestCase):
         result1 = ctx1.run(get_current_identity)
         result2 = ctx2.run(get_current_identity)
 
-        self.assertEqual(result1.user_id, "user1")
-        self.assertEqual(result2.user_id, "user2")
+        self.assertEqual(result1.user_id, 'user1')
+        self.assertEqual(result2.user_id, 'user2')
 
 
 if __name__ == '__main__':

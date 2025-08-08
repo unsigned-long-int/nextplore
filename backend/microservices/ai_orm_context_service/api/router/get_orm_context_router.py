@@ -1,9 +1,10 @@
 import logging
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status, HTTPException
 
 from services.models_registry import get_models_registry, ModelsRegistry
 from services.provider_factory import dispatch_provider_factory
 from services.orm_context_builder.ai_adapter import adapt_llm_response
+from services.exceptions import InferenceProviderMissing, InvalidModelResponse
 from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
 from nextplore_shared.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
 
@@ -34,5 +35,15 @@ async def get_orm_context(
             column_filters=orm_context.column_filters
         )
         return response
-    except Exception as e:
+    except (InferenceProviderMissing, InvalidModelResponse) as e:
         logger.error(f'get context failed: {e}', exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_424_FAILED_DEPENDENCY,
+            detail={'message': str(e)}
+        )
+    except Exception as e:
+        logger.error(f'get orm response error: {e}', exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'message': f'Unexpected error: {str(e)}'}
+        )

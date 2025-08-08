@@ -1,4 +1,4 @@
-from services.model_providers.hugging_face.exceptions import InferenceProviderMissing
+from services.exceptions import InferenceProviderMissing
 from .inference_providers.base import InferenceProviderBase
 from .registry import INFERENCE_REGISTRY
 

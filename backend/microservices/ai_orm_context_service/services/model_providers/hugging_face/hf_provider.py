@@ -1,8 +1,10 @@
 from typing import Dict, Any
+from pydantic import ValidationError
 
 from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
+from nextplore_shared.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
 from services.model_providers.hugging_face.inference.inference_providers import InferenceProviderBase
-from services.model_providers.hugging_face.exceptions import InvalidModelResponse
+from services.exceptions import InvalidModelResponse
 from services.model_providers.hugging_face.hf_model import HFModel
 from services.model_providers.base import BaseProvider
 
@@ -24,4 +26,8 @@ class HFProvider(BaseProvider):
         return response
     
     def _validate_response_schema(self, model_response: Dict[str, Any]) -> bool:
-        return True
+        try:
+            ORMContextResponse(**model_response)
+            return True
+        except ValidationError:
+            return False

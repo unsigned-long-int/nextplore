@@ -1,10 +1,13 @@
 import os
 import json
 from typing import Dict, List, Any
+from pydantic import ValidationError
 
 from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
+from nextplore_shared.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
 from nextplore_shared.open_ai_client_loader.open_ai_client_loader import load_open_ai_client
 from services.model_providers.base import BaseProvider
+from services.exceptions import InvalidModelResponse
 
 
 class OpenAIProvider(BaseProvider):
@@ -23,7 +26,18 @@ class OpenAIProvider(BaseProvider):
         )
         tool_call = request.choices[0].message.tool_calls[0]
         args = json.loads(tool_call.function.arguments)
+        
+        if not self._validate_response_schema(args):
+            msg = f'Invalid model response. Model: {self.model_id}. Provider: OpenAI'
+            raise InvalidModelResponse(msg)
         return args 
+    
+    def _validate_response_schema(self, model_response: Dict[str, Any]) -> bool:
+        try:
+            ORMContextResponse(**model_response)
+            return True
+        except ValidationError as e:
+            return False
     
     def _build_function_schema(self, context) -> List[Dict[str, Any]]:
         tools = [{'type': 'function',

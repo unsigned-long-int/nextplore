@@ -10,7 +10,7 @@ from api.dependencies.microservices import (
     get_embedding_client,
     get_ai_orm_context_client
 )
-from clients.integration import IntegrationCrawlRemoteError
+from clients.ai_orm_context import ModelResponseRemoteError
 from internal_services.orm_factory.ai_query_processor import AIQueryProcessor
 
 logger = logging.getLogger(__name__)
@@ -35,17 +35,14 @@ async def ai_query(
             user_identity=user_identity
         )
         return await processor.run(request)
-    except IntegrationCrawlRemoteError as e:
+    except ModelResponseRemoteError as e:
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
-            detail={
-                'message': e.message,
-                'failed_integration_ids': e.failed_ids
-            }
+            detail={'message': e.message}
         )
     except Exception as e:
         logger.error(f'ai query response error: {e}', exc_info=True)
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={'message': f'Unexpected error: {str(e)}'}
         )
