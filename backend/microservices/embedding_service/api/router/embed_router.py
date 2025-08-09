@@ -31,13 +31,13 @@ async def embed(payload: QueryEmbeddingRequest) -> EmbeddingResponse:
         )
         return response
     except (EmbeddingFailed, MissingEmbedderEngine) as e:
-        logger.error(f'embedding query failed: {e}', exc_info=True)
+        logger.error(f'Embedding query failed: {e}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={'message': str(e)}
         )
     except Exception as e:
-        logger.error(f'embedding error: {e}', exc_info=True)
+        logger.error(f'Embedding error: {e}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={'message': f'Unexpected error: {str(e)}'}

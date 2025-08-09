@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 from fastapi import FastAPI
 from api.router.embed_router import router
 from nextplore_shared.contracts.embedding_service.embedding_response import EmbeddingResponse
-from services.exceptions import EmbeddingFailed, MissingEmbedderEngine
+from services.exceptions import EmbeddingFailed
 
 
 class TestEmbeddingRouter(unittest.IsolatedAsyncioTestCase):
