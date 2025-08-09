@@ -3,6 +3,7 @@ import logging
 import os
 import asyncio
 
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Callable, Type, Awaitable
 from pydantic.json import pydantic_encoder
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
@@ -24,6 +25,8 @@ class AsyncKafkaMessageBus:
     async def start(self) -> None:
         self._producer = AIOKafkaProducer(
             bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS'),
+            acks='all',
+            enable_idempotence=True,
             value_serializer=lambda value: json.dumps(value, default=pydantic_encoder).encode('utf-8')
         )
         await self._producer.start()
@@ -37,13 +40,14 @@ class AsyncKafkaMessageBus:
             await self._producer.stop()
 
     async def publish(self, event: BaseEvent) -> None:
+        payload = event.model_dump()
+        payload.update({
+            'event_name': event.event_name,
+            'version': event.version
+        })
+        headers = [(k, v.encode()) for k, v in event.headers().items()]
         for topic in event.get_topics():
-            payload = event.model_dump()
-            payload.update({
-                'event_name': event.event_name,
-                'version': event.version
-            })
-            await self._producer.send_and_wait(topic, payload)
+            await self._producer.send_and_wait(topic, payload, key=event.partition_key, headers=headers)
             logger.info(f'Published to topic: {topic}')
 
 
@@ -52,27 +56,46 @@ class AsyncKafkaMessageBus:
         topic = event_cls.event_name
         self._handlers.setdefault(topic, []).append(handler)
 
+        group_prefix = os.getenv('KAFKA_GROUP_PREFIX', 'nextplore')
         consumer = AIOKafkaConsumer(
             topic,
             bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS'),
             value_deserializer=lambda value: json.loads(value.decode('utf-8')),
             auto_offset_reset='earliest',
-            group_id=f'{os.getenv('KAFKA_GROUP_PREFIX')}-{topic}',
-            enable_auto_commit=True
+            group_id=f'{group_prefix}-{topic}',
+            enable_auto_commit=False
         )
         await consumer.start()
         self._consumers.append(consumer)
 
         async def _consume() -> None:
             async for letter in consumer:
+                data = letter.value
+                event_type = None
                 try:
-                    data = letter.value
                     event_type = get_event_cls(data['event_name'])
                     event = event_type(**data)
                     for handler in self._handlers[topic]:
                         await handler(event)
+                    await consumer.commit()
                 except Exception as e:
-                    logger.error(f'Event: {event_type} failed: {str(e)}', exc_info=True)
+                    org_id = data.get('organization_id')
+                    key = str(org_id).encode('utf-8') if org_id else None
+                    dlq_payload = {
+                        'original_event': data,
+                        'error': str(e),
+                        'original_topic': letter.topic,
+                        'partition': letter.partition,
+                        'offset': letter.offset,
+                        'timestamp': datetime.now(timezone.utc).isoformat(),
+                    }
+                    try:
+                        await self._producer.send_and_wait(f'{topic}-dlq', dlq_payload, key=key)
+                        logger.error(f'Event: {event_type} failed: {str(e)}', exc_info=True)
+                    except Exception:
+                        logger.error('DLQ publish failed; leaving offset uncommitted', exc_info=True)
+                        continue
+                    await consumer.commit()
             
         task = asyncio.create_task(_consume())
         self._consume_tasks.append(task)
