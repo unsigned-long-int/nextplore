@@ -1,6 +1,7 @@
 import { Text } from '@mantine/core';
 import { useState } from 'react';
 import { useIntegrationsData } from '../../hooks/useIntegrationsData';
+import { LoadingOverlay } from '../loading_overlay/LoadingOverlay';
 import { IntegrationTable } from './IntegrationTable';
 
 
@@ -20,7 +21,7 @@ export const IntegrationsList = () => {
             );
         };
 
-    if (loading) return <Text>Getting integrations data...</Text>;
+    if (loading) return <LoadingOverlay loadingText="Loading integrations..."/>;
     if (error) return <Text c="red">{error}</Text>;
     if (!integrations.length) return <Text>No integrations data available.</Text>;
 

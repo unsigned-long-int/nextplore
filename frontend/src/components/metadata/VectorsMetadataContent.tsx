@@ -14,6 +14,7 @@ import { useVectorProfiles } from '../../hooks/useVectorProfiles';
 import type { VectorProfileRequest } from '../../interface/vector-profile-request.interface';
 import type { VectorProfile } from '../../interface/vector-profile.interface';
 import classes from '../../styles/VectorsMetadata.module.css';
+import { LoadingOverlay } from '../loading_overlay/LoadingOverlay';
 
 
 interface ThProps {
@@ -97,7 +98,7 @@ export const VectorsMetadataContent = ({ vector_profile_request }: { vector_prof
     getVectorMetadata();
     }, [vector_profile_request]);
 
-    if (loading) return <Text>Getting integrations data...</Text>;
+    if (loading) return <LoadingOverlay loadingText="Getting integrations data..."/>;
     if (error) return <Text c="red">{error}</Text>;
     if (!vectors || vectors.length == 0) return <Text>No vectors data available.</Text>;
 

@@ -14,14 +14,20 @@
   }
   
   .wrapper {
-    height: 100vh;
+    position: relative;
+    min-height: 100vh;
     width: 100%;
+    overflow: hidden;
+  }
+  
+
+  .gradientLayer {
+    position: absolute;
+    inset: 0;
     background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    z-index: 0;
   }
   
   @keyframes gradientShift {
@@ -30,19 +36,36 @@
     100% { background-position: 0% 50%; }
   }
   
+  /* rays canvas overlay (click-through) */
+  .raysLayer {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  
+  .center {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+  }
+  
   .card {
     max-width: 480px;
     width: 100%;
-    background-color: white;
+    backdrop-filter: blur(8px);
+    background: rgba(8, 10, 20, 0.55);
+    border: 1px solid rgba(124, 58, 237, 0.25); 
     border-radius: 1rem;
     padding: 2rem;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     transition: background-color 0.3s ease;
   }
   
-  @media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme: light) {
     .card {
-      background-color: #1a1b1e;
+      background: #ffffff;
+      border-color: rgba(92, 124, 250, 0.25);
     }
   }
   

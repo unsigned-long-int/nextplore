@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import classes from '../styles/NavigationBar.module.css';
 
-import svg from '../assets/trace.svg';
+import svg from '../assets/nextplore-logo-yel.svg';
 
 const data = [
   { location: '/user', label: 'User Profile', icon: IconUser },

@@ -2,12 +2,13 @@ import { Avatar, Group, Text } from '@mantine/core';
 import { IconAddressBook, IconAt } from '@tabler/icons-react';
 import classes from '../styles/UserInfoIcons.module.css';
 
+import { LoadingOverlay } from '../components/loading_overlay/LoadingOverlay';
 import { Stats } from '../components/user_profile/UserStats';
 import { useUserProfile } from '../hooks/useUserProfile';
 
 export const UserProfilePage = () => {
     const { loading, error, profile } = useUserProfile();
-    if (loading) return <Text>Getting user data...</Text>;
+    if (loading) return <LoadingOverlay loadingText="Getting user data..."/>;
     if (error) return <Text c='red'>{error}</Text>;
     if (!profile) return <Text>No user data available.</Text>;
 

@@ -4,17 +4,17 @@ import {
     Divider,
     Group,
     InputBase,
-    Loader,
     Text,
     Title,
     Transition,
-    useCombobox,
+    useCombobox
 } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import { PromptBox } from '../components/ai_queries/PromptBox';
 import { QueryPreview } from '../components/ai_queries/QueryPreview';
 import { ResultTable } from '../components/ai_queries/ResultTable';
   
+import { LoadingOverlay } from '../components/loading_overlay/LoadingOverlay';
 import { useAIGenerativeModels } from '../hooks/useAIGenerativeModels';
 import { useAIQueryRequest } from '../hooks/useAIQueryRequest';
 import { getModelIcon } from '../icons/modelsIcons';
@@ -169,15 +169,24 @@ return (
     )}
 
     <Divider my="lg" />
-    {querying && <Loader variant="bars" />}
-    <Transition mounted={!querying && !!sqlPreview} transition="fade" duration={400}>
-        {(styles) => (
-        <div style={styles}>
-            <QueryPreview sql={sqlPreview} />
-            <ResultTable data={aiQueryResponse} />
-        </div>
-        )}
-    </Transition>
+        <Box
+            pos="relative"
+            mih={260}
+            style={{ overflow: 'hidden' }}
+        >
+            {querying && (
+            <LoadingOverlay loadingText="Asking the model… LLM snail is inspecting it..." />
+            )}
+
+            <Transition mounted={!querying && !!sqlPreview} transition="fade" duration={400}>
+            {(styles) => (
+                <div style={styles}>
+                <QueryPreview sql={sqlPreview} />
+                <ResultTable data={aiQueryResponse} />
+                </div>
+            )}
+            </Transition>
+        </Box>
     </Box>
 );
 };

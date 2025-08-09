@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useIntegrations } from '../../hooks/useIntegrations';
 import type { IntegrationProfile } from '../../interface/integration-profile.interface';
 import classes from '../../styles/IntegrationsMetadataContentNavigator.module.css';
+import { LoadingOverlay } from '../loading_overlay/LoadingOverlay';
 import { VectorsMetadataContent } from './VectorsMetadataContent';
 
 
@@ -31,7 +32,7 @@ export const IntegrationsMetadataContentNavigator = () => {
     }, []);
   
   
-    if (loading) return <Text>Getting integrations data...</Text>;
+    if (loading) return <LoadingOverlay loadingText="Getting integrations data..."/>;
     if (error) return <Text c="red">{error}</Text>;
     if (!integrations || integrations.length == 0) return <Text>No integrations data available.</Text>;
 

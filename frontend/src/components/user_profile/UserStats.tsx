@@ -1,10 +1,11 @@
 import { Card, Group, SimpleGrid, Text, ThemeIcon } from '@mantine/core';
 import { IconDatabase, IconVector } from '@tabler/icons-react';
 import { useUserStats } from '../../hooks/useUserStats';
+import { LoadingOverlay } from '../loading_overlay/LoadingOverlay';
 
 export const Stats = () => {
     const { loading, error, stats } = useUserStats();
-    if (loading) return <Text>Getting user stats...</Text>;
+    if (loading) return <LoadingOverlay loadingText="Getting user stats..."/>;
     if (error) return <Text c='red'>{error}</Text>;
     if (!stats) return <Text>No stats data available.</Text>;
 
