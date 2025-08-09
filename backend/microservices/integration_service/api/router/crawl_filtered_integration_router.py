@@ -12,14 +12,14 @@ router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/crawl-filtered', response_model=CrawlResponse)
 async def craw_filtered_integration(payload: FilteredCrawlRequest) -> CrawlResponse:
-    user_identity = get_current_identity()
-    cached = await integration_service_cache.get_filtered_integration(
-        user_identity=user_identity,
-        request=payload
-    )
-    if cached:
-        return cached
     try:
+        user_identity = get_current_identity()
+        cached = await integration_service_cache.get_filtered_integration(
+            user_identity=user_identity,
+            request=payload
+        )
+        if cached:
+            return cached
         response = await craw_filtered_integration_metadata(payload)
         await integration_service_cache.set_filtered_integration(
             user_identity=user_identity,

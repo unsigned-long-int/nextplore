@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, status, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
@@ -10,13 +11,15 @@ from nextplore_shared.cache.service_caches.integration_cache.cache import integr
 from nextplore_shared.contracts.integration_service.prepared_integration_delete_request import PreparedIntegrationDeleteRequest
 
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/delete-integration', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_integration(payload: PreparedIntegrationDeleteRequest) -> JSONResponse:
-    user_identity = get_current_identity()
-    integration_repo = IntegrationRepository()
     try:
+        user_identity = get_current_identity()
+        integration_repo = IntegrationRepository()
         await integration_repo.delete_integration(
             integration_id=payload.integration_id,
             user_id=payload.user_id, 
@@ -35,19 +38,15 @@ async def delete_integration(payload: PreparedIntegrationDeleteRequest) -> JSONR
         )
 
     except IntegrationDeleteFailed as e:
+        logger.error(f'delete integration error: {e}. Integration not found.', exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
-
-    except SQLAlchemyError as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f'Database error: {str(e)}'
+            status_code=status.HTTP_424_FAILED_DEPENDENCY,
+            detail={'message': str(e)}
         )
 
     except Exception as e:
+        logger.error(f'unexpected delete integration error: {e}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f'Unhandled error: {str(e)}'
+            detail={'message': f'Unexpected error: {str(e)}'}
         )

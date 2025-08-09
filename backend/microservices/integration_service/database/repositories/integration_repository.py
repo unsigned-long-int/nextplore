@@ -1,54 +1,61 @@
+import logging
 from typing import List, Dict
 from uuid import UUID
 from sqlalchemy import select, update, delete
+from sqlalchemy.exc import SQLAlchemyError
 
 from domain_models import IntegrationProfile
 from utils.encryption import EncryptedIntegration
+from database.exceptions import (
+    IntegrationDeleteFailed, 
+    IntegrationNotFound, 
+    IntegrationUpdateFailed,
+    IntegrationCreateFailed,
+    IntegrationGetFailed
+)
 from nextplore_shared.database.models.integration_orm import IntegrationORM
 from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
 
 
-class IntegrationUpdateFailed(Exception):
-    pass
-
-
-class IntegrationDeleteFailed(Exception):
-    pass
-
-
-class IntegrationNotFound(Exception):
-    pass
-
+logger = logging.getLogger(__name__)
 
 class IntegrationRepository:
     def __init__(self) -> None:
-        self.database_backend_connector = DatabaseBackendConnector()
+        self._db = DatabaseBackendConnector()
 
     async def get_user_integration_ids(self, user_id: UUID, organization_id: UUID) -> List[UUID]:
-        async with self.database_backend_connector.session_scope() as scoped_session:
-            result = await scoped_session.execute(
-                select(IntegrationORM.id)
-                .where(IntegrationORM.organization_id == organization_id)
-                .where(IntegrationORM.user_id == user_id))
-            
-            return [row[0] for row in result.all()]
+        try:
+            async with self._db.session_scope() as scoped_session:
+                result = await scoped_session.execute(
+                    select(IntegrationORM.id)
+                    .where(IntegrationORM.organization_id == organization_id)
+                    .where(IntegrationORM.user_id == user_id))
+                
+                return [row[0] for row in result.all()]
+        except SQLAlchemyError as e:
+            logger.error(f'Get integration ids failed: {e}', exc_info=True)
+            raise IntegrationGetFailed from e
         
     async def get_integration(self, user_id: UUID, organization_id: UUID, integration_id: str) -> EncryptedIntegration:
-        async with self.database_backend_connector.session_scope() as scoped_session:
-            result = await scoped_session.execute(
-                select(IntegrationORM)
-                .where(IntegrationORM.organization_id == organization_id)
-                .where(IntegrationORM.user_id == user_id)
-                .where(IntegrationORM.id == integration_id)
-            )
-            integration = result.scalar_one_or_none()
-            if integration is None:
-                raise IntegrationNotFound(f'No integration found for ID: {integration_id}')
+        try:
+            async with self._db.session_scope() as scoped_session:
+                result = await scoped_session.execute(
+                    select(IntegrationORM)
+                    .where(IntegrationORM.organization_id == organization_id)
+                    .where(IntegrationORM.user_id == user_id)
+                    .where(IntegrationORM.id == integration_id)
+                )
+                integration = result.scalar_one_or_none()
+                if integration is None:
+                    raise IntegrationNotFound(f'No integration found for ID: {integration_id}')
 
-            return self._to_encrypted_integration(integration)
+                return self._to_encrypted_integration(integration)
+        except SQLAlchemyError as e:
+            logger.error(f'Get integration failed with database error: {e}', exc_info=True)
+            raise IntegrationGetFailed from e
         
     async def get_integration_by_id(self, integration_id: UUID) -> EncryptedIntegration:
-        async with self.database_backend_connector.session_scope() as scoped_session:
+        async with self._db.session_scope() as scoped_session:
             result = await scoped_session.execute(
                 select(IntegrationORM)
                 .where(IntegrationORM.id == integration_id)
@@ -60,29 +67,33 @@ class IntegrationRepository:
             return self._to_encrypted_integration(integration)
         
     async def create_integration(self, encrypted_integration: EncryptedIntegration) -> UUID:
-        async with self.database_backend_connector.session_scope() as scoped_session:
-            integration_orm = IntegrationORM(
-                organization_id = encrypted_integration.organization_id,
-                user_id = encrypted_integration.user_id,
-                service_type = encrypted_integration.service_type,
-                auth_method = encrypted_integration.auth_method,
-                connection_name = encrypted_integration.connection_name,
-                host = encrypted_integration.host,
-                port = encrypted_integration.port,
-                database_name = encrypted_integration.database_name,
-                encrypted_username = encrypted_integration.encrypted_username,
-                encrypted_password = encrypted_integration.encrypted_password,
-                encrypted_kerberos_principal = encrypted_integration.encrypted_kerberos_principal,
-                encrypted_windows_domain = encrypted_integration.encrypted_windows_domain,
-                encrypted_extra_options = encrypted_integration.encrypted_extra_options,
-                autosync_on=encrypted_integration.autosync_on
-            )
-            scoped_session.add(integration_orm)
-            await scoped_session.flush()
-            return integration_orm.id
+        try:
+            async with self._db.session_scope() as scoped_session:
+                integration_orm = IntegrationORM(
+                    organization_id = encrypted_integration.organization_id,
+                    user_id = encrypted_integration.user_id,
+                    service_type = encrypted_integration.service_type,
+                    auth_method = encrypted_integration.auth_method,
+                    connection_name = encrypted_integration.connection_name,
+                    host = encrypted_integration.host,
+                    port = encrypted_integration.port,
+                    database_name = encrypted_integration.database_name,
+                    encrypted_username = encrypted_integration.encrypted_username,
+                    encrypted_password = encrypted_integration.encrypted_password,
+                    encrypted_kerberos_principal = encrypted_integration.encrypted_kerberos_principal,
+                    encrypted_windows_domain = encrypted_integration.encrypted_windows_domain,
+                    encrypted_extra_options = encrypted_integration.encrypted_extra_options,
+                    autosync_on=encrypted_integration.autosync_on
+                )
+                scoped_session.add(integration_orm)
+                await scoped_session.flush()
+                return integration_orm.id
+        except SQLAlchemyError as e:
+            logger.error(f'Create integration failed with database error: {e}', exc_info=True)
+            raise IntegrationCreateFailed from e
         
     async def update_integration(self, integration_id: UUID, user_id: UUID, organization_id: UUID, update_args: Dict[str, str | bool | int]) -> None:
-        async with self.database_backend_connector.session_scope() as active_session:
+        async with self._db.session_scope() as active_session:
             stmt = (
                 update(IntegrationORM)
                 .where(
@@ -97,22 +108,25 @@ class IntegrationRepository:
                 raise IntegrationUpdateFailed(f'Integration update failed: No integration found for ID {integration_id}')
         
     async def delete_integration(self, user_id: UUID, organization_id: UUID, integration_id: str) -> None:
-        async with self.database_backend_connector.session_scope() as active_session:
-            stmt = (
-                delete(IntegrationORM)
-                .where(
-                    IntegrationORM.id == integration_id,
-                    IntegrationORM.user_id == user_id,
-                    IntegrationORM.organization_id == organization_id
+        try:
+            async with self._db.session_scope() as active_session:
+                stmt = (
+                    delete(IntegrationORM)
+                    .where(
+                        IntegrationORM.id == integration_id,
+                        IntegrationORM.user_id == user_id,
+                        IntegrationORM.organization_id == organization_id
+                    )
                 )
-            )
-            result = await active_session.execute(stmt)
-            
+                result = await active_session.execute(stmt)
             if result.rowcount == 0:
                 raise IntegrationDeleteFailed(f'Integration delete failed. Integration not found for integration id: {integration_id}')
+        except SQLAlchemyError as e:
+            logger.error(f'Delete integration failed with database error: {e}', exc_info=True)
+            raise IntegrationDeleteFailed from e
 
     async def get_user_integration_profiles(self, user_id: UUID, organization_id: UUID) -> List[IntegrationProfile]:
-        async with self.database_backend_connector.session_scope() as scoped_session:
+        async with self._db.session_scope() as scoped_session:
             result = await scoped_session.execute(
                 select(IntegrationORM).where(
                     IntegrationORM.user_id == user_id,

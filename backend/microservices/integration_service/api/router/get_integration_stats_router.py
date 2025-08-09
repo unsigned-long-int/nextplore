@@ -1,38 +1,55 @@
-from fastapi import APIRouter
+import logging
+from fastapi import APIRouter, HTTPException, status
 
 from nextplore_shared.contracts.integration_service.integration_stats_request import IntegrationStatsRequest
 from nextplore_shared.contracts.integration_service.integration_stats_response import IntegrationStatsResponse
 from nextplore_shared.cache.service_caches.integration_cache.cache import integration_service_cache
 from api.context import get_current_identity
+from database.exceptions import IntegrationGetFailed
 from database.repositories import IntegrationRepository
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/get-integration-stats', response_model=IntegrationStatsResponse)
 async def get_integration_stats(payload: IntegrationStatsRequest) -> IntegrationStatsResponse:
-    user_identity = get_current_identity()
-    cached = await integration_service_cache.get_integration_stats(
-        user_identity=user_identity,
-        request=payload
-    )
-    if cached:
-        return cached
+    try:
+        user_identity = get_current_identity()
+        cached = await integration_service_cache.get_integration_stats(
+            user_identity=user_identity,
+            request=payload
+        )
+        if cached:
+            return cached
 
-    integration_repo = IntegrationRepository()
+        integration_repo = IntegrationRepository()
 
-    integration_ids = await integration_repo.get_user_integration_ids(
-        user_id=payload.user_id,
-        organization_id=payload.organization_id
-    )
+        integration_ids = await integration_repo.get_user_integration_ids(
+            user_id=payload.user_id,
+            organization_id=payload.organization_id
+        )
 
-    response = IntegrationStatsResponse(
-        integration_ids=integration_ids,
-        integration_count=len(integration_ids)
-    )
-    await integration_service_cache.set_integration_stats(
-        user_identity=user_identity,
-        request=payload, 
-        response=response
-    )
-    return response
+        response = IntegrationStatsResponse(
+            integration_ids=integration_ids,
+            integration_count=len(integration_ids)
+        )
+        await integration_service_cache.set_integration_stats(
+            user_identity=user_identity,
+            request=payload, 
+            response=response
+        )
+        return response
+    except IntegrationGetFailed as e:
+        logger.error(f'Get integration stats request failed with db error: {e}', exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_424_FAILED_DEPENDENCY,
+            detail={'message': str(e)}
+        )
+    except Exception as e:
+        logger.error(f'Get integration stats failed with unexpected error: {e}', exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'message': f'Unexpected error: {str(e)}'}
+        )

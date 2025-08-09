@@ -15,7 +15,6 @@ async def crawl_initial_integration_metadata(event: IntegrationCreated) -> None:
         schema_spec = AlwaysTrueSpec(),
         table_spec=AlwaysTrueSpec()
     )
-    print(f'metadata crawled: {integration_registry}')
     await get_kafka_message_bus().publish(
         IntegrationMetaCrawled(
             user_id=event.user_id,
