@@ -20,12 +20,12 @@ from nextplore_shared.database.dependencies.database_backend_connector import Da
 logger = logging.getLogger(__name__)
 
 class IntegrationRepository:
-    def __init__(self) -> None:
-        self._db = DatabaseBackendConnector()
+    def __init__(self, db_connector: DatabaseBackendConnector) -> None:
+        self._db = db_connector
 
     async def get_user_integration_ids(self, user_id: UUID, organization_id: UUID) -> List[UUID]:
         try:
-            async with self._db.session_scope() as scoped_session:
+            async with self._db.session_scope(organization_id, user_id) as scoped_session:
                 result = await scoped_session.execute(
                     select(IntegrationORM.id)
                     .where(IntegrationORM.organization_id == organization_id)
@@ -38,7 +38,7 @@ class IntegrationRepository:
         
     async def get_integration(self, user_id: UUID, organization_id: UUID, integration_id: str) -> EncryptedIntegration:
         try:
-            async with self._db.session_scope() as scoped_session:
+            async with self._db.session_scope(organization_id, user_id) as scoped_session:
                 result = await scoped_session.execute(
                     select(IntegrationORM)
                     .where(IntegrationORM.organization_id == organization_id)
@@ -54,8 +54,8 @@ class IntegrationRepository:
             logger.error(f'Get integration failed with database error: {e}', exc_info=True)
             raise IntegrationGetFailed from e
         
-    async def get_integration_by_id(self, integration_id: UUID) -> EncryptedIntegration:
-        async with self._db.session_scope() as scoped_session:
+    async def get_integration_by_id(self, user_id: UUID, organization_id: UUID, integration_id: UUID) -> EncryptedIntegration:
+        async with self._db.session_scope(organization_id, user_id) as scoped_session:
             result = await scoped_session.execute(
                 select(IntegrationORM)
                 .where(IntegrationORM.id == integration_id)
@@ -66,9 +66,9 @@ class IntegrationRepository:
 
             return self._to_encrypted_integration(integration)
         
-    async def create_integration(self, encrypted_integration: EncryptedIntegration) -> UUID:
+    async def create_integration(self, organization_id: UUID, user_id: UUID, encrypted_integration: EncryptedIntegration) -> UUID:
         try:
-            async with self._db.session_scope() as scoped_session:
+            async with self._db.session_scope(organization_id, user_id) as scoped_session:
                 integration_orm = IntegrationORM(
                     organization_id = encrypted_integration.organization_id,
                     user_id = encrypted_integration.user_id,
@@ -93,7 +93,7 @@ class IntegrationRepository:
             raise IntegrationCreateFailed from e
         
     async def update_integration(self, integration_id: UUID, user_id: UUID, organization_id: UUID, update_args: Dict[str, str | bool | int]) -> None:
-        async with self._db.session_scope() as active_session:
+        async with self._db.session_scope(organization_id, user_id) as active_session:
             stmt = (
                 update(IntegrationORM)
                 .where(
@@ -109,7 +109,7 @@ class IntegrationRepository:
         
     async def delete_integration(self, user_id: UUID, organization_id: UUID, integration_id: str) -> None:
         try:
-            async with self._db.session_scope() as active_session:
+            async with self._db.session_scope(organization_id, user_id) as active_session:
                 stmt = (
                     delete(IntegrationORM)
                     .where(
@@ -126,7 +126,7 @@ class IntegrationRepository:
             raise IntegrationDeleteFailed from e
 
     async def get_user_integration_profiles(self, user_id: UUID, organization_id: UUID) -> List[IntegrationProfile]:
-        async with self._db.session_scope() as scoped_session:
+        async with self._db.session_scope(organization_id, user_id) as scoped_session:
             result = await scoped_session.execute(
                 select(IntegrationORM).where(
                     IntegrationORM.user_id == user_id,

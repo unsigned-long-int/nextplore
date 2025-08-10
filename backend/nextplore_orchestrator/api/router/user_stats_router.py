@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, Depends
 
 from api.dependencies.authentication import get_active_user
@@ -20,16 +21,19 @@ async def get_user_stats(
     if cached:
         return cached
     
-    payload = IntegrationStatsRequest(
+    integr_payload = IntegrationStatsRequest(
         user_id=user_identity.user_id,
         organization_id=user_identity.organization_id
     )
-    integration_stats = await integration_client.get_integration_stats(payload)
-
-    payload = VectorStatsRequest(
-        integration_ids=integration_stats.integration_ids
+    vec_payload = VectorStatsRequest(
+        organization_id=user_identity.organization_id,
+        user_id=user_identity.user_id
     )
-    vector_stats = await vector_client.get_vector_stats(payload)
+    integration_stats, vector_stats = await asyncio.gather(
+        integration_client.get_integration_stats(integr_payload),
+        vector_client.get_vector_stats(vec_payload),
+        return_exceptions=True
+    )
 
     response = UserStats(
         integrations_number=integration_stats.integration_count, 

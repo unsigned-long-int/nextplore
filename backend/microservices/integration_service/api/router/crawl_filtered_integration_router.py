@@ -20,7 +20,11 @@ async def craw_filtered_integration(payload: FilteredCrawlRequest) -> CrawlRespo
         )
         if cached:
             return cached
-        response = await craw_filtered_integration_metadata(payload)
+        response = await craw_filtered_integration_metadata(
+            user_id=user_identity.user_id,
+            organization_id=user_identity.organization_id,
+            inspection_request=payload
+        )
         await integration_service_cache.set_filtered_integration(
             user_identity=user_identity,
             request=payload, 

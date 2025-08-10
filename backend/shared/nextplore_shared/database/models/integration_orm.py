@@ -12,8 +12,16 @@ class IntegrationORM(Base):
     __table_args__ = {'schema': 'integration'}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    organization_id = Column(UUID(as_uuid=True), ForeignKey(OrganizationORM.id))
-    user_id = Column(UUID(as_uuid=True), ForeignKey(UserORM.id))
+    organization_id = Column(
+        UUID(as_uuid=True), 
+        ForeignKey(OrganizationORM.id, ondelete='cascade'),
+        nullable=False
+    )
+    user_id = Column(
+        UUID(as_uuid=True), 
+        ForeignKey(UserORM.id, ondelete='cascade'),
+        nullable=False
+    )
     service_type = Column(Text, nullable=False)
     auth_method = Column(Text, nullable=False)
     connection_name = Column(Text, nullable=False)

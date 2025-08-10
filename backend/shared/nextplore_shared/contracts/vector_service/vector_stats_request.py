@@ -1,6 +1,6 @@
 from pydantic import BaseModel, UUID4
-from typing import List
 
 
 class VectorStatsRequest(BaseModel):
-    integration_ids: List[UUID4]
+    organization_id: UUID4
+    user_id: UUID4

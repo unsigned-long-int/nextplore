@@ -1,6 +1,8 @@
 import os
-from typing import AsyncGenerator, Optional, Callable
+from uuid import UUID
+from typing import AsyncGenerator, Optional, Callable, Optional
 from contextlib import asynccontextmanager
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -24,9 +26,11 @@ class DatabaseBackendConnector:
                 self._url, 
                 echo=False, 
                 future=True,
-                pool_size=10,
+                pool_size=5,
                 max_overflow=5,
-                pool_timeout=30
+                pool_timeout=5,
+                pool_recycle=1800,
+                pool_pre_ping=True
             )
             self._sessionmaker = async_sessionmaker(
                 bind=self._engine,
@@ -39,11 +43,32 @@ class DatabaseBackendConnector:
             self.init()
         return self._sessionmaker
     
+    async def dispose(self) -> None:
+        if self._engine is not None:
+            await self._engine.dispose()
+    
     @asynccontextmanager
-    async def session_scope(self) -> AsyncGenerator[AsyncSession, None]:
+    async def session_scope(
+        self, 
+        organization_id: Optional[UUID] = None, 
+        user_id: Optional[UUID] = None
+    ) -> AsyncGenerator[AsyncSession, None]:
         session_maker = self.session_factory()
         async with session_maker() as session:
             try:
+                if organization_id is not None:
+                    await session.execute(
+                        text("SELECT set_config('app.organization_id', :oid, true)"),
+                        {'oid': str(organization_id)},
+                    )
+                if user_id is not None:
+                    await session.execute(
+                        text("SELECT set_config('app.user_id', :uid, true)"),
+                        {'uid': str(user_id)},
+                    )
+                await session.execute(text("SET LOCAL statement_timeout = '5s'"))
+                await session.execute(text("SET LOCAL lock_timeout = '1s'"))
+
                 yield session
                 await session.commit()
             except Exception:

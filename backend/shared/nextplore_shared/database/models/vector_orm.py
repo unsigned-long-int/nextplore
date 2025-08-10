@@ -1,7 +1,9 @@
 import uuid
-from sqlalchemy import Column, Text, TIMESTAMP, JSON, func
+from sqlalchemy import Column, Text, TIMESTAMP, JSON, func, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 
+from .user_orm import UserORM
+from .organization_orm import OrganizationORM
 from .base import Base
 
 
@@ -9,8 +11,18 @@ class VectorORM(Base):
     __tablename__ = 'vectors'
     __table_args__ = {'schema': 'vector'}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    qdrant_vector_id = Column(UUID(as_uuid=True), unique=True, nullable=False)
+    organization_id = Column(
+        UUID(as_uuid=True), 
+        ForeignKey(OrganizationORM.id, ondelete='cascade'),
+        nullable=False
+    )
+    user_id = Column(
+        UUID(as_uuid=True), 
+        ForeignKey(UserORM.id, ondelete='cascade'),
+        nullable=False
+    )
     integration_id = Column(UUID(as_uuid=True), nullable=False)
+    qdrant_vector_id = Column(UUID(as_uuid=True), unique=True, nullable=False)
     schema_name = Column(Text, unique=True, nullable=False)
     table_name = Column(Text, unique=True, nullable=False)
     table_meta = Column(JSON, unique=True, nullable=False)

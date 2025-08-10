@@ -11,6 +11,7 @@ from utils.crawlers import crawl_schemas
 from utils.filters.logic import Specification
 from utils.encryption import decrypt_integration
 from database.repositories import IntegrationRepository
+from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
 from nextplore_shared.database.sql_connection_service.session_starter import ConnectionFailed
 from nextplore_shared.database.connection_builder.connection_meta import ConnectionMeta
 from nextplore_shared.database.connection_builder.database_connection_builder import build_connection_string
@@ -27,12 +28,15 @@ class CrawlIntegrationsFailed(Exception):
 
 
 async def crawl_integration_registry(
-        integration_ids: List[UUID], 
-        integration_spec: Specification,
-        schema_spec: Specification,
-        table_spec: Specification
+    connector: DatabaseBackendConnector,
+    user_id: UUID,
+    organization_id: UUID,
+    integration_ids: List[UUID], 
+    integration_spec: Specification,
+    schema_spec: Specification,
+    table_spec: Specification
 ) -> IntegrationRegistryCatalog:
-    integration_repo = IntegrationRepository()
+    integration_repo = IntegrationRepository(connector)
     integrations = []
 
     for integration_id in integration_ids:
@@ -42,7 +46,11 @@ async def crawl_integration_registry(
                 logger.info(f'Integration {integration_id} is not satisfied by spec. Skipping.')
                 continue
             
-            encrypted_integration = await integration_repo.get_integration_by_id(integration_id)
+            encrypted_integration = await integration_repo.get_integration_by_id(
+                organization_id=organization_id,
+                user_id=user_id,
+                integration_id=integration_id
+            )
             decrypted_integration = decrypt_integration(encrypted_integration)
             connection_meta = ConnectionMeta(
                 service_type=decrypted_integration.service_type,

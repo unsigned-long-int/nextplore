@@ -1,10 +1,12 @@
 import logging
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 
 from database.repositories import IntegrationRepository
 from database.exceptions import IntegrationGetFailed
 from utils.encryption import decrypt_integration
 from api.context import get_current_identity
+from api.dependencies import get_connector
+from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
 from nextplore_shared.cache.service_caches.integration_cache.cache import integration_service_cache
 from nextplore_shared.contracts.integration_service.integration_metadata_request import IntegrationMetadataRequest
 from nextplore_shared.contracts.integration_service.integration_metadata_response import IntegrationMetadataResponse
@@ -15,7 +17,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
 @router.post('/get-integration', response_model=IntegrationMetadataResponse)
-async def get_integration(payload: IntegrationMetadataRequest) -> IntegrationMetadataResponse:
+async def get_integration(
+    payload: IntegrationMetadataRequest,
+    connector: DatabaseBackendConnector = Depends(get_connector)
+) -> IntegrationMetadataResponse:
     try:
         user_identity = get_current_identity()
         cached = await integration_service_cache.get_integration_metadata(
@@ -24,7 +29,7 @@ async def get_integration(payload: IntegrationMetadataRequest) -> IntegrationMet
         )
         if cached:
             return cached
-        integration_repo = IntegrationRepository()
+        integration_repo = IntegrationRepository(connector)
         encrypted_integration = await integration_repo.get_integration(
             user_id=payload.user_id,
             organization_id=payload.organization_id,

@@ -1,3 +1,5 @@
+from uuid import UUID
+from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
 from nextplore_shared.contracts.integration_service.filtered_crawl_request import FilteredCrawlRequest
 from nextplore_shared.contracts.integration_service.crawl_response import CrawlResponse
 from services import crawl_integration_registry
@@ -8,8 +10,11 @@ from messaging.events.integration_service import IntegrationMetaCrawled, Integra
 
 
 
-async def crawl_initial_integration_metadata(event: IntegrationCreated) -> None:
+async def crawl_initial_integration_metadata(event: IntegrationCreated, connector: DatabaseBackendConnector) -> None:
     integration_registry = await crawl_integration_registry(
+        connector=connector,
+        user_id=event.user_id,
+        organization_id=event.organization_id,
         integration_ids=[event.integration_id],
         integration_spec=AlwaysTrueSpec(),
         schema_spec = AlwaysTrueSpec(),
@@ -24,7 +29,7 @@ async def crawl_initial_integration_metadata(event: IntegrationCreated) -> None:
     )
 
 
-async def craw_filtered_integration_metadata(inspection_request: FilteredCrawlRequest) -> CrawlResponse:
+async def craw_filtered_integration_metadata(user_id: UUID, organization_id: UUID, inspection_request: FilteredCrawlRequest) -> CrawlResponse:
     integration_spec, schema_spec, table_spec = create_specs(
         integrations=inspection_request.integrations,
         schemas=inspection_request.schemas,
@@ -32,6 +37,8 @@ async def craw_filtered_integration_metadata(inspection_request: FilteredCrawlRe
     )
 
     integration_registry = await crawl_integration_registry(
+        user_id=user_id,
+        organization_id=organization_id,
         integration_ids=inspection_request.integrations,
         integration_spec=integration_spec,
         schema_spec=schema_spec,
