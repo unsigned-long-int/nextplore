@@ -1,10 +1,12 @@
 import logging
 from fastapi import APIRouter, Depends, status, HTTPException
 
+from api.context import get_current_identity
 from services.models_registry import get_models_registry, ModelsRegistry
 from services.provider_factory import dispatch_provider_factory
 from services.orm_context_builder.ai_adapter import adapt_llm_response
 from services.exceptions import InferenceProviderMissing, InvalidModelResponse
+from nextplore_shared.cache.service_caches.ai_orm_context_cache.cache import ai_orm_context_service_cache
 from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
 from nextplore_shared.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
 
@@ -19,6 +21,14 @@ async def get_orm_context(
     models_registry: ModelsRegistry = Depends(get_models_registry)
 ) -> ORMContextResponse:
     try:
+        user_identity = get_current_identity()
+        cached = await ai_orm_context_service_cache.get_orm_context(
+            user_identity=user_identity,
+            request=payload
+        )
+        if cached:
+            return cached
+        
         model_meta = models_registry.get_model(payload.provider, payload.model_id)
         provider_factory = dispatch_provider_factory(payload.provider, model_meta)
         provider = provider_factory.create()
@@ -33,6 +43,11 @@ async def get_orm_context(
             column_names=orm_context.column_names,
             column_aggregates=orm_context.column_aggregates,
             column_filters=orm_context.column_filters
+        )
+        await ai_orm_context_service_cache.set_orm_context(
+            user_identity=user_identity,
+            request=payload,
+            response=response
         )
         return response
     except (InferenceProviderMissing, InvalidModelResponse) as e:
