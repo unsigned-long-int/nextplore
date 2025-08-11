@@ -1,12 +1,20 @@
 import os
 from cryptography.fernet import Fernet
 
+_fernet = None
 
-FERNET_KEY = os.getenv('FERNET_KEY')
-fernet = Fernet(FERNET_KEY)
+def _get_fernet():
+    global _fernet
+    if _fernet is None:
+        key = os.getenv('FERNET_KEY')
+        if not key:
+            raise RuntimeError('FERNET_KEY is not set')
+        _fernet = Fernet(key)
+    return _fernet
+
 
 def encrypt_secret(secret: str) -> str:
-    return fernet.encrypt(secret.encode()).decode()
+    return _get_fernet().encrypt(secret.encode()).decode()
 
 def decrypt_secret(encrypted: str) -> str:
-    return fernet.decrypt(encrypted.encode()).decode()
+    return _get_fernet().decrypt(encrypted.encode()).decode()
