@@ -14,9 +14,40 @@ Since databases may grow very large consisting of hundreds of schemas and tables
 
 ### AI Query
 
-Nextplore enables users to access and explore with any relational data from database without writing SQL statements. The search is performed across all available metadata. It means that you can perform search across all your different integrations at once. The user has a range of models to choose from including moonshatai, deepseek, openAI and Llama. In the future it is planned to enable users to integrate their own inference endpoints.
+**Nextplore** enables you to explore and interact with **any relational data** across multiple databases **without writing a single line of SQL**.
 
-The user has the possibility to export the selected data and also see the sql statement formulated for this request. Searching supports all pivot functions (i.e. average, sum, count, max, min). Searching also supports following filters: '==', '!=', '>', '<', '>=', '<=', 'like', 'not like', 'in'.
+With AI-driven search, you can query **all available metadata** from your connected integrations using a **single, unified query**.
+
+Choose from a variety of powerful AI models:
+
+- **Moonshatai**
+- **DeepSeek**
+- **OpenAI**
+- **LlamA**
+
+_Future roadmap_: Support for **custom inference endpoints** to integrate your own AI models.
+
+- **Unified Search Across Integrations**  
+  Query data across all connected databases in one go.
+
+- **Pivot Functions**  
+  Built-in support for:
+
+  - `AVG`, `SUM`, `COUNT`, `MAX`, `MIN`
+
+- **Advanced Filtering**  
+  Supported operators:
+
+  - `==`, `!=`, `>`, `<`, `>=`, `<=`, `LIKE`, `NOT LIKE`, `IN`
+
+- **SQL Transparency**  
+  View the **exact SQL** generated for your request.
+
+- **Data Export**  
+  Export selected results directly.
+
+- **Model Flexibility**  
+  Choose your preferred AI model for query processing.
 
 ![AI Query Use Case](./docs/ai-query-use-case.gif)
 
