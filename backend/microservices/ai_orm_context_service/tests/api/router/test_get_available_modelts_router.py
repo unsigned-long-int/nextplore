@@ -31,7 +31,7 @@ class TestGetModels(unittest.IsolatedAsyncioTestCase):
 
         self.client = AsyncClient(
             transport=ASGITransport(app=self.app),
-            base_url='http://test'
+            base_url='https://test'
         )
 
 

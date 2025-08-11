@@ -14,7 +14,7 @@ class TestGetORMContext(unittest.IsolatedAsyncioTestCase):
         self.app.include_router(router)
         self.client = AsyncClient(
             transport=ASGITransport(app=self.app),
-            base_url='http://test'
+            base_url='https://test'
         )
 
         self.request = ORMContextRequest(

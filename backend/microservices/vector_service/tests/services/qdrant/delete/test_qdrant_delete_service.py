@@ -32,7 +32,7 @@ class FakeFilterSelector:
 
 
 class TestDeleteQdrantVectors(unittest.IsolatedAsyncioTestCase):
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'secret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'secret'})
     @patch('services.qdrant.delete.qdrant_delete_service.AsyncQdrantClient')
     @patch('services.qdrant.delete.qdrant_delete_service.Filter', side_effect=lambda **kw: FakeFilter(**kw))
     @patch('services.qdrant.delete.qdrant_delete_service.FieldCondition', side_effect=lambda **kw: FakeFieldCondition(**kw))
@@ -59,7 +59,7 @@ class TestDeleteQdrantVectors(unittest.IsolatedAsyncioTestCase):
         await delete_qdrant_vectors(qdrant_vector_ids=vector_ids, user_id=user_id, organization_id=org_id)
 
         mock_qdrant_client.assert_called_once_with(
-            url='http://qdrant.local', api_key='secret'
+            url='https://qdrant.local', api_key='secret'
         )
 
         client_instance.delete.assert_awaited_once()
@@ -113,7 +113,7 @@ class TestDeleteQdrantVectors(unittest.IsolatedAsyncioTestCase):
         conds = {c.key: c for c in selector.filter.must}
         self.assertEqual(conds['qdrant_vector_id'].match.any, [])
 
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'secret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'secret'})
     @patch('services.qdrant.delete.qdrant_delete_service.AsyncQdrantClient')
     @patch('services.qdrant.delete.qdrant_delete_service.Filter', side_effect=lambda **kw: FakeFilter(**kw))
     @patch('services.qdrant.delete.qdrant_delete_service.FieldCondition', side_effect=lambda **kw: FakeFieldCondition(**kw))

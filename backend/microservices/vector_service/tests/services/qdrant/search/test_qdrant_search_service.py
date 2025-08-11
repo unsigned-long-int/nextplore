@@ -22,7 +22,7 @@ class FakeFilter:
 
 
 class TestQdrantSearch(unittest.IsolatedAsyncioTestCase):
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
     @patch('services.qdrant.search.qdrant_search_service.AsyncQdrantClient')
     @patch('services.qdrant.search.qdrant_search_service.Filter', side_effect=lambda **kw: FakeFilter(**kw))
     @patch('services.qdrant.search.qdrant_search_service.FieldCondition', side_effect=lambda **kw: FakeFieldCondition(**kw))
@@ -44,7 +44,7 @@ class TestQdrantSearch(unittest.IsolatedAsyncioTestCase):
 
         out = await search_nearest_vectors(identity, embedding)
 
-        mock_qdrant_client.assert_called_once_with(url='http://qdrant.local', api_key='sekret')
+        mock_qdrant_client.assert_called_once_with(url='https://qdrant.local', api_key='sekret')
 
         client.search.assert_awaited_once()
         _, kwargs = client.search.call_args
@@ -65,7 +65,7 @@ class TestQdrantSearch(unittest.IsolatedAsyncioTestCase):
         assert all(isinstance(x, uuid.UUID) for x in out)
         assert len(out) == 2
 
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
     @patch('services.qdrant.search.qdrant_search_service.AsyncQdrantClient')
     @patch('services.qdrant.search.qdrant_search_service.Filter', side_effect=lambda **kw: FakeFilter(**kw))
     @patch('services.qdrant.search.qdrant_search_service.FieldCondition', side_effect=lambda **kw: FakeFieldCondition(**kw))
@@ -81,7 +81,7 @@ class TestQdrantSearch(unittest.IsolatedAsyncioTestCase):
         out = await search_nearest_vectors(identity, embedding)
         assert out == []
 
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
     @patch('services.qdrant.search.qdrant_search_service.AsyncQdrantClient')
     @patch('services.qdrant.search.qdrant_search_service.Filter', side_effect=lambda **kw: FakeFilter(**kw))
     @patch('services.qdrant.search.qdrant_search_service.FieldCondition', side_effect=lambda **kw: FakeFieldCondition(**kw))
@@ -97,7 +97,7 @@ class TestQdrantSearch(unittest.IsolatedAsyncioTestCase):
         out = await search_nearest_vectors(identity, embedding)
         assert out == []
 
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
     @patch('services.qdrant.search.qdrant_search_service.AsyncQdrantClient')
     @patch('services.qdrant.search.qdrant_search_service.Filter', side_effect=lambda **kw: FakeFilter(**kw))
     @patch('services.qdrant.search.qdrant_search_service.FieldCondition', side_effect=lambda **kw: FakeFieldCondition(**kw))
@@ -114,7 +114,7 @@ class TestQdrantSearch(unittest.IsolatedAsyncioTestCase):
         _, kwargs = client.search.call_args
         assert kwargs['limit'] == 10
 
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
     @patch('services.qdrant.search.qdrant_search_service.AsyncQdrantClient')
     @patch('services.qdrant.search.qdrant_search_service.Filter', side_effect=lambda **kw: FakeFilter(**kw))
     @patch('services.qdrant.search.qdrant_search_service.FieldCondition', side_effect=lambda **kw: FakeFieldCondition(**kw))
