@@ -20,25 +20,14 @@ class TokenVerifier:
         self.jwks_fetcher = jwks_fetcher
 
     async def verify_token(self, token: str) -> Dict[str, Any]:
-        try:
-            header = jwt.get_unverified_header(token)
-        except JWTError:
-            raise HTTPException(401, detail='Invalid token header')
-
-        kid: Optional[str] = header.get('kid')
-        if header.get('alg') != 'RS256':
-            raise HTTPException(401, detail='Unexpected JWT alg')
-
-        jwks = await self.jwks_fetcher.get_jwks(jwks_url=JWKS_URL, expected_kid=kid)
+        jwks = await self.jwks_fetcher.get_jwks(jwks_url=JWKS_URL)
         keys = jwks.get('keys', [])
         if not keys:
             raise HTTPException(500, detail='No JWKS keys available')
-
-        candidate_keys = [k for k in keys if k.get('kid') == kid] or keys
-
+        
         last_err: Optional[Exception] = None
         claims: Optional[Dict[str, Any]] = None
-        for key in candidate_keys:
+        for key in keys:
             try:
                 claims = jwt.decode(
                     token,

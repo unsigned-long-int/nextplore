@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
 
     app.state.clients = registry
     app.state.jwks_fetcher_service = jwks_fetcher
-    app.state.token_veriifer = token_verifier
+    app.state.token_verifier = token_verifier
     yield
     await registry.close_clients()
     await jwks_fetcher.aclose()
