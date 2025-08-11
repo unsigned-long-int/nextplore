@@ -20,7 +20,6 @@ def crawl_tables(crawler: Inspector, integration_id: UUID, schema_name: str, tab
 
     for table_name in table_names:
         table_candidate = TableCatalog(integration_id=integration_id, name=table_name)
-        print(f'table is satisfed{table_spec.is_satisfied_by(table_candidate)}')
         if not table_spec.is_satisfied_by(table_candidate):
             continue
         try:

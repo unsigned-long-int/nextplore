@@ -1,7 +1,6 @@
 import logging
 from fastapi import APIRouter, status, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from sqlalchemy.exc import SQLAlchemyError
 
 from api.context import get_current_identity
 from api.dependencies import get_connector
