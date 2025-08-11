@@ -2,6 +2,7 @@ import json
 import logging 
 import os
 import asyncio
+import inspect
 
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Callable, Type, Awaitable
@@ -20,7 +21,7 @@ class AsyncKafkaMessageBus:
         self._producer: Optional[AIOKafkaProducer] = None
         self._consumers: List[AIOKafkaConsumer] = []
         self._consume_tasks: List[asyncio.Task] = []
-        self._handlers: Dict[str, List[Callable[[BaseEvent]], None | Awaitable[None]]] = {}
+        self._handlers: Dict[str, List[Callable[[BaseEvent], Awaitable[None] | None]]] = {}
 
     async def start(self) -> None:
         self._producer = AIOKafkaProducer(
@@ -50,54 +51,71 @@ class AsyncKafkaMessageBus:
             await self._producer.send_and_wait(topic, payload, key=event.partition_key, headers=headers)
             logger.info(f'Published to topic: {topic}')
 
+    async def _create_consumer(self, topic: str) -> AIOKafkaConsumer:
+        group_prefix = os.getenv('KAFKA_GROUP_PREFIX', 'nextplore')
+        consumer = AIOKafkaConsumer(
+            topic,
+            bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS'),
+            value_deserializer=lambda b: json.loads(b.decode('utf-8')),
+            auto_offset_reset='earliest',
+            group_id=f'{group_prefix}-{topic}',
+            enable_auto_commit=False,
+        )
+        await consumer.start()
+        self._consumers.append(consumer)
+        return consumer
+    
+    async def _run_handlers(self, topic: str, event: BaseEvent) -> None:
+        for handler in self._handlers.get(topic, ()):
+            result = handler(event)
+            if inspect.isawaitable(result):
+                await result
+
+    async def _handle_error(self, e: Exception, record, topic: str, consumer: AIOKafkaConsumer) -> None:
+        data = getattr(record, 'value', {}) or {}
+        org_id = data.get('organization_id')
+        key = (str(org_id).encode('utf-8') if org_id else None)
+        dlq_payload = {
+            'original_event': data,
+            'error': str(e),
+            'original_topic': record.topic,
+            'partition': record.partition,
+            'offset': record.offset,
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        }
+        try:
+            await self._producer.send_and_wait(f'{topic}-dlq', dlq_payload, key=key)
+            logger.error(f'Event failed and sent to DLQ; topic={topic} offset={record.offset}: {e}', exc_info=True)
+        except Exception:
+            logger.error('DLQ publish failed; leaving offset uncommitted', exc_info=True)
+        await consumer.commit()
+
+    async def _process_record(self, record, topic: str, consumer: AIOKafkaConsumer) -> None:
+        data = record.value
+        try:
+            event_type = get_event_cls(data['event_name'])
+            event = event_type(**data)
+            await self._run_handlers(topic, event)
+            await consumer.commit()
+        except Exception as e:
+            await self._handle_error(e, record, topic, consumer)
+
+    async def _consume_loop(self, consumer: AIOKafkaConsumer, topic: str) -> None:
+        try:
+            async for record in consumer:
+                await self._process_record(record, topic, consumer)
+        except asyncio.CancelledError:
+            pass
+        except Exception:
+            logger.error(f'Unhandled exception in consume loop for topic: {topic}', exc_info=True)
 
     async def subscribe(self, event_cls: Type[BaseEvent], handler: Callable[[BaseEvent], None | Awaitable[None]]) -> None:
         register_event(event_cls)
         topic = event_cls.event_name
         self._handlers.setdefault(topic, []).append(handler)
 
-        group_prefix = os.getenv('KAFKA_GROUP_PREFIX', 'nextplore')
-        consumer = AIOKafkaConsumer(
-            topic,
-            bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS'),
-            value_deserializer=lambda value: json.loads(value.decode('utf-8')),
-            auto_offset_reset='earliest',
-            group_id=f'{group_prefix}-{topic}',
-            enable_auto_commit=False
-        )
-        await consumer.start()
-        self._consumers.append(consumer)
-
-        async def _consume() -> None:
-            async for letter in consumer:
-                data = letter.value
-                event_type = None
-                try:
-                    event_type = get_event_cls(data['event_name'])
-                    event = event_type(**data)
-                    for handler in self._handlers[topic]:
-                        await handler(event)
-                    await consumer.commit()
-                except Exception as e:
-                    org_id = data.get('organization_id')
-                    key = str(org_id).encode('utf-8') if org_id else None
-                    dlq_payload = {
-                        'original_event': data,
-                        'error': str(e),
-                        'original_topic': letter.topic,
-                        'partition': letter.partition,
-                        'offset': letter.offset,
-                        'timestamp': datetime.now(timezone.utc).isoformat(),
-                    }
-                    try:
-                        await self._producer.send_and_wait(f'{topic}-dlq', dlq_payload, key=key)
-                        logger.error(f'Event: {event_type} failed: {str(e)}', exc_info=True)
-                    except Exception:
-                        logger.error('DLQ publish failed; leaving offset uncommitted', exc_info=True)
-                        continue
-                    await consumer.commit()
-            
-        task = asyncio.create_task(_consume())
+        consumer = await self._create_consumer(topic)
+        task = asyncio.create_task(self._consume_loop(consumer, topic))
         self._consume_tasks.append(task)
         logger.info(f'Subscribed to a topic:{topic}')
 
