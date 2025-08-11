@@ -8,7 +8,7 @@ from api.handlers.handle_upsert import handle_vector_upsert
 
 def make_embedding(integration_id='int-1', schema='public', table='items', emb=None, meta_json={'k':'v'}):
     class _Meta:
-        def model_dump_json(self_nonlocal):
+        def model_dump_json(self):
             return meta_json
 
     return types.SimpleNamespace(

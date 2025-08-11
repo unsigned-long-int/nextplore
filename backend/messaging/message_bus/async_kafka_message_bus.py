@@ -104,8 +104,6 @@ class AsyncKafkaMessageBus:
         try:
             async for record in consumer:
                 await self._process_record(record, topic, consumer)
-        except asyncio.CancelledError:
-            pass
         except Exception:
             logger.error(f'Unhandled exception in consume loop for topic: {topic}', exc_info=True)
 

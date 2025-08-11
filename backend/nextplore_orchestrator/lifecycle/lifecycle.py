@@ -7,6 +7,7 @@ from clients.factory import (
     ClientsRegistry,
     ClientsFactory
 )
+from api.dependencies.authentication import JWKSFetcher, TokenVerifier
 from _version import version, app_name
 
 @asynccontextmanager
@@ -23,7 +24,12 @@ async def lifespan(app: FastAPI):
         vector_client=clients_factory.create_vector_client(),
         ai_orm_context_client=clients_factory.create_ai_orm_context_client()
     )
+    jwks_fetcher = JWKSFetcher(ttl=600)
+    token_verifier = TokenVerifier(jwks_fetcher)
 
     app.state.clients = registry
+    app.state.jwks_fetcher_service = jwks_fetcher
+    app.state.token_veriifer = token_verifier
     yield
     await registry.close_clients()
+    await jwks_fetcher.aclose()
