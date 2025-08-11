@@ -1,6 +1,4 @@
-import json
 from fastapi import APIRouter
-from typing import List
 
 from nextplore_shared.cache.service_caches.vector_cache.cache import vector_service_cache
 from nextplore_shared.contracts.vector_service.qdrant_vector_request import QDrantVectorRequest
