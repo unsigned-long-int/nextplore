@@ -164,7 +164,7 @@ class TestCrawlIntegrationRegistry(unittest.IsolatedAsyncioTestCase):
         mock_integration_catalog_cls,
         mock_registry_catalog_cls,
     ):
-        from nextplore_shared.database.sql_connection_service.session_starter import ConnectionFailed
+        from nextplore_sdk.database.sql_connection_service.session_starter import ConnectionFailed
         a, b, c, d = uuid4(), uuid4(), uuid4(), uuid4()
         ids = [a, b, c, d]
 

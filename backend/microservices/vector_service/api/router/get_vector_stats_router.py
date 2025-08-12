@@ -3,10 +3,10 @@ from fastapi import APIRouter, Depends
 from api.context import get_current_identity
 from api.dependencies import get_connector
 from database.repositories import VectorRepository
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_shared.cache.service_caches.vector_cache.cache import vector_service_cache
-from nextplore_shared.contracts.vector_service.vector_stats_request import VectorStatsRequest
-from nextplore_shared.contracts.vector_service.vector_stats_response import VectorStatsResponse
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.cache.service_caches.vector_cache.cache import vector_service_cache
+from nextplore_sdk.contracts.vector_service.vector_stats_request import VectorStatsRequest
+from nextplore_sdk.contracts.vector_service.vector_stats_response import VectorStatsResponse
 
 
 router = APIRouter(prefix='/v1/vector', tags=['Vector'])

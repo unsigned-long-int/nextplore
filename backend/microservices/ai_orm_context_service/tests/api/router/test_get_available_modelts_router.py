@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from httpx import AsyncClient
 
 from api.router.get_available_models_router import router
-from nextplore_shared.contracts.ai_orm_context_service.avilable_models_response import (
+from nextplore_sdk.contracts.ai_orm_context_service.avilable_models_response import (
     ModelInfo,
     AvailableModelsResponse
 )

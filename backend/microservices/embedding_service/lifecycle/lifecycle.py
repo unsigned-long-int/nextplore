@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pathlib import Path
 
-from nextplore_shared.logging.setup import setup_logger
+from nextplore_sdk.logging.setup import setup_logger
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationMetaCrawled
 from api.handlers import handle_crawl_meta_embedding

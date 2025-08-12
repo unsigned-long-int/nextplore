@@ -1,4 +1,4 @@
-from nextplore_shared.encryptor.encryption import decrypt_secret
+from nextplore_sdk.encryptor.encryption import decrypt_secret
 from .encrypted_integration import EncryptedIntegration
 from .decrypted_integration import DecryptedIntegration
 

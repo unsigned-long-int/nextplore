@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional
 
-from nextplore_shared.cache.utils.key_factory import get_string_cache_key
-from nextplore_shared.cache.client.base_redis_client import BaseCache
+from nextplore_sdk.cache.utils.key_factory import get_string_cache_key
+from nextplore_sdk.cache.client.base_redis_client import BaseCache
 
 
 class JWKSCache(BaseCache):

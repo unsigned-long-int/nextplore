@@ -6,9 +6,9 @@ from services.models_registry import get_models_registry, ModelsRegistry
 from services.provider_factory import dispatch_provider_factory
 from services.orm_context_builder.ai_adapter import adapt_llm_response
 from services.exceptions import InferenceProviderMissing, InvalidModelResponse
-from nextplore_shared.cache.service_caches.ai_orm_context_cache.cache import ai_orm_context_service_cache
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
+from nextplore_sdk.cache.service_caches.ai_orm_context_cache.cache import ai_orm_context_service_cache
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
 
 
 logger = logging.getLogger(__name__)

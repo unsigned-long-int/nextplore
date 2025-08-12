@@ -2,7 +2,7 @@ import json
 from typing import List, Dict
 from collections import defaultdict
 
-from nextplore_shared.contracts.vector_service.vector_meta_response import VectorMetaResponse
+from nextplore_sdk.contracts.vector_service.vector_meta_response import VectorMetaResponse
 from .rag_context import RAGContext
 
 def dictify(d):

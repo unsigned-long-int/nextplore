@@ -1,7 +1,7 @@
 import httpx 
 
-from nextplore_shared.contracts.embedding_service.embedding_response import EmbeddingResponse
-from nextplore_shared.contracts.embedding_service.query_embedding_request import QueryEmbeddingRequest
+from nextplore_sdk.contracts.embedding_service.embedding_response import EmbeddingResponse
+from nextplore_sdk.contracts.embedding_service.query_embedding_request import QueryEmbeddingRequest
 from clients.base import BaseServiceClient
 from .exceptions import EmbeddingResponseRemoteError
 

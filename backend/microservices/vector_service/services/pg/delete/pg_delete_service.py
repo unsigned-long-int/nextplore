@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 from database.repositories import VectorRepository
 
 

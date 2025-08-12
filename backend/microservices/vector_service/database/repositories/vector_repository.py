@@ -3,8 +3,8 @@ from uuid import UUID
 from sqlalchemy import select, delete, func
 from sqlalchemy.engine import Row
 
-from nextplore_shared.database.models.vector_orm import VectorORM
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.database.models.vector_orm import VectorORM
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 
 
 class VectorRepository:

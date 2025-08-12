@@ -3,7 +3,7 @@ import json
 from unittest.mock import AsyncMock, patch, MagicMock
 
 from services.model_providers.hugging_face.inference.inference_providers.cerebras import CerebrasInference
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
 
 @patch('services.model_providers.hugging_face.inference.inference_providers.cerebras.AsyncOpenAI')
 class TestCerebrasInference(unittest.IsolatedAsyncioTestCase):

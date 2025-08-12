@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from pathlib import Path
 
 from services.models_registry import setup_models_registry
-from nextplore_shared.logging.setup import setup_logger
+from nextplore_sdk.logging.setup import setup_logger
 from _version import version, app_name
 
 

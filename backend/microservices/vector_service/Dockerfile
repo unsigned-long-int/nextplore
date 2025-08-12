@@ -4,9 +4,9 @@ RUN groupadd -r nextplore-group \
     && useradd -r -g nextplore-group -m vector-upsert-service
 
 ARG SHARED_TGZ
-COPY ${SHARED_TGZ} /tmp/nextplore_shared.tar.gz
+COPY ${SHARED_TGZ} /tmp/nextplore_sdk.tar.gz
 
-RUN pip install /tmp/nextplore_shared.tar.gz \
+RUN pip install /tmp/nextplore_sdk.tar.gz \
     && apt-get update && apt-get install -y \
     apt-transport-https \
     ca-certificates \

@@ -1,7 +1,7 @@
 from typing import Optional
 from contextvars import ContextVar
 
-from nextplore_shared.identity_service.identity_model.user_identity import UserIdentity
+from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
 
 
 identity_context: Optional[ContextVar[UserIdentity]] = ContextVar('identity_context', default=None)

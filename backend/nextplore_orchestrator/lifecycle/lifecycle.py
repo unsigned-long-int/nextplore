@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from nextplore_shared.logging.setup import setup_logger
+from nextplore_sdk.logging.setup import setup_logger
 from clients.factory import (
     ClientsRegistry,
     ClientsFactory

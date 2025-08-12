@@ -6,7 +6,7 @@ from sqlalchemy.orm import registry
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import quoted_name
 
-from nextplore_shared.database.crawler_factory.create_crawler import get_crawler
+from nextplore_sdk.database.crawler_factory.create_crawler import get_crawler
 from .orm_request import ORMRequest
 
 

@@ -11,11 +11,11 @@ from utils.crawlers import crawl_schemas
 from utils.filters.logic import Specification
 from utils.encryption import decrypt_integration
 from database.repositories import IntegrationRepository
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_shared.database.sql_connection_service.session_starter import ConnectionFailed
-from nextplore_shared.database.connection_builder.connection_meta import ConnectionMeta
-from nextplore_shared.database.connection_builder.database_connection_builder import build_connection_string
-from nextplore_shared.database.crawler_factory.create_crawler import get_crawler
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.database.sql_connection_service.session_starter import ConnectionFailed
+from nextplore_sdk.database.connection_builder.connection_meta import ConnectionMeta
+from nextplore_sdk.database.connection_builder.database_connection_builder import build_connection_string
+from nextplore_sdk.database.crawler_factory.create_crawler import get_crawler
 
 
 logger = logging.getLogger(__name__)

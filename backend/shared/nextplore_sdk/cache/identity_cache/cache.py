@@ -1,8 +1,8 @@
 from typing import Optional
 from uuid import UUID
 
-from nextplore_shared.cache.client.base_redis_client import BaseCache
-from nextplore_shared.identity_service.identity_model.user_identity import UserIdentity
+from nextplore_sdk.cache.client.base_redis_client import BaseCache
+from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
 
 
 class IndentityServiceCache(BaseCache):

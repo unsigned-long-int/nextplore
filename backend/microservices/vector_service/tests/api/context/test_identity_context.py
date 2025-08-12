@@ -2,7 +2,7 @@ import unittest
 from contextvars import copy_context
 
 from api.context import set_current_identity, get_current_identity
-from nextplore_shared.identity_service.identity_model.user_identity import UserIdentity
+from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
 
 
 class TestIdentityContext(unittest.TestCase):

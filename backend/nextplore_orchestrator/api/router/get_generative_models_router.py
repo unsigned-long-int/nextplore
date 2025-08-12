@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from nextplore_shared.contracts.ai_orm_context_service.avilable_models_response import AvailableModelsResponse
+from nextplore_sdk.contracts.ai_orm_context_service.avilable_models_response import AvailableModelsResponse
 from api.dependencies.authentication import get_active_user
 from api.dependencies.microservices import get_ai_orm_context_client
 

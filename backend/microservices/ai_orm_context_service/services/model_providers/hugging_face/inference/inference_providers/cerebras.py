@@ -3,7 +3,7 @@ import os
 from openai import AsyncOpenAI
 from typing import Dict, Any, List
 
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
 from .base import InferenceProviderBase
 
 

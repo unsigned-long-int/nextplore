@@ -4,7 +4,7 @@ from typing import Dict, Any
 
 from services.model_providers.hugging_face.hf_provider import HFProvider
 from services.exceptions import InvalidModelResponse
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
 
 
 class TestHFProvider(unittest.IsolatedAsyncioTestCase):

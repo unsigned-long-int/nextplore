@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 from services.model_providers.openai.openai_provider import OpenAIProvider
 from services.exceptions import InvalidModelResponse
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
 
 
 class TestOpenAIProvider(unittest.IsolatedAsyncioTestCase):

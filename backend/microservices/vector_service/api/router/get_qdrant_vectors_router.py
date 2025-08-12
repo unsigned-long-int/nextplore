@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
-from nextplore_shared.cache.service_caches.vector_cache.cache import vector_service_cache
-from nextplore_shared.contracts.vector_service.qdrant_vector_request import QDrantVectorRequest
-from nextplore_shared.contracts.vector_service.qdrant_vector_response import QDrantVectorResponse
+from nextplore_sdk.cache.service_caches.vector_cache.cache import vector_service_cache
+from nextplore_sdk.contracts.vector_service.qdrant_vector_request import QDrantVectorRequest
+from nextplore_sdk.contracts.vector_service.qdrant_vector_response import QDrantVectorResponse
 from api.context import get_current_identity
 from services.qdrant.search import search_nearest_vectors
 

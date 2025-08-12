@@ -2,7 +2,7 @@ import logging.config
 from pathlib import Path
 from typing import Dict, Any
 
-from nextplore_shared.logging.custom_json_formatter import CustomJsonFormatter
+from nextplore_sdk.logging.custom_json_formatter import CustomJsonFormatter
 
 
 def setup_logger(service_meta: Dict[str, Any], config_path: Path) -> None:
@@ -11,4 +11,3 @@ def setup_logger(service_meta: Dict[str, Any], config_path: Path) -> None:
         formatter = getattr(handler, 'formatter', None)
         if isinstance(formatter, CustomJsonFormatter):
             formatter.service_meta.update(service_meta)
-            

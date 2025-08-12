@@ -1,10 +1,10 @@
 from sqlalchemy import select
 
-from nextplore_shared.database.models.user_orm import UserORM
-from nextplore_shared.database.models.organization_orm import OrganizationORM
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_shared.identity_service.identity_model.user_identity import UserIdentity
-from nextplore_shared.cache.identity_cache.cache import identity_cache_service
+from nextplore_sdk.database.models.user_orm import UserORM
+from nextplore_sdk.database.models.organization_orm import OrganizationORM
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
+from nextplore_sdk.cache.identity_cache.cache import identity_cache_service
 
 
 async def resolve_user_identity(azure_tenant_id: str, azure_user_id: str) -> UserIdentity:

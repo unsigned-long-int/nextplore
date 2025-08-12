@@ -1,8 +1,8 @@
 import logging
 from fastapi import APIRouter, Depends, status, HTTPException
 
-from nextplore_shared.contracts.nextplore_orchestrator_service.ai_query_request import AIQueryRequest
-from nextplore_shared.contracts.nextplore_orchestrator_service.ai_query_response import AIQueryResponse
+from nextplore_sdk.contracts.nextplore_orchestrator_service.ai_query_request import AIQueryRequest
+from nextplore_sdk.contracts.nextplore_orchestrator_service.ai_query_response import AIQueryResponse
 from api.dependencies.authentication import get_active_user
 from api.dependencies.microservices import (
     get_integration_client, 

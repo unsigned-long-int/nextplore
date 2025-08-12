@@ -3,7 +3,7 @@ import logging
 from typing import List
 
 from services.exceptions import EmbeddingFailed
-from nextplore_shared.open_ai_client_loader.open_ai_client_loader import load_open_ai_client
+from nextplore_sdk.open_ai_client_loader.open_ai_client_loader import load_open_ai_client
 from .embedder_base import EmbedderBase
 
 

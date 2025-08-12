@@ -4,8 +4,8 @@ from fastapi import FastAPI
 from httpx import AsyncClient, ASGITransport
 
 from api.router.get_orm_context_router import router 
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
 from services.exceptions import InferenceProviderMissing, InvalidModelResponse
 
 class TestGetORMContext(unittest.IsolatedAsyncioTestCase):

@@ -4,8 +4,8 @@ from unittest.mock import patch, AsyncMock, call
 
 from lifecycle.lifecycle import handle_crawl_meta_embedding
 from api.handlers.handle_embedding import handle_query_embedding
-from nextplore_shared.contracts.embedding_service.query_embedding_request import QueryEmbeddingRequest
-from nextplore_shared.contracts.embedding_service.embedding_response import EmbeddingResponse
+from nextplore_sdk.contracts.embedding_service.query_embedding_request import QueryEmbeddingRequest
+from nextplore_sdk.contracts.embedding_service.embedding_response import EmbeddingResponse
 from messaging.events.integration_service import IntegrationMetaCrawled, TableMeta
 from messaging.events.embedding_service import CrawlMetaEmbedded
 

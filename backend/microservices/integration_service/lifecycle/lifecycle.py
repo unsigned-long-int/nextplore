@@ -4,8 +4,8 @@ from fastapi import FastAPI
 from pathlib import Path
 from functools import partial
 
-from nextplore_shared.logging.setup import setup_logger
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.logging.setup import setup_logger
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationCreated
 from api.handlers import crawl_initial_integration_metadata

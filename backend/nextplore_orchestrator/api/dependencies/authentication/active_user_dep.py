@@ -1,8 +1,8 @@
 from fastapi import Depends
 
 from api.context import set_current_identity
-from nextplore_shared.identity_service.identity_model.user_identity import UserIdentity
-from nextplore_shared.identity_service.resolver.resolve_user_identity import resolve_user_identity
+from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
+from nextplore_sdk.identity_service.resolver.resolve_user_identity import resolve_user_identity
 from .azure_user_dep import get_azure_user
 
 

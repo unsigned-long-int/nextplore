@@ -7,9 +7,9 @@ from api.dependencies import get_connector
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationDeleted
 from database.repositories import IntegrationRepository, IntegrationDeleteFailed
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_shared.cache.service_caches.integration_cache.cache import integration_service_cache
-from nextplore_shared.contracts.integration_service.prepared_integration_delete_request import PreparedIntegrationDeleteRequest
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.cache.service_caches.integration_cache.cache import integration_service_cache
+from nextplore_sdk.contracts.integration_service.prepared_integration_delete_request import PreparedIntegrationDeleteRequest
 
 
 logger = logging.getLogger(__name__)

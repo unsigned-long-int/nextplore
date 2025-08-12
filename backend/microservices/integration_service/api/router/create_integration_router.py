@@ -8,9 +8,9 @@ from database.exceptions import IntegrationCreateFailed
 from utils.encryption import encrypt_integration, DecryptedIntegration
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationCreated
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_shared.contracts.integration_service.prepared_integration_create_request import PreparedIntegrationCreateRequest
-from nextplore_shared.cache.service_caches.integration_cache.cache import integration_service_cache
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.contracts.integration_service.prepared_integration_create_request import PreparedIntegrationCreateRequest
+from nextplore_sdk.cache.service_caches.integration_cache.cache import integration_service_cache
 
 
 logger = logging.getLogger(__name__)

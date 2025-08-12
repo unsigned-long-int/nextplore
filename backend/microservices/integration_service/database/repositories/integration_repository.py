@@ -13,8 +13,8 @@ from database.exceptions import (
     IntegrationCreateFailed,
     IntegrationGetFailed
 )
-from nextplore_shared.database.models.integration_orm import IntegrationORM
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.database.models.integration_orm import IntegrationORM
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 
 
 logger = logging.getLogger(__name__)

@@ -8,7 +8,7 @@ import re
 from typing import Dict, Any, Optional
 from fastapi import HTTPException, status
 
-from nextplore_shared.cache.jwks_cache.cache import jwks_cache_service
+from nextplore_sdk.cache.jwks_cache.cache import jwks_cache_service
 from .cache_entry import CacheEntry
 
 

@@ -4,8 +4,8 @@ RUN groupadd -r nextplore-group \
     && useradd -r -g nextplore-group -m ai-orm-context-service
 
 ARG SHARED_TGZ
-COPY ${SHARED_TGZ} /tmp/nextplore_shared.tar.gz
-RUN pip install --upgrade /tmp/nextplore_shared.tar.gz && rm /tmp/nextplore_shared.tar.gz
+COPY ${SHARED_TGZ} /tmp/nextplore_sdk.tar.gz
+RUN pip install --upgrade /tmp/nextplore_sdk.tar.gz && rm /tmp/nextplore_sdk.tar.gz
 
 WORKDIR /app
 

@@ -1,10 +1,10 @@
 import logging
 from fastapi import APIRouter, HTTPException, status, Depends
 
-from nextplore_shared.contracts.integration_service.integration_stats_request import IntegrationStatsRequest
-from nextplore_shared.contracts.integration_service.integration_stats_response import IntegrationStatsResponse
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_shared.cache.service_caches.integration_cache.cache import integration_service_cache
+from nextplore_sdk.contracts.integration_service.integration_stats_request import IntegrationStatsRequest
+from nextplore_sdk.contracts.integration_service.integration_stats_response import IntegrationStatsResponse
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.cache.service_caches.integration_cache.cache import integration_service_cache
 from api.context import get_current_identity
 from api.dependencies import get_connector
 from database.exceptions import IntegrationGetFailed

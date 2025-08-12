@@ -3,7 +3,7 @@ import json
 from unittest.mock import AsyncMock, patch, MagicMock
 
 from services.model_providers.hugging_face.inference.inference_providers.novita import NovitaInference
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest, Context
 
 @patch('services.model_providers.hugging_face.inference.inference_providers.novita.AsyncOpenAI')
 class TestNovitaInference(unittest.IsolatedAsyncioTestCase):

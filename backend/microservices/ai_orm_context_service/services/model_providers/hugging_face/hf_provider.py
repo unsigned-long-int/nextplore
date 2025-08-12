@@ -1,8 +1,8 @@
 from typing import Dict, Any
 from pydantic import ValidationError
 
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
-from nextplore_shared.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
+from nextplore_sdk.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
 from services.model_providers.hugging_face.inference.inference_providers import InferenceProviderBase
 from services.exceptions import InvalidModelResponse
 from services.model_providers.hugging_face.hf_model import HFModel

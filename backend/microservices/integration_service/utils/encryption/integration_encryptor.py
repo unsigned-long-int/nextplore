@@ -1,6 +1,6 @@
 import json 
 
-from nextplore_shared.encryptor.encryption import encrypt_secret
+from nextplore_sdk.encryptor.encryption import encrypt_secret
 from .encrypted_integration import EncryptedIntegration
 from .decrypted_integration import DecryptedIntegration
 

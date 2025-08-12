@@ -5,9 +5,9 @@ from uuid import uuid4
 
 from api.handlers.crawl_integration import crawl_initial_integration_metadata, craw_filtered_integration_metadata
 
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_shared.contracts.integration_service.filtered_crawl_request import FilteredCrawlRequest
-from nextplore_shared.contracts.integration_service.crawl_response import CrawlResponse
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.contracts.integration_service.filtered_crawl_request import FilteredCrawlRequest
+from nextplore_sdk.contracts.integration_service.crawl_response import CrawlResponse
 from utils.filters.logic import AlwaysTrueSpec
 from messaging.events.integration_service import IntegrationMetaCrawled, IntegrationCreated, TableMeta
 

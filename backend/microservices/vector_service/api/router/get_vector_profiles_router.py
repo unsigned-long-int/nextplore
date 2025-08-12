@@ -2,10 +2,10 @@ import json
 from fastapi import APIRouter, Depends
 from typing import List
 
-from nextplore_shared.cache.service_caches.vector_cache.cache import vector_service_cache
-from nextplore_shared.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_shared.contracts.vector_service.vector_profile_response import VectorProfileResponse
-from nextplore_shared.contracts.vector_service.vector_profile_request import VectorProfileRequest
+from nextplore_sdk.cache.service_caches.vector_cache.cache import vector_service_cache
+from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.contracts.vector_service.vector_profile_response import VectorProfileResponse
+from nextplore_sdk.contracts.vector_service.vector_profile_request import VectorProfileRequest
 from api.context import get_current_identity
 from api.dependencies import get_connector
 from database.repositories import VectorRepository
