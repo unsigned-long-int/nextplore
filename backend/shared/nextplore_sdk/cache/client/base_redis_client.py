@@ -6,13 +6,14 @@ from redis.asyncio import Redis
 from pydantic import BaseModel, ValidationError, TypeAdapter
 from pydantic.json import pydantic_encoder
 
+from .interface import Cache
 from .redis_client_factory import get_redis_client
 
 
 T = TypeVar('T', bound=BaseModel)
 logger = logging.getLogger(__name__)
 
-class BaseCache:
+class BaseCache(Cache):
     def __init__(
         self,
         namespace: str,

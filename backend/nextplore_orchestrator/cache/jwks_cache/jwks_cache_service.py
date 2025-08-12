@@ -1,19 +1,20 @@
 from typing import Dict, Any, Optional
 
+from nextplore_sdk.cache.client.interface import Cache
 from nextplore_sdk.cache.utils.key_factory import get_string_cache_key
 from nextplore_sdk.cache.client.base_redis_client import BaseCache
 
 
-class JWKSCache(BaseCache):
-    def __init__(self) -> None:
-        super().__init__(namespace='jwks', version='v1')
+class JWKSCacheService:
+    def __init__(self, cache: Cache) -> None:
+        self.cache = cache
 
     async def get_jwks(
         self,
         jwks_url: str
     ) -> Dict[str, Any]:
         cache_key = get_string_cache_key(jwks_url)
-        return await self.get_raw(cache_key)
+        return await self.cache.get_raw(cache_key)
     
     async def set_jwks(
         self, 
@@ -22,7 +23,4 @@ class JWKSCache(BaseCache):
         ttl: Optional[int] = None
     ) -> None:
         cache_key = get_string_cache_key(jwks_url)
-        await self.set_raw(cache_key, value=data, ttl=ttl)
-    
-
-jwks_cache_service = JWKSCache()
+        await self.cache.set_raw(cache_key, value=data, ttl=ttl)

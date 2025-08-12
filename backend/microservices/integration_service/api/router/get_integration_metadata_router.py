@@ -6,8 +6,8 @@ from database.exceptions import IntegrationGetFailed
 from utils.encryption import decrypt_integration
 from api.context import get_current_identity
 from api.dependencies import get_connector
+from cache import CacheService, get_cache_service
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_sdk.cache.service_caches.integration_cache.cache import integration_service_cache
 from nextplore_sdk.contracts.integration_service.integration_metadata_request import IntegrationMetadataRequest
 from nextplore_sdk.contracts.integration_service.integration_metadata_response import IntegrationMetadataResponse
 
@@ -19,11 +19,12 @@ router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 @router.post('/get-integration', response_model=IntegrationMetadataResponse)
 async def get_integration(
     payload: IntegrationMetadataRequest,
-    connector: DatabaseBackendConnector = Depends(get_connector)
+    connector: DatabaseBackendConnector = Depends(get_connector),
+    cache_service: CacheService = Depends(get_cache_service)
 ) -> IntegrationMetadataResponse:
     try:
         user_identity = get_current_identity()
-        cached = await integration_service_cache.get_integration_metadata(
+        cached = await cache_service.get_integration_metadata(
             user_identity=user_identity,
             request=payload
         )
@@ -51,7 +52,7 @@ async def get_integration(
             extra_options=decrypted_integration.extra_options,
             autosync_on=decrypted_integration.autosync_on
         )
-        await integration_service_cache.set_integration_metadata(
+        await cache_service.set_integration_metadata(
             user_identity=user_identity,
             request=payload,
             response=response

@@ -1,9 +1,9 @@
 import logging
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 
 from nextplore_sdk.contracts.embedding_service.query_embedding_request import QueryEmbeddingRequest
 from nextplore_sdk.contracts.embedding_service.embedding_response import EmbeddingResponse
-from nextplore_sdk.cache.service_caches.embedding_cache.cache import embedding_service_cache
+from cache import CacheService, get_cache_service
 from api.context import get_current_identity
 from api.handlers import handle_query_embedding
 from services.exceptions import MissingEmbedderEngine, EmbeddingFailed
@@ -14,9 +14,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/v1/embedding', tags=['Embedding'])
 
 @router.post('/embed', response_model=EmbeddingResponse)
-async def embed(payload: QueryEmbeddingRequest) -> EmbeddingResponse:
+async def embed(
+    payload: QueryEmbeddingRequest,
+    cache_service: CacheService = Depends(get_cache_service)
+) -> EmbeddingResponse:
     user_identity = get_current_identity()
-    cached = await embedding_service_cache.get_embedding(
+    cached = await cache_service.get_embedding(
         user_identity=user_identity,
         request=payload
     )
@@ -24,7 +27,7 @@ async def embed(payload: QueryEmbeddingRequest) -> EmbeddingResponse:
         return cached
     try:
         response = await handle_query_embedding(payload)
-        await embedding_service_cache.set_embedding(
+        await cache_service.set_embedding(
             user_identity=user_identity,
             request=payload,
             response=response

@@ -4,14 +4,17 @@ from nextplore_sdk.contracts.ai_orm_context_service.avilable_models_response imp
     ModelInfo, 
     AvailableModelsResponse
 )
-from nextplore_sdk.cache.service_caches.ai_orm_context_cache.cache import ai_orm_context_service_cache
+from cache import CacheService, get_cache_service
 from services.models_registry import ModelsRegistry, get_models_registry
 
 router = APIRouter(prefix='/v1/ai-orm', tags=['AIORMContext'])
 
 @router.get('/get-models', response_model=AvailableModelsResponse)
-async def get_models(models_registry: ModelsRegistry = Depends(get_models_registry)) -> AvailableModelsResponse:
-    cached = await ai_orm_context_service_cache.get_models()
+async def get_models(
+    models_registry: ModelsRegistry = Depends(get_models_registry),
+    cache_service: CacheService = Depends(get_cache_service)
+) -> AvailableModelsResponse:
+    cached = await cache_service.get_models()
     if cached:
         return cached
     
@@ -25,5 +28,5 @@ async def get_models(models_registry: ModelsRegistry = Depends(get_models_regist
         ))
 
     response = AvailableModelsResponse(models=models)
-    await ai_orm_context_service_cache.set_models(response)
+    await cache_service.set_models(response)
     return response

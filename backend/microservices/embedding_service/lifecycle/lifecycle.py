@@ -3,8 +3,10 @@ from fastapi import FastAPI
 from pathlib import Path
 
 from nextplore_sdk.logging.setup import setup_logger
+from nextplore_sdk.cache.client.base_redis_client import BaseCache
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationMetaCrawled
+from cache import CacheService
 from api.handlers import handle_crawl_meta_embedding
 from _version import app_name, version
 
@@ -15,6 +17,10 @@ async def lifespan(app: FastAPI):
         service_meta={'version': version, 'app_name': app_name},
         config_path=Path(__file__).parents[1] / 'config' / 'logging-prod.conf'
     )
+
+    cache = BaseCache(namespace='embedding_service', version='v1')
+    app.state.cache_service = CacheService(cache)
+    
     kafka_message_bus = get_kafka_message_bus()
     await kafka_message_bus.start()
     await kafka_message_bus.subscribe(

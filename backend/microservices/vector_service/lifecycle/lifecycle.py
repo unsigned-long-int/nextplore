@@ -6,10 +6,12 @@ from functools import partial
 
 from nextplore_sdk.logging.setup import setup_logger
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.cache.client.base_redis_client import BaseCache
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.embedding_service import CrawlMetaEmbedded
 from messaging.events.integration_service import IntegrationDeleted
 from api.handlers import handle_vector_upsert, handle_vector_delete
+from cache import CacheService
 from _version import version, app_name
 
 DATABASE_URL = (
@@ -26,14 +28,19 @@ async def lifespan(app: FastAPI):
     connector = DatabaseBackendConnector(DATABASE_URL)
     connector.init()
     app.state.connector = connector
+
+    cache = BaseCache(namespace='vector_service', version='v1')
+    vector_cache_service = CacheService(cache)
+    app.state.cache_service = vector_cache_service
+
     kafka_message_bus = get_kafka_message_bus()
     await kafka_message_bus.start()
     await kafka_message_bus.subscribe(
-        event_cls=CrawlMetaEmbedded, handler=partial(handle_vector_upsert, connector=connector)
+        event_cls=CrawlMetaEmbedded, handler=partial(handle_vector_upsert, connector=connector, cache_service=vector_cache_service)
     )
     await kafka_message_bus.subscribe(
         event_cls=IntegrationDeleted,
-        handler=partial(handle_vector_delete, connector=connector)
+        handler=partial(handle_vector_delete, connector=connector, cache_service=vector_cache_service)
     )
 
     yield

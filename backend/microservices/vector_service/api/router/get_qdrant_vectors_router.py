@@ -1,18 +1,21 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from nextplore_sdk.cache.service_caches.vector_cache.cache import vector_service_cache
 from nextplore_sdk.contracts.vector_service.qdrant_vector_request import QDrantVectorRequest
 from nextplore_sdk.contracts.vector_service.qdrant_vector_response import QDrantVectorResponse
 from api.context import get_current_identity
 from services.qdrant.search import search_nearest_vectors
+from cache import CacheService, get_cache_service
 
 
 router = APIRouter(prefix='/v1/vector', tags=['Vector'])
 
 @router.post('/get-nearest-qdrant-vectors', response_model=QDrantVectorResponse)
-async def get_qdrant_vectors(payload: QDrantVectorRequest) -> QDrantVectorResponse:
+async def get_qdrant_vectors(
+    payload: QDrantVectorRequest,
+    cache_service: CacheService = Depends(get_cache_service)
+) -> QDrantVectorResponse:
     user_identity = get_current_identity()
-    cached = await vector_service_cache.get_qdrant_vectors(
+    cached = await cache_service.get_qdrant_vectors(
         user_identity=user_identity,
         request=payload
     )
@@ -23,10 +26,8 @@ async def get_qdrant_vectors(payload: QDrantVectorRequest) -> QDrantVectorRespon
     response = QDrantVectorResponse(
         vector_ids=vector_ids
     )
-    print('router qqdrant response')
-    print(response)
 
-    await vector_service_cache.set_qdrant_vectors(
+    await cache_service.set_qdrant_vectors(
         user_identity=user_identity,
         request=payload,
         response=response

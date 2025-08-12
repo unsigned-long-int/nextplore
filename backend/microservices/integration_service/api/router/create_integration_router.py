@@ -6,11 +6,11 @@ from api.dependencies import get_connector
 from database.repositories import IntegrationRepository
 from database.exceptions import IntegrationCreateFailed
 from utils.encryption import encrypt_integration, DecryptedIntegration
+from cache import CacheService, get_cache_service
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationCreated
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 from nextplore_sdk.contracts.integration_service.prepared_integration_create_request import PreparedIntegrationCreateRequest
-from nextplore_sdk.cache.service_caches.integration_cache.cache import integration_service_cache
 
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,8 @@ router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 @router.post('/create-integration', status_code=status.HTTP_204_NO_CONTENT)
 async def create_integration(
     payload: PreparedIntegrationCreateRequest,
-    connector: DatabaseBackendConnector = Depends(get_connector)
+    connector: DatabaseBackendConnector = Depends(get_connector),
+    cache_service: CacheService = Depends(get_cache_service)
 ) -> None:
     user_identity = get_current_identity()
     integration_repo = IntegrationRepository(connector)
@@ -43,7 +44,7 @@ async def create_integration(
             )
         )
 
-        await integration_service_cache.delete_by_prefix(
+        await cache_service.cache.delete_by_prefix(
             user_identity.organization_id,
             user_identity.user_id
         )

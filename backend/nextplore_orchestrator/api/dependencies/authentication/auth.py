@@ -28,6 +28,7 @@ class TokenVerifier:
         last_err: Optional[Exception] = None
         claims: Optional[Dict[str, Any]] = None
         for key in keys:
+            kid = key
             try:
                 claims = jwt.decode(
                     token,

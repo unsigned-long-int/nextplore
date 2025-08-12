@@ -8,7 +8,7 @@ import re
 from typing import Dict, Any, Optional
 from fastapi import HTTPException, status
 
-from nextplore_sdk.cache.jwks_cache.cache import jwks_cache_service
+from cache.jwks_cache import JWKSCacheService
 from .cache_entry import CacheEntry
 
 
@@ -51,7 +51,8 @@ def _valid_kid(entry: CacheEntry, kid: Optional[str]) -> bool:
 
 
 class JWKSFetcher:
-    def __init__(self, ttl: int = 600):
+    def __init__(self, jwks_cache: JWKSCacheService, ttl: int = 600):
+        self.jwks_cache = jwks_cache
         self.default_ttl = ttl
         self._mem: Dict[str, CacheEntry] = {}
         self._locks: Dict[str, asyncio.Lock] = {}
@@ -67,7 +68,7 @@ class JWKSFetcher:
             return entry.jwks
 
         try:
-            cached = await jwks_cache_service.get_jwks(jwks_url)
+            cached = await self.jwks_cache.get_jwks(jwks_url)
             if cached:
                 jwks = _coerce_jwks(cached)
                 kid_index = {k.get('kid'): k for k in jwks['keys'] if k.get('kid')}
@@ -115,7 +116,7 @@ class JWKSFetcher:
                     etag=etag,
                 )
                 self._mem[jwks_url] = new_entry
-                await jwks_cache_service.set_jwks(jwks_url, data=jwks, ttl=ttl)
+                await self.jwks_cache.set_jwks(jwks_url, data=jwks, ttl=ttl)
                 return jwks
             except Exception:
                 logger.error(f'JWKS fetch failed: {jwks_url}', exc_info=True)

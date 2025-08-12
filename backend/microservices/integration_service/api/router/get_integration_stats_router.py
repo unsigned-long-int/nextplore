@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from nextplore_sdk.contracts.integration_service.integration_stats_request import IntegrationStatsRequest
 from nextplore_sdk.contracts.integration_service.integration_stats_response import IntegrationStatsResponse
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_sdk.cache.service_caches.integration_cache.cache import integration_service_cache
+from cache import CacheService, get_cache_service
 from api.context import get_current_identity
 from api.dependencies import get_connector
 from database.exceptions import IntegrationGetFailed
@@ -18,11 +18,12 @@ router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 @router.post('/get-integration-stats', response_model=IntegrationStatsResponse)
 async def get_integration_stats(
     payload: IntegrationStatsRequest,
-    connector: DatabaseBackendConnector = Depends(get_connector)
+    connector: DatabaseBackendConnector = Depends(get_connector),
+    cache_service: CacheService = Depends(get_cache_service)
 ) -> IntegrationStatsResponse:
     try:
         user_identity = get_current_identity()
-        cached = await integration_service_cache.get_integration_stats(
+        cached = await cache_service.get_integration_stats(
             user_identity=user_identity,
             request=payload
         )
@@ -40,7 +41,7 @@ async def get_integration_stats(
             integration_ids=integration_ids,
             integration_count=len(integration_ids)
         )
-        await integration_service_cache.set_integration_stats(
+        await cache_service.set_integration_stats(
             user_identity=user_identity,
             request=payload, 
             response=response

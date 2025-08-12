@@ -6,7 +6,7 @@ from services.models_registry import get_models_registry, ModelsRegistry
 from services.provider_factory import dispatch_provider_factory
 from services.orm_context_builder.ai_adapter import adapt_llm_response
 from services.exceptions import InferenceProviderMissing, InvalidModelResponse
-from nextplore_sdk.cache.service_caches.ai_orm_context_cache.cache import ai_orm_context_service_cache
+from cache import CacheService, get_cache_service
 from nextplore_sdk.contracts.ai_orm_context_service.orm_context_request import ORMContextRequest
 from nextplore_sdk.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
 
@@ -18,11 +18,12 @@ router = APIRouter(prefix='/v1/ai-orm', tags=['AIORMContext'])
 @router.post('/get-context', response_model=ORMContextResponse)
 async def get_orm_context(
     payload: ORMContextRequest, 
-    models_registry: ModelsRegistry = Depends(get_models_registry)
+    models_registry: ModelsRegistry = Depends(get_models_registry),
+    cache_service: CacheService = Depends(get_cache_service)
 ) -> ORMContextResponse:
     try:
         user_identity = get_current_identity()
-        cached = await ai_orm_context_service_cache.get_orm_context(
+        cached = await cache_service.get_orm_context(
             user_identity=user_identity,
             request=payload
         )
@@ -44,7 +45,7 @@ async def get_orm_context(
             column_aggregates=orm_context.column_aggregates,
             column_filters=orm_context.column_filters
         )
-        await ai_orm_context_service_cache.set_orm_context(
+        await cache_service.set_orm_context(
             user_identity=user_identity,
             request=payload,
             response=response

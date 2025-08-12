@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 from nextplore_sdk.database.models.organization_orm import OrganizationORM
 from nextplore_sdk.database.models.user_orm import UserORM
-from nextplore_sdk.cache.service_caches.nextplore_orchestrator_cache.cache import nextplore_orchestrator_service_cache
 from nextplore_sdk.contracts.nextplore_orchestrator_service.user_profile import UserProfile
+from cache.orchestrator_cache import OrchestratorCacheService
+from api.dependencies.cache import get_orchestrator_cache_service
 from api.dependencies.authentication import get_azure_user
 
 
@@ -13,7 +14,8 @@ router = APIRouter()
 
 @router.get('', response_model=UserProfile)
 async def get_user_profile(
-    user=Depends(get_azure_user)
+    user=Depends(get_azure_user),
+    cache_service: OrchestratorCacheService = Depends(get_orchestrator_cache_service)
 ) -> UserProfile:
     email = user.get('preferred_username')
     if not email:
@@ -26,7 +28,7 @@ async def get_user_profile(
     azure_user_id = user.get('oid')
     domain = email.split('@')[-1]
 
-    cached = await nextplore_orchestrator_service_cache.get_user_profile(
+    cached = await cache_service.get_user_profile(
         azure_tenant_id,
         azure_user_id
     )
@@ -76,7 +78,7 @@ async def get_user_profile(
             organization_id=org.id
         )
 
-        await nextplore_orchestrator_service_cache.set_user_profile(
+        await cache_service.set_user_profile(
             azure_tenant_id,
             azure_user_id,
             response=response,

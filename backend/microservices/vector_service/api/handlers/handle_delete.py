@@ -4,11 +4,15 @@ from messaging.events.integration_service import IntegrationDeleted
 from database.repositories import VectorRepository
 from services.qdrant.delete import delete_qdrant_vectors
 from services.pg.delete import delete_pg_vector_metadata
+from cache import CacheService
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_sdk.cache.service_caches.vector_cache.cache import vector_service_cache
 
 
-async def handle_vector_delete(event: IntegrationDeleted, connector: DatabaseBackendConnector) -> None:
+async def handle_vector_delete(
+    event: IntegrationDeleted, 
+    connector: DatabaseBackendConnector, 
+    cache_service: CacheService
+) -> None:
     vector_repo = VectorRepository(connector)
     qdrant_vector_ids = await vector_repo.get_qdrant_vector_ids(
         organization_id=event.organization_id,
@@ -31,7 +35,7 @@ async def handle_vector_delete(event: IntegrationDeleted, connector: DatabaseBac
         )
     )
 
-    await vector_service_cache.delete_by_prefix(
+    await cache_service.cache.delete_by_prefix(
         event.organization_id,
         event.user_id
     )

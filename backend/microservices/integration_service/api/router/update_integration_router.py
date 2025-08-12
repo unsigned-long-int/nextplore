@@ -8,9 +8,9 @@ from database.repositories import (
     IntegrationRepository,
     IntegrationUpdateFailed
 )
+from cache import CacheService, get_cache_service
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 from nextplore_sdk.contracts.integration_service.prepared_integration_update_request import PreparedIntegrationUpdateRequest
-from nextplore_sdk.cache.service_caches.integration_cache.cache import integration_service_cache
 
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
@@ -18,7 +18,8 @@ router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 @router.post('/update-integration', status_code=status.HTTP_204_NO_CONTENT)
 async def update_integration(
     payload: PreparedIntegrationUpdateRequest,
-    connector: DatabaseBackendConnector = Depends(get_connector)
+    connector: DatabaseBackendConnector = Depends(get_connector),
+    cache_service: CacheService = Depends(get_cache_service)
 ) -> None:
     user_identity = get_current_identity()
     integration_repo = IntegrationRepository(connector)
@@ -30,7 +31,7 @@ async def update_integration(
             update_args=payload.update_args
         )
 
-        await integration_service_cache.delete_by_prefix(
+        await cache_service.cache.delete_by_prefix(
             user_identity.organization_id,
             user_identity.user_id
         )

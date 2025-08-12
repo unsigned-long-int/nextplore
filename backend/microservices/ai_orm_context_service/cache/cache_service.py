@@ -3,16 +3,16 @@ from nextplore_sdk.contracts.ai_orm_context_service.orm_context_request import O
 from nextplore_sdk.contracts.ai_orm_context_service.orm_context_response import ORMContextResponse
 from nextplore_sdk.cache.utils.key_factory import get_string_cache_key, get_cache_key
 from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
-from nextplore_sdk.cache.client.base_redis_client import BaseCache
+from nextplore_sdk.cache.client.interface import Cache
 
 
-class AIORMContextServiceCache(BaseCache):
-    def __init__(self) -> None:
-        super().__init__(namespace='ai_orm_context_cache_service', version='v1')
+class CacheService:
+    def __init__(self, cache: Cache) -> None:
+        self.cache = cache
 
     async def get_models(self) -> AvailableModelsResponse:
         cache_key = get_string_cache_key(value='available-models', prefix='models')
-        return await self.get_one(
+        return await self.cache.get_one(
             cache_key,
             model=AvailableModelsResponse
         )
@@ -23,7 +23,7 @@ class AIORMContextServiceCache(BaseCache):
         ttl: int = 600
     ) -> None:
         cache_key = get_string_cache_key(value='available-models', prefix='models')
-        await self.set_one(
+        await self.cache.set_one(
             cache_key,
             value=response,
             ttl=ttl
@@ -36,7 +36,7 @@ class AIORMContextServiceCache(BaseCache):
     ) -> ORMContextResponse:
         
         cache_key = get_cache_key(model=request, prefix='orm-context')
-        return await self.get_one(
+        return await self.cache.get_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
@@ -50,12 +50,9 @@ class AIORMContextServiceCache(BaseCache):
         response: ORMContextResponse
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='orm-context')
-        await self.set_one(
+        await self.cache.set_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
             value=response
         )
-        
-    
-ai_orm_context_service_cache = AIORMContextServiceCache()

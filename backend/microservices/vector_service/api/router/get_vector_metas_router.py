@@ -3,11 +3,11 @@ from fastapi import APIRouter, Depends
 from typing import List
 
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_sdk.cache.service_caches.vector_cache.cache import vector_service_cache
 from nextplore_sdk.contracts.vector_service.vector_meta_request import VectorMetaRequest
 from nextplore_sdk.contracts.vector_service.vector_meta_response import VectorMetaResponse
 from api.context import get_current_identity
 from api.dependencies import get_connector
+from cache import CacheService, get_cache_service
 from database.repositories import VectorRepository
 
 
@@ -16,10 +16,11 @@ router = APIRouter(prefix='/v1/vector', tags=['Vector'])
 @router.post('/get-vector-metas', response_model=List[VectorMetaResponse])
 async def get_vector_metas(
     payload: VectorMetaRequest,
-    connector: DatabaseBackendConnector = Depends(get_connector)
+    connector: DatabaseBackendConnector = Depends(get_connector),
+    cache_service: CacheService = Depends(get_cache_service)
 )-> List[VectorMetaResponse]:
     user_identity = get_current_identity()
-    cached = await vector_service_cache.get_vector_metas(
+    cached = await cache_service.get_vector_metas(
         user_identity=user_identity,
         request=payload
     )
@@ -41,7 +42,7 @@ async def get_vector_metas(
             table_meta=json.loads(vector_meta.table_meta)
         ) for vector_meta in vector_metas
     ]
-    await vector_service_cache.set_vector_metas(
+    await cache_service.set_vector_metas(
         user_identity=user_identity,
         request=payload,
         response=response
