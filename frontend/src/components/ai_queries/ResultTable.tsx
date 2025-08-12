@@ -10,7 +10,8 @@ export const ResultTable = ({ data }: { data: any[] }) => {
     const [query, setQuery] = useState('');
 
     const columns: GridColDef[] = useMemo(() => {
-        if (!data || !data.length) return [];
+        if (!data?.length) return [];
+        
         return Object.keys(data[0]).map((key) => ({
         field: key,
         headerName: key,

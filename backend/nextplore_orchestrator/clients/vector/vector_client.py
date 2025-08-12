@@ -12,7 +12,7 @@ from nextplore_shared.contracts.vector_service.vector_profile_response import Ve
 
 
 class VectorClient(BaseServiceClient):
-    def __init__(self, base_url: str = f'http://vector_service:8001') -> None:
+    def __init__(self, base_url: str = 'http://vector_service:8001') -> None:
         super().__init__(base_url)
 
     async def get_vector_metas(self, payload: VectorMetaRequest) -> List[VectorMetaResponse]:

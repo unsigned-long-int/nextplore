@@ -55,7 +55,7 @@ class TestVectorRepository(unittest.IsolatedAsyncioTestCase):
         result.all.return_value = mocked_rows
         scoped_session.execute = AsyncMock(return_value=result)
 
-        connector, cm = _make_connector_with_session(scoped_session)
+        connector, _ = _make_connector_with_session(scoped_session)
         repo = VectorRepository(connector)
 
         org_id = uuid.uuid4()
@@ -75,7 +75,7 @@ class TestVectorRepository(unittest.IsolatedAsyncioTestCase):
         rows = await repo.get_vectors(
             organization_id=uuid.uuid4(),
             user_id=uuid.uuid4(),
-            vector_ids=[],  # empty list
+            vector_ids=[],
         )
 
         self.assertEqual(rows, [])
@@ -88,7 +88,7 @@ class TestVectorRepository(unittest.IsolatedAsyncioTestCase):
         mocked_rows = [MagicMock(), MagicMock(), MagicMock()]
         result.all.return_value = mocked_rows
         scoped_session.execute = AsyncMock(return_value=result)
-        connector, cm = _make_connector_with_session(scoped_session)
+        connector, _ = _make_connector_with_session(scoped_session)
         repo = VectorRepository(connector)
 
         org_id = uuid.uuid4()
@@ -111,7 +111,7 @@ class TestVectorRepository(unittest.IsolatedAsyncioTestCase):
         result = MagicMock()
         result.scalar_one.return_value = 7
         scoped_session.execute = AsyncMock(return_value=result)
-        connector, cm = _make_connector_with_session(scoped_session)
+        connector, _ = _make_connector_with_session(scoped_session)
         repo = VectorRepository(connector)
 
         org_id = uuid.uuid4()
@@ -128,7 +128,7 @@ class TestVectorRepository(unittest.IsolatedAsyncioTestCase):
         scoped_session = MagicMock()
         scoped_session.add_all = MagicMock()
         scoped_session.flush = AsyncMock()
-        connector, cm = _make_connector_with_session(scoped_session)
+        connector, _ = _make_connector_with_session(scoped_session)
         repo = VectorRepository(connector)
 
         org_id = uuid.uuid4()
@@ -145,7 +145,7 @@ class TestVectorRepository(unittest.IsolatedAsyncioTestCase):
     async def test_delete_vector_meta_executes_delete(self, _mock_delete):
         scoped_session = MagicMock()
         scoped_session.execute = AsyncMock()
-        connector, cm = _make_connector_with_session(scoped_session)
+        connector, _ = _make_connector_with_session(scoped_session)
         repo = VectorRepository(connector)
 
         org_id = uuid.uuid4()
@@ -172,7 +172,7 @@ class TestVectorRepository(unittest.IsolatedAsyncioTestCase):
         scoped_session = MagicMock()
         scoped_session.execute = AsyncMock(return_value=result)
 
-        connector, cm = _make_connector_with_session(scoped_session)
+        connector, _ = _make_connector_with_session(scoped_session)
         repo = VectorRepository(connector)
 
         org_id = uuid.uuid4()

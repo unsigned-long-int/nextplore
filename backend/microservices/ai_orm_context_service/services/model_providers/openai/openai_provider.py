@@ -26,7 +26,7 @@ class OpenAIProvider(BaseProvider):
         )
         tool_call = request.choices[0].message.tool_calls[0]
         args = json.loads(tool_call.function.arguments)
-        
+
         if not self._validate_response_schema(args):
             msg = f'Invalid model response. Model: {self.model_id}. Provider: OpenAI'
             raise InvalidModelResponse(msg)
@@ -36,7 +36,7 @@ class OpenAIProvider(BaseProvider):
         try:
             ORMContextResponse(**model_response)
             return True
-        except ValidationError as e:
+        except ValidationError:
             return False
     
     def _build_function_schema(self, context) -> List[Dict[str, Any]]:

@@ -121,6 +121,6 @@ class TestCrawlSchemas(unittest.TestCase):
         self.assertEqual(result[0].name, 'internal')
 
         mock_crawl_tables.assert_called_once()
-        args, kwargs = mock_crawl_tables.call_args
+        args, _ = mock_crawl_tables.call_args
         self.assertEqual(args[1], self.integration_id)
         self.assertEqual(args[2], 'internal')

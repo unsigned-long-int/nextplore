@@ -341,15 +341,9 @@ void main() {
         if (renderer) {
           try {
             const canvas = renderer.gl.canvas;
-            const loseContextExt =
-              renderer.gl.getExtension("WEBGL_lose_context");
-            if (loseContextExt) {
-              loseContextExt.loseContext();
-            }
-
-            if (canvas && canvas.parentNode) {
-              canvas.parentNode.removeChild(canvas);
-            }
+            const loseContextExt = renderer.gl.getExtension("WEBGL_lose_context");
+            loseContextExt?.loseContext();
+            canvas?.parentNode?.removeChild(canvas);
           } catch (error) {
             console.warn("Error during WebGL cleanup:", error);
           }

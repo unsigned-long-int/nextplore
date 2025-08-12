@@ -25,20 +25,27 @@ interface ThProps {
 }
 
 function Th({ children, reversed, sorted, onSort }: ThProps) {
-const Icon = sorted ? (reversed ? IconChevronUp : IconChevronDown) : IconSelector;
-return (
-    <Table.Th className={classes.th}>
-    <UnstyledButton onClick={onSort} className={classes.control}>
-        <Group justify="space-between">
-        <Text fw={500} fz="sm">
-            {children}
-        </Text>
-        <Center className={classes.icon}>
-            <Icon size={16} stroke={1.5} />
-        </Center>
-        </Group>
-    </UnstyledButton>
-    </Table.Th>
+    let IconComponent;
+
+    if (sorted) {
+      IconComponent = reversed ? IconChevronUp : IconChevronDown;
+    } else {
+      IconComponent = IconSelector;
+    }
+    
+    return (
+        <Table.Th className={classes.th}>
+        <UnstyledButton onClick={onSort} className={classes.control}>
+            <Group justify="space-between">
+            <Text fw={500} fz="sm">
+                {children}
+            </Text>
+            <Center className={classes.icon}>
+                <IconComponent size={16} stroke={1.5} />
+            </Center>
+            </Group>
+        </UnstyledButton>
+        </Table.Th>
     );
 }
 

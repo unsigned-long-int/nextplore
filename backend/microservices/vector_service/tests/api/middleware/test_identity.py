@@ -15,7 +15,7 @@ class TestIdentityMiddleware(unittest.IsolatedAsyncioTestCase):
         self.app = AsyncMock()
         self.middleware = IdentityMiddleware(self.app)
 
-    async def make_request(self, headers: dict):
+    def make_request(self, headers: dict):
         scope: Scope = {
             'type': 'http',
             'method': 'GET',
@@ -31,7 +31,7 @@ class TestIdentityMiddleware(unittest.IsolatedAsyncioTestCase):
         user_id = str(uuid.uuid4())
         org_id = str(uuid.uuid4())
 
-        request = await self.make_request({
+        request = self.make_request({
             'x-user-id': user_id,
             'x-org-id': org_id
         })
@@ -51,7 +51,7 @@ class TestIdentityMiddleware(unittest.IsolatedAsyncioTestCase):
 
     @patch('api.middleware.identity.set_current_identity')
     async def test_identity_not_set_when_headers_missing(self, mock_set_identity):
-        request = await self.make_request({})
+        request = self.make_request({})
 
         response = Response('OK')
         self.app.return_value = response

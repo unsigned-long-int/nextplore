@@ -41,6 +41,14 @@ def _coerce_jwks(obj: Any) -> Dict[str, Any]:
     return obj
 
 
+def _valid_entry(entry: CacheEntry) -> bool:
+    now = time.time()
+    return entry is not None and now < entry.expires_at
+
+
+def _valid_kid(entry: CacheEntry, kid: Optional[str]) -> bool:
+    return not kid or kid in entry.kid_index
+
 
 class JWKSFetcher:
     def __init__(self, ttl: int = 600):
@@ -49,11 +57,12 @@ class JWKSFetcher:
         self._locks: Dict[str, asyncio.Lock] = {}
         self._client = httpx.AsyncClient(timeout=5.0, limits=httpx.Limits(max_connections=10))
 
+
     async def get_jwks(self, jwks_url: str, expected_kid: Optional[str] = None) -> Dict[str, Any]:
         now = time.time()
         entry = self._mem.get(jwks_url)
 
-        if entry is not None and now < entry.expires_at and (not expected_kid or expected_kid in entry.kid_index):
+        if _valid_entry(entry) and _valid_kid(entry, expected_kid):
             logger.debug(f'JWKS in-memory hit: {jwks_url}')
             return entry.jwks
 
@@ -67,7 +76,7 @@ class JWKSFetcher:
                     kid_index=kid_index,
                     expires_at=now + self.default_ttl,
                 )
-                if not expected_kid or expected_kid in kid_index:
+                if _valid_kid(entry, expected_kid):
                     logger.debug(f'JWKS dist-cache hit: {jwks_url}')
                     return jwks
         except Exception:
@@ -77,7 +86,7 @@ class JWKSFetcher:
         async with lock:
             now = time.time()
             entry = self._mem.get(jwks_url)
-            if entry is not None and now < entry.expires_at and (not expected_kid or expected_kid in entry.kid_index):
+            if _valid_entry(entry) and _valid_kid(entry, expected_kid):
                 return entry.jwks
 
             headers = {}
@@ -111,7 +120,7 @@ class JWKSFetcher:
             except Exception:
                 logger.error(f'JWKS fetch failed: {jwks_url}', exc_info=True)
                 entry = self._mem.get(jwks_url)
-                if entry and (not expected_kid or expected_kid in entry.kid_index):
+                if entry and _valid_kid(entry, expected_kid):
                     logger.warning(f'Serving STALE JWKS for {jwks_url} due to fetch error')
                     return entry.jwks
                 raise HTTPException(

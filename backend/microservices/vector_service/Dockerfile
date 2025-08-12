@@ -5,9 +5,9 @@ RUN groupadd -r nextplore-group \
 
 ARG SHARED_TGZ
 COPY ${SHARED_TGZ} /tmp/nextplore_shared.tar.gz
-RUN pip install /tmp/nextplore_shared.tar.gz
 
-RUN apt-get update && apt-get install -y \
+RUN pip install /tmp/nextplore_shared.tar.gz \
+    && apt-get update && apt-get install -y \
     apt-transport-https \
     ca-certificates \
     curl \

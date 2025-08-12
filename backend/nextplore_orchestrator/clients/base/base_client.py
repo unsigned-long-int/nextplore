@@ -18,7 +18,7 @@ class BaseServiceClient:
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20)    
         )
 
-    async def _inject_identity_headers(self, headers: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def _inject_identity_headers(self, headers: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         identity = get_current_identity()
         if identity is None:
             raise RuntimeError('UserIdentity is missing in context')
@@ -29,13 +29,13 @@ class BaseServiceClient:
         return base_headers
 
     async def post(self, path: str, payload: BaseModel, headers: Optional[Dict[str, Any]] = None):
-        adapted_headers = await self._inject_identity_headers(headers)
+        adapted_headers = self._inject_identity_headers(headers)
         response = await self.client.post(path, json=jsonable_encoder(payload), headers=adapted_headers)
         response.raise_for_status()
         return response 
     
     async def get(self, path: str, params: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, Any]] = None):
-        adapted_headers = await self._inject_identity_headers(headers)
+        adapted_headers = self._inject_identity_headers(headers)
         response = await self.client.get(path, params=params, headers=adapted_headers)
         return response
     

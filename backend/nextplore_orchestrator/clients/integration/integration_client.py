@@ -18,7 +18,7 @@ from .exceptions import IntegrationCrawlRemoteError
 
 
 class IntegrationClient(BaseServiceClient):
-    def __init__(self, base_url: str = f'http://integration_service:8001') -> None:
+    def __init__(self, base_url: str = 'http://integration_service:8001') -> None:
         super().__init__(base_url)
 
 

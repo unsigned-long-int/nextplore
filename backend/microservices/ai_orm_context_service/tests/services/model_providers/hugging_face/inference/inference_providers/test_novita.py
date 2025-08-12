@@ -71,7 +71,7 @@ class TestNovitaInference(unittest.IsolatedAsyncioTestCase):
             max_tokens=500
         )
 
-    async def test_build_function_schema_structure(self, _):
+    def test_build_function_schema_structure(self, _):
         inference = NovitaInference(self.provider_name, self.provider_url)
         tools = inference._build_function_schema(self.request.context)
 

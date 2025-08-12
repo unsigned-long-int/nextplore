@@ -1,30 +1,16 @@
 from urllib.parse import quote_plus
+from .scheme_factory import dispatch_scheme
 from .connection_meta import ConnectionMeta
 
 
 def build_connection_string(connection_meta: ConnectionMeta) -> str:
     stype = connection_meta.service_type.lower()
-    scheme_map = {
-        'postgresql': 'postgresql+psycopg2',
-        'mysql': 'mysql+pymysql',
-        'sqlserver': 'mssql+pyodbc',
-        'snowflake': 'snowflake',
-    }
 
-    scheme = scheme_map.get(stype)
-    if not scheme:
-        raise ValueError(f'Unsupported service type: {stype}')
+    scheme = dispatch_scheme(stype)
 
     auth = ''
     if connection_meta.auth_method == 'basic' and connection_meta.username and connection_meta.password:
         auth = f'{quote_plus(connection_meta.username)}:{quote_plus(connection_meta.password)}@'
-    elif connection_meta.auth_method == 'windows' and connection_meta.username and connection_meta.windows_domain:
-        domain_user = f'{connection_meta.windows_domain}\\{connection_meta.username}'
-        auth = f'{quote_plus(domain_user)}:{quote_plus(connection_meta.password or "")}@'
-    elif connection_meta.auth_method == 'kerberos':
-        auth = ''
-    else:
-        auth = ''
 
     host = connection_meta.host
     port = connection_meta.port
