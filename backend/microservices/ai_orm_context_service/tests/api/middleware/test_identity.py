@@ -7,7 +7,7 @@ from starlette.responses import Response
 from starlette.types import Scope, Receive
 
 from api.middleware import IdentityMiddleware
-from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
+from api.context import UserIdentity
 
 
 class TestIdentityMiddleware(unittest.IsolatedAsyncioTestCase):

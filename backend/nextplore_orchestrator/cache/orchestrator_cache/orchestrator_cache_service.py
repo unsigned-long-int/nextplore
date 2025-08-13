@@ -1,6 +1,6 @@
 from typing import Optional
 
-from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
+from api.context import UserIdentity
 from nextplore_sdk.cache.utils.key_factory import get_string_cache_key
 from nextplore_sdk.cache.client.interface import Cache
 from nextplore_sdk.contracts.nextplore_orchestrator_service.user_stats import UserStats

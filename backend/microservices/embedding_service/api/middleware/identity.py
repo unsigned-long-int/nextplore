@@ -4,8 +4,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
-from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
-from api.context.identity_context import set_current_identity
+from api.context.identity_context import set_current_identity, UserIdentity
 
 
 class IdentityMiddleware(BaseHTTPMiddleware):

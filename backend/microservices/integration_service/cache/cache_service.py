@@ -10,7 +10,7 @@ from nextplore_sdk.contracts.integration_service.integration_metadata_request im
 from nextplore_sdk.contracts.integration_service.integration_metadata_response import IntegrationMetadataResponse
 from nextplore_sdk.contracts.integration_service.prepared_integration_get_request import PreparedIntegrationGetRequest
 from nextplore_sdk.contracts.integration_service.integration_profile_response import IntegrationProfileResponse
-from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
+from api.context import UserIdentity
 
 
 class CacheService:

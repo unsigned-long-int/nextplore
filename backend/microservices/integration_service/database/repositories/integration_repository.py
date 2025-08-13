@@ -13,7 +13,7 @@ from database.exceptions import (
     IntegrationCreateFailed,
     IntegrationGetFailed
 )
-from nextplore_sdk.database.models.integration_orm import IntegrationORM
+from database.models.integration_orm import IntegrationORM
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 
 

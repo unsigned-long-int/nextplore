@@ -7,8 +7,8 @@ from services.qdrant.upsert import upsert_qdrant_vectors
 from services.pg.upsert import upsert_pg_vector_metadata
 from services.qdrant.models import QdrantVectorPoint
 from cache import CacheService
+from database.models.vector_orm import VectorORM
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_sdk.database.models.vector_orm import VectorORM
 
 
 async def handle_vector_upsert(

@@ -1,9 +1,8 @@
-from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
 from nextplore_sdk.cache.utils.key_factory import get_cache_key
-from nextplore_sdk.cache.client.base_redis_client import BaseCache
 from nextplore_sdk.cache.client.interface import Cache
 from nextplore_sdk.contracts.embedding_service.embedding_response import EmbeddingResponse
 from nextplore_sdk.contracts.embedding_service.query_embedding_request import QueryEmbeddingRequest
+from api.context import UserIdentity
 
 
 class CacheService:

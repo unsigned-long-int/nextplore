@@ -10,8 +10,8 @@ from clients.ai_orm_context import AIORMContextClient
 from internal_services.orm_factory.orm import get_orm, ORMRequest
 from internal_services.orm_factory.statement import get_statement, StatementRequest
 from internal_services.context import build_rag_context, RAGContext
+from api.context import UserIdentity
 from nextplore_sdk.database.sql_connection_service.session_starter import fetch_engine, fetch_session_maker, session_scope
-from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
 from nextplore_sdk.contracts.embedding_service.embedding_response import EmbeddingResponse
 from nextplore_sdk.contracts.nextplore_orchestrator_service.ai_query_request import AIQueryRequest
 from nextplore_sdk.contracts.nextplore_orchestrator_service.ai_query_response import AIQueryResponse

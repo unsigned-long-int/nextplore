@@ -2,10 +2,10 @@ from sqlalchemy import select
 from fastapi import APIRouter, Depends
 
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
-from nextplore_sdk.database.models.organization_orm import OrganizationORM
-from nextplore_sdk.database.models.user_orm import UserORM
 from nextplore_sdk.contracts.nextplore_orchestrator_service.user_profile import UserProfile
 from cache.orchestrator_cache import OrchestratorCacheService
+from database.models.organization_orm import OrganizationORM
+from database.models.user_orm import UserORM
 from api.dependencies.cache import get_orchestrator_cache_service
 from api.dependencies.authentication import get_azure_user
 

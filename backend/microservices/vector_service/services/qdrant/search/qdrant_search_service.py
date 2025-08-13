@@ -4,7 +4,7 @@ from uuid import UUID
 from qdrant_client.async_qdrant_client import AsyncQdrantClient
 from qdrant_client.http.models import Filter, FieldCondition, MatchValue
 
-from nextplore_sdk.identity_service.identity_model.user_identity import UserIdentity
+from api.context import UserIdentity
 
 
 async def search_nearest_vectors(user_identity: UserIdentity, embedding: List[float], top_k: int = 5) -> List[UUID]:
