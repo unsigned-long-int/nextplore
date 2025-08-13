@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.13-slim-bookworm
 
 RUN groupadd -r nextplore-group \
     && useradd -r -g nextplore-group -m integration-service
@@ -6,21 +6,28 @@ RUN groupadd -r nextplore-group \
 ARG SHARED_TGZ
 COPY ${SHARED_TGZ} /tmp/nextplore_sdk.tar.gz
 
-RUN pip install --upgrade /tmp/nextplore_sdk.tar.gz && rm /tmp/nextplore_sdk.tar.gz \
-    && apt-get update && apt-get install -y \
-    apt-transport-https \
+ARG DEBIAN_FRONTEND=noninteractive
+RUN pip install --no-cache-dir /tmp/nextplore_sdk.tar.gz \
+    && rm /tmp/nextplore_sdk.tar.gz \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
-    gcc \
     gnupg \
+    gcc \
     libpq-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && sh -c "curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -" \
+    unixodbc-dev \
+    build-essential \
+    && curl -fsSLo /tmp/packages-microsoft-prod.deb \
+    https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
+    && dpkg -i /tmp/packages-microsoft-prod.deb \
+    && rm /tmp/packages-microsoft-prod.deb \
     && apt-get update \
-    && sh -c "curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list" \
-    && apt-get update \
-    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
-    && apt-get clean
+    && ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
+    msodbcsql18 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 
 WORKDIR /app
 
