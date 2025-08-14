@@ -14,7 +14,7 @@ class FakePointStruct:
 
 
 class TestUpsertQdrantVectors(unittest.IsolatedAsyncioTestCase):
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
     @patch('services.qdrant.upsert.qdrant_upsert_service.AsyncQdrantClient')
     @patch('services.qdrant.upsert.qdrant_upsert_service.PointStruct', side_effect=lambda **kw: FakePointStruct(**kw))
     async def test_happy_path_builds_points_and_calls_upsert(self, mock_point_struct, mock_client_cls):
@@ -37,7 +37,7 @@ class TestUpsertQdrantVectors(unittest.IsolatedAsyncioTestCase):
 
         await upsert_qdrant_vectors([p1, p2])
 
-        mock_client_cls.assert_called_once_with(url='http://qdrant.local', api_key='sekret')
+        mock_client_cls.assert_called_once_with(url='https://qdrant.local', api_key='sekret')
 
         client.upsert.assert_awaited_once()
         _, kwargs = client.upsert.call_args
@@ -65,7 +65,7 @@ class TestUpsertQdrantVectors(unittest.IsolatedAsyncioTestCase):
             str(p2.id),
         )
 
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
     @patch('services.qdrant.upsert.qdrant_upsert_service.AsyncQdrantClient')
     @patch('services.qdrant.upsert.qdrant_upsert_service.PointStruct', side_effect=lambda **kw: FakePointStruct(**kw))
     async def test_empty_input_calls_upsert_with_empty_points(self, _mock_point_struct, mock_client_cls):
@@ -80,7 +80,7 @@ class TestUpsertQdrantVectors(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(kwargs['collection_name'], 'nextplore')
         self.assertEqual(kwargs['points'], [])
 
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'sekret'})
     @patch('services.qdrant.upsert.qdrant_upsert_service.AsyncQdrantClient')
     @patch('services.qdrant.upsert.qdrant_upsert_service.PointStruct', side_effect=lambda **kw: FakePointStruct(**kw))
     async def test_client_exception_propagates(self, _mock_point_struct, mock_client_cls):

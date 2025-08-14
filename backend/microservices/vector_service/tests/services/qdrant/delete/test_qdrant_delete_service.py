@@ -85,7 +85,7 @@ class TestDeleteQdrantVectors(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(conds['user_id'].match, FakeMatchValue)
         self.assertEqual(conds['user_id'].match.value, user_id)
 
-    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'http://qdrant.local', 'QDRANT_API_KEY': 'secret'})
+    @patch.dict('os.environ', {'QDRANT_CLUSTER_HOST': 'https://qdrant.local', 'QDRANT_API_KEY': 'secret'})
     @patch('services.qdrant.delete.qdrant_delete_service.AsyncQdrantClient')
     @patch('services.qdrant.delete.qdrant_delete_service.Filter', side_effect=lambda **kw: FakeFilter(**kw))
     @patch('services.qdrant.delete.qdrant_delete_service.FieldCondition', side_effect=lambda **kw: FakeFieldCondition(**kw))
