@@ -6,9 +6,11 @@ import inspect
 
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Callable, Type, Awaitable
-from pydantic.json import pydantic_encoder
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 
+from messaging.codec import Codec, AvroCodec
+from messaging.schema_dispatcher import dispatch_schema
+from messaging.schema_registry_client import ConfluentSchemaRegistryClient
 from messaging.events.base import BaseEvent 
 from messaging.registry import register_event, get_event_cls
 
@@ -17,7 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 class AsyncKafkaMessageBus:
-    def __init__(self) -> None:
+    def __init__(self, codec: Codec) -> None:
+        self._codec = codec
         self._producer: Optional[AIOKafkaProducer] = None
         self._consumers: List[AIOKafkaConsumer] = []
         self._consume_tasks: List[asyncio.Task] = []
@@ -27,8 +30,7 @@ class AsyncKafkaMessageBus:
         self._producer = AIOKafkaProducer(
             bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS'),
             acks='all',
-            enable_idempotence=True,
-            value_serializer=lambda value: json.dumps(value, default=pydantic_encoder).encode('utf-8')
+            enable_idempotence=True
         )
         await self._producer.start()
 
@@ -41,14 +43,11 @@ class AsyncKafkaMessageBus:
             await self._producer.stop()
 
     async def publish(self, event: BaseEvent) -> None:
-        payload = event.model_dump()
-        payload.update({
-            'event_name': event.event_name,
-            'version': event.version
-        })
         headers = [(k, v.encode()) for k, v in event.headers().items()]
         for topic in event.get_topics():
-            await self._producer.send_and_wait(topic, payload, key=event.partition_key, headers=headers)
+            value_bytes = self._codec.serialize(topic, event)
+
+            await self._producer.send_and_wait(topic, value=value_bytes, key=event.partition_key, headers=headers)
             logger.info(f'Published to topic: {topic}')
 
     async def _create_consumer(self, topic: str) -> AIOKafkaConsumer:
@@ -56,7 +55,6 @@ class AsyncKafkaMessageBus:
         consumer = AIOKafkaConsumer(
             topic,
             bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS'),
-            value_deserializer=lambda b: json.loads(b.decode('utf-8')),
             auto_offset_reset='earliest',
             group_id=f'{group_prefix}-{topic}',
             enable_auto_commit=False,
@@ -72,7 +70,11 @@ class AsyncKafkaMessageBus:
                 await result
 
     async def _handle_error(self, e: Exception, record, topic: str, consumer: AIOKafkaConsumer) -> None:
-        data = getattr(record, 'value', {}) or {}
+        try:
+            data = self._codec.deserialize(record.value)
+        except Exception:
+            data = {'raw': str(record.value[:128])}
+
         org_id = data.get('organization_id')
         key = (str(org_id).encode('utf-8') if org_id else None)
         dlq_payload = {
@@ -84,15 +86,15 @@ class AsyncKafkaMessageBus:
             'timestamp': datetime.now(timezone.utc).isoformat(),
         }
         try:
-            await self._producer.send_and_wait(f'{topic}-dlq', dlq_payload, key=key)
+            await self._producer.send_and_wait(f'{topic}-dlq', json.dumps(dlq_payload).encode('utf-8'), key=key)
             logger.error(f'Event failed and sent to DLQ; topic={topic} offset={record.offset}: {e}', exc_info=True)
         except Exception:
             logger.error('DLQ publish failed; leaving offset uncommitted', exc_info=True)
         await consumer.commit()
 
     async def _process_record(self, record, topic: str, consumer: AIOKafkaConsumer) -> None:
-        data = record.value
         try:
+            data = self._codec.deserialize(record.value)
             event_type = get_event_cls(data['event_name'])
             event = event_type(**data)
             await self._run_handlers(topic, event)
@@ -123,5 +125,8 @@ _kafka_message_bus: Optional[AsyncKafkaMessageBus] = None
 def get_kafka_message_bus() -> AsyncKafkaMessageBus:
     global _kafka_message_bus
     if _kafka_message_bus is None:
-        _kafka_message_bus = AsyncKafkaMessageBus()
+        sr_url = os.getenv('SCHEMA_REGISTRY_URL', 'http://schema-registry:8081')
+        sr_client = ConfluentSchemaRegistryClient(sr_url, dispatch_schema)
+        codec = AvroCodec(sr_client, dispatch_schema)
+        _kafka_message_bus = AsyncKafkaMessageBus(codec)
     return _kafka_message_bus
