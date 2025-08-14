@@ -50,6 +50,10 @@ def _valid_kid(entry: CacheEntry, kid: Optional[str]) -> bool:
     return not kid or kid in entry.kid_index
 
 
+def _valid_jwk(entry: CacheEntry, kid: Optional[str]) -> bool:
+    return _valid_entry(entry) and _valid_kid(entry, kid)
+
+
 class JWKSFetcher:
     def __init__(self, jwks_cache: JWKSCacheService, ttl: int = 600):
         self.jwks_cache = jwks_cache
@@ -63,7 +67,7 @@ class JWKSFetcher:
         now = time.time()
         entry = self._mem.get(jwks_url)
 
-        if _valid_entry(entry) and _valid_kid(entry, expected_kid):
+        if _valid_jwk(entry, expected_kid):
             logger.debug(f'JWKS in-memory hit: {jwks_url}')
             return entry.jwks
 
@@ -87,7 +91,7 @@ class JWKSFetcher:
         async with lock:
             now = time.time()
             entry = self._mem.get(jwks_url)
-            if _valid_entry(entry) and _valid_kid(entry, expected_kid):
+            if _valid_jwk(entry, expected_kid):
                 return entry.jwks
 
             headers = {}
