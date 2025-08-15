@@ -24,10 +24,10 @@ class TestGetModels(unittest.IsolatedAsyncioTestCase):
         self.mock_registry: ModelsRegistry = MagicMock()
         self.mock_registry.list_models.return_value = [
             {
-                "provider": "openai",
-                "model_id": "gpt-3.5",
-                "label": "GPT-3.5",
-                "tags": ["chat", "nlp"],
+                'provider': 'openai',
+                'model_id': 'gpt-3.5',
+                'label': 'GPT-3.5',
+                'tags': ['chat', 'nlp'],
             }
         ]
 
@@ -36,7 +36,7 @@ class TestGetModels(unittest.IsolatedAsyncioTestCase):
 
         self.client = AsyncClient(
             transport=ASGITransport(app=self.app),
-            base_url="https://test",
+            base_url='https://test',
         )
 
     async def asyncTearDown(self):
@@ -47,25 +47,25 @@ class TestGetModels(unittest.IsolatedAsyncioTestCase):
         cached = AvailableModelsResponse(
             models=[
                 ModelInfo(
-                    provider="openai",
-                    model_id="gpt-4",
-                    label="GPT-4",
-                    tags=["chat"],
+                    provider='openai',
+                    model_id='gpt-4',
+                    label='GPT-4',
+                    tags=['chat'],
                 )
             ]
         )
         self.mock_cache.get_models.return_value = cached
 
-        response = await self.client.get("/v1/ai-orm/get-models")
+        response = await self.client.get('/v1/ai-orm/get-models')
 
         assert response.status_code == 200
         assert response.json() == {
-            "models": [
+            'models': [
                 {
-                    "provider": "openai",
-                    "model_id": "gpt-4",
-                    "label": "GPT-4",
-                    "tags": ["chat"],
+                    'provider': 'openai',
+                    'model_id': 'gpt-4',
+                    'label': 'GPT-4',
+                    'tags': ['chat'],
                 }
             ]
         }
@@ -78,26 +78,26 @@ class TestGetModels(unittest.IsolatedAsyncioTestCase):
 
         self.mock_registry.list_models.return_value = [
             {
-                "provider": "openai",
-                "model_id": "gpt-3.5",
-                "label": "GPT-3.5",
-                "tags": ["chat", "nlp"],
+                'provider': 'openai',
+                'model_id': 'gpt-3.5',
+                'label': 'GPT-3.5',
+                'tags': ['chat', 'nlp'],
             },
             {
-                "provider": "anthropic",
-                "model_id": "claude-2",
-                "label": "Claude 2",
-                "tags": ["chat"],
+                'provider': 'anthropic',
+                'model_id': 'claude-2',
+                'label': 'Claude 2',
+                'tags': ['chat'],
             },
         ]
 
-        response = await self.client.get("/v1/ai-orm/get-models")
+        response = await self.client.get('/v1/ai-orm/get-models')
 
         assert response.status_code == 200
         body = response.json()
-        assert len(body["models"]) == 2
-        assert body["models"][0]["provider"] == "openai"
-        assert body["models"][1]["provider"] == "anthropic"
+        assert len(body['models']) == 2
+        assert body['models'][0]['provider'] == 'openai'
+        assert body['models'][1]['provider'] == 'anthropic'
 
         self.mock_cache.get_models.assert_awaited_once()
         self.mock_registry.list_models.assert_called_once()
@@ -107,10 +107,10 @@ class TestGetModels(unittest.IsolatedAsyncioTestCase):
 
     async def test_unexpected_exception(self):
         self.mock_cache.get_models.return_value = None
-        self.mock_registry.list_models.side_effect = RuntimeError("boom")
+        self.mock_registry.list_models.side_effect = RuntimeError('boom')
 
-        response = await self.client.get("/v1/ai-orm/get-models")
+        response = await self.client.get('/v1/ai-orm/get-models')
 
         assert response.status_code == 500
-        assert "Unexpected error" in response.json()["detail"]["message"]
+        assert 'Unexpected error' in response.json()['detail']['message']
         self.mock_cache.set_models.assert_not_called()
