@@ -52,13 +52,13 @@ async def get_orm_context(
         )
         return response
     except (InferenceProviderMissing, InvalidModelResponse) as e:
-        logger.error(f'get context failed: {e}', exc_info=True)
+        logger.error(f'Get context failed: {e}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={'message': str(e)}
         )
     except Exception as e:
-        logger.error(f'get orm response error: {e}', exc_info=True)
+        logger.error(f'Unexpected get context error: {e}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={'message': f'Unexpected error: {str(e)}'}

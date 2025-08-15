@@ -26,6 +26,14 @@ class AIORMContextClient(BaseServiceClient):
             raise 
     
     async def get_models(self) -> AvailableModelsResponse:
-        response = await self.get('/v1/ai-orm/get-models')
-        return AvailableModelsResponse(**response.json())
+        try:
+            response = await self.get('/v1/ai-orm/get-models')
+            return AvailableModelsResponse(**response.json())
+        except httpx.HTTPStatusError as e:
+            try:
+                detail = e.response.json().get('detail', {})
+                message = detail.get('message', 'Available models response failed')
+                raise ModelResponseRemoteError(message)
+            except Exception:
+                raise ModelResponseRemoteError('Available models response failed and error response could not be parsed')
     

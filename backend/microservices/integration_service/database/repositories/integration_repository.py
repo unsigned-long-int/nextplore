@@ -93,19 +93,23 @@ class IntegrationRepository:
             raise IntegrationCreateFailed from e
         
     async def update_integration(self, integration_id: UUID, user_id: UUID, organization_id: UUID, update_args: Dict[str, str | bool | int]) -> None:
-        async with self._db.session_scope(organization_id, user_id) as active_session:
-            stmt = (
-                update(IntegrationORM)
-                .where(
-                    IntegrationORM.id == integration_id,
-                    IntegrationORM.user_id == user_id,
-                    IntegrationORM.organization_id == organization_id
+        try:
+            async with self._db.session_scope(organization_id, user_id) as active_session:
+                stmt = (
+                    update(IntegrationORM)
+                    .where(
+                        IntegrationORM.id == integration_id,
+                        IntegrationORM.user_id == user_id,
+                        IntegrationORM.organization_id == organization_id
+                    )
+                    .values(**update_args)
                 )
-                .values(**update_args)
-            )
-            result = await active_session.execute(stmt)
-            if result.rowcount == 0:
-                raise IntegrationUpdateFailed(f'Integration update failed: No integration found for ID {integration_id}')
+                result = await active_session.execute(stmt)
+                if result.rowcount == 0:
+                    raise IntegrationUpdateFailed(f'Integration update failed: No integration found for ID {integration_id}')
+        except SQLAlchemyError as e:
+            logger.error(f'Integration update failed with database error: {e}', exc_info=True)
+            raise IntegrationUpdateFailed from e
         
     async def delete_integration(self, user_id: UUID, organization_id: UUID, integration_id: str) -> None:
         try:
@@ -126,25 +130,29 @@ class IntegrationRepository:
             raise IntegrationDeleteFailed from e
 
     async def get_user_integration_profiles(self, user_id: UUID, organization_id: UUID) -> List[IntegrationProfile]:
-        async with self._db.session_scope(organization_id, user_id) as scoped_session:
-            result = await scoped_session.execute(
-                select(IntegrationORM).where(
-                    IntegrationORM.user_id == user_id,
-                    IntegrationORM.organization_id == organization_id
+        try:
+            async with self._db.session_scope(organization_id, user_id) as scoped_session:
+                result = await scoped_session.execute(
+                    select(IntegrationORM).where(
+                        IntegrationORM.user_id == user_id,
+                        IntegrationORM.organization_id == organization_id
+                    )
                 )
-            )
-            integrations = result.scalars().all()
-            return [
-                IntegrationProfile(
-                    id=i.id,
-                    service_type=i.service_type,
-                    connection_name=i.connection_name,
-                    database_name=i.database_name,
-                    auth_method=i.auth_method,
-                    autosync_on=i.autosync_on
-                )
-                for i in integrations
-            ]
+                integrations = result.scalars().all()
+                return [
+                    IntegrationProfile(
+                        id=i.id,
+                        service_type=i.service_type,
+                        connection_name=i.connection_name,
+                        database_name=i.database_name,
+                        auth_method=i.auth_method,
+                        autosync_on=i.autosync_on
+                    )
+                    for i in integrations
+                ]
+        except SQLAlchemyError as e:
+            logger.error(f'Get integration failed with database error: {e}', exc_info=True)
+            raise IntegrationGetFailed from e
         
     def _to_encrypted_integration(self, orm: IntegrationORM) -> EncryptedIntegration:
         return EncryptedIntegration(

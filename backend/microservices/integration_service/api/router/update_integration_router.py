@@ -37,14 +37,8 @@ async def update_integration(
         )
     except IntegrationUpdateFailed as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail=str(e)
-        )
-
-    except SQLAlchemyError as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f'Database error: {str(e)}'
         )
 
     except Exception as e:

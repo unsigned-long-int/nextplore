@@ -50,7 +50,7 @@ async def delete_integration(
         )
 
     except Exception as e:
-        logger.error(f'unexpected delete integration error: {e}', exc_info=True)
+        logger.error(f'Unexpected delete integration error: {e}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={'message': f'Unexpected error: {str(e)}'}

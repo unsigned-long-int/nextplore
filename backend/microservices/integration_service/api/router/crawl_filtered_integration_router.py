@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter,  HTTPException, status, Depends
 
 from nextplore_sdk.contracts.integration_service.filtered_crawl_request import FilteredCrawlRequest
@@ -7,6 +8,8 @@ from api.context import get_current_identity
 from api.handlers import craw_filtered_integration_metadata
 from cache import CacheService, get_cache_service
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
@@ -35,10 +38,17 @@ async def craw_filtered_integration(
         )
         return response
     except CrawlIntegrationsFailed as e:
+        logger.error(f'Crawl integration failed for integrations: {e.failed_ids}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={
-                'message': e.message,
-                'failed_integration_ids': [str(i) for i in e.failed_ids]
+                'message': e.message
             }
         )
+    except Exception as e:
+        logger.error(f'Crawl integration failed due to unexpected error: {e}', exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'message': f'Unexpected error: {str(e)}'}
+        )
+    

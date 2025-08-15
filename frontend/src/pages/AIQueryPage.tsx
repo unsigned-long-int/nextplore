@@ -9,6 +9,7 @@ import {
     Transition,
     useCombobox
 } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { useEffect, useMemo, useState } from 'react';
 import { PromptBox } from '../components/ai_queries/PromptBox';
 import { QueryPreview } from '../components/ai_queries/QueryPreview';
@@ -39,19 +40,31 @@ const { getAIGenerativeModels } = useAIGenerativeModels();
 const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption() });
 
 useEffect(() => {
-    getAIGenerativeModels().then((models) => {
-    const options = models.map((m: ModelInfo) => ({
+    getAIGenerativeModels()
+    .then((models) => {
+      const options = models.map((m: ModelInfo) => ({
         provider: m.provider,
         model_id: m.model_id,
         label: `${m.label} (${m.tags.join(', ')})`,
         icon: getModelIcon(m.model_id),
-    }));
-    setModelOptions(options);
-    if (options.length > 0) {
+      }));
+      setModelOptions(options);
+      if (options.length > 0) {
         setSelectedModel(options[0].model_id);
         setSelectedProvider(options[0].provider);
         setSearch(options[0].label);
-    }
+      }
+    })
+    .catch((err: any) => {
+      const message = err?.message ?? 'Models retrieval failed';
+      setErrorMessage(message);
+      notifications.show({
+        color: 'red',
+        title: 'Failed to load models',
+        message,
+        autoClose: 8000,
+        withBorder: true,
+      });
     });
 }, []);
 
@@ -81,19 +94,19 @@ const handleAIQueryRequest = async () => {
     setErrorMessage(null);
 
     try {
-    const request: AIQueryRequest = {
-        provider: selectedProvider,
-        model_id: selectedModel,
-        prompt,
-    };
-    const response = await getAIQueryResponse(request);
-    setAIQueryResponse(response.data);
-    setSqlPreview(response.sql);
+        const request: AIQueryRequest = {
+            provider: selectedProvider,
+            model_id: selectedModel,
+            prompt,
+        };
+        const response = await getAIQueryResponse(request);
+        setAIQueryResponse(response.data);
+        setSqlPreview(response.sql);
     } catch (e: any) {
-    console.error(e);
-    setErrorMessage(e.message);
+        console.error(e);
+        setErrorMessage(e.message);
     } finally {
-    setQuerying(false);
+        setQuerying(false);
     }
 };
 
