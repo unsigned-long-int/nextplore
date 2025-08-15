@@ -9,22 +9,22 @@ from utils.encryption.integration_encryptor import encrypt_integration
 
 class TestEncryptIntegration(unittest.TestCase):
     def _make_decrypted(self, **overrides):
-        base = dict(
-            organization_id=uuid4(),
-            user_id=uuid4(),
-            service_type='postgres',
-            auth_method='password',
-            connection_name='name',
-            host='db.local',
-            port=5432,
-            database_name='analytics',
-            username='alice',
-            password='secret',
-            kerberos_principal='krb',
-            windows_domain='ACME',
-            extra_options={'sslmode': 'require', 'retry': 2},
-            autosync_on=True,
-        )
+        base = {
+            'organization_id': uuid4(),
+            'user_id': uuid4(),
+            'service_type': 'postgres',
+            'auth_method': 'password',
+            'connection_name': 'name',
+            'host': 'db.local',
+            'port': 5432,
+            'database_name': 'analytics',
+            'username': 'alice',
+            'password': 'secret',
+            'kerberos_principal': 'krb',
+            'windows_domain': 'ACME',
+            'extra_options': {'sslmode': 'require', 'retry': 2},
+            'autosync_on': True,
+        }
         base.update(overrides)
         return SimpleNamespace(**base)
 

@@ -11,13 +11,13 @@ RUN pip install --no-cache-dir /tmp/nextplore_sdk.tar.gz \
     && rm /tmp/nextplore_sdk.tar.gz \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
+    build-essential \
     ca-certificates \
     curl \
     gnupg \
     gcc \
     libpq-dev \
     unixodbc-dev \
-    build-essential \
     && curl -fsSLo /tmp/packages-microsoft-prod.deb \
     https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
     && dpkg -i /tmp/packages-microsoft-prod.deb \

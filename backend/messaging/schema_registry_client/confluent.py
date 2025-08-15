@@ -27,13 +27,13 @@ class ConfluentSchemaRegistryClient:
             if json.loads(latest_schema_str) == json.loads(schema_str):
                 self._cache[subject] = latest_schema.schema_id
                 return latest_schema.schema_id
-            logger.info(f'New schema discovered: updating...')
+            logger.info('New schema discovered: updating...')
             schema_id = self._registry.register_schema(subject, Schema(schema_str, 'AVRO'))
             logger.info(f'Schema registered: {schema_id}. Subject: {subject}')
             self._cache[subject] = schema_id
             return schema_id
         except Exception:
-            logger.info(f'Schema not found: registering...')
+            logger.info('Schema not found: registering...')
             schema_id = self._registry.register_schema(subject, Schema(schema_str, 'AVRO'))
             logger.info(f'Schema registered: {schema_id}. Subject: {subject}')
             self._cache[subject] = schema_id

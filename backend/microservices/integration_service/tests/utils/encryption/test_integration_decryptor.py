@@ -8,23 +8,23 @@ from utils.encryption.integration_decryptor import decrypt_integration
 
 class TestDecryptIntegration(unittest.TestCase):
     def _make_encrypted(self, **overrides):
-        base = dict(
-            integration_id=uuid4(),
-            organization_id=uuid4(),
-            user_id=uuid4(),
-            service_type='postgres',
-            auth_method='password',
-            connection_name='name',
-            host='db.local',
-            port=5432,
-            database_name='analytics',
-            encrypted_username=b'user',
-            encrypted_password=b'pass',
-            encrypted_kerberos_principal=None,
-            encrypted_windows_domain=None,
-            encrypted_extra_options=None,
-            autosync_on=True,
-        )
+        base = {
+            'integration_id': uuid4(),
+            'organization_id': uuid4(),
+            'user_id': uuid4(),
+            'service_type': 'postgres',
+            'auth_method': 'password',
+            'connection_name': 'name',
+            'host': 'db.local',
+            'port': 5432,
+            'database_name': 'analytics',
+            'encrypted_username': b'user',
+            'encrypted_password': b'pass',
+            'encrypted_kerberos_principal': None,
+            'encrypted_windows_domain': None,
+            'encrypted_extra_options': None,
+            'autosync_on': True,
+        }
         base.update(overrides)
         return SimpleNamespace(**base)
 

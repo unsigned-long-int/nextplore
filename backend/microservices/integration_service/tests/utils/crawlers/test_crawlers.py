@@ -89,7 +89,7 @@ class TestCrawlSchemas(unittest.TestCase):
 
         mock_crawl_tables.side_effect = [
             (SimpleNamespace(name='t1'),),
-            tuple(),
+            (),
         ]
 
         result = crawl_schemas(self.crawler, self.integration_id, self.schema_spec, self.table_spec)
