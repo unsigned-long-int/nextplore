@@ -59,13 +59,16 @@ async def get_integration(
         )
         return response
     except IntegrationGetFailed as e:
-        logger.error(f'Database integration get request failed: {e}', exc_info=True)
+        logger.error(
+            f'Database integration single get request failed with DB error: {e}', 
+            exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
-            detail={'message': str(e)}
+            detail={'message': f'Database error: {str(e)}'}
         )
     except Exception as e:
-        logger.error(f'Unexpected get integration request error: {e}', exc_info=True)
+        logger.error(f'Unexpected single get integration request error: {e}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={'message': f'Unexpected error: {str(e)}'}

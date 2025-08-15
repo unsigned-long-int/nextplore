@@ -17,20 +17,24 @@ class TestUpdateIntegration(unittest.IsolatedAsyncioTestCase):
             update_args={'connection_name': 'new-name', 'autosync_on': True},
         )
         self.connector = object()
+        self.cache_service = SimpleNamespace(
+            cache=SimpleNamespace(delete_by_prefix=AsyncMock())
+        )
 
-    @patch('api.router.update_integration_router.integration_service_cache')
     @patch('api.router.update_integration_router.IntegrationRepository')
     @patch('api.router.update_integration_router.get_current_identity')
-    async def test_success_happy_path(self, mock_get_current_identity, mock_repo_cls, mock_cache):
+    async def test_success_happy_path(self, mock_get_current_identity, mock_repo_cls):
         mock_get_current_identity.return_value = self.identity
 
         repo = Mock()
         repo.update_integration = AsyncMock(return_value=None)
         mock_repo_cls.return_value = repo
 
-        mock_cache.delete_by_prefix = AsyncMock()
-
-        result = await update_integration(self.payload, connector=self.connector)
+        result = await update_integration(
+            self.payload,
+            connector=self.connector,
+            cache_service=self.cache_service
+        )
         self.assertIsNone(result)
 
         mock_repo_cls.assert_called_once_with(self.connector)
@@ -40,14 +44,13 @@ class TestUpdateIntegration(unittest.IsolatedAsyncioTestCase):
             organization_id=self.payload.organization_id,
             update_args=self.payload.update_args,
         )
-        mock_cache.delete_by_prefix.assert_awaited_once_with(
+        self.cache_service.cache.delete_by_prefix.assert_awaited_once_with(
             self.identity.organization_id, self.identity.user_id
         )
 
-    @patch('api.router.update_integration_router.integration_service_cache')
     @patch('api.router.update_integration_router.IntegrationRepository')
     @patch('api.router.update_integration_router.get_current_identity')
-    async def test_integration_update_failed_raises_404(self, mock_get_current_identity, mock_repo_cls, mock_cache):
+    async def test_integration_update_failed_raises_424(self, mock_get_current_identity, mock_repo_cls):
         mock_get_current_identity.return_value = self.identity
 
         from database.repositories import IntegrationUpdateFailed
@@ -62,20 +65,21 @@ class TestUpdateIntegration(unittest.IsolatedAsyncioTestCase):
         repo.update_integration = AsyncMock(side_effect=DummyUpdateFailed())
         mock_repo_cls.return_value = repo
 
-        mock_cache.delete_by_prefix = AsyncMock()
-
         with self.assertRaises(HTTPException) as ctx:
-            await update_integration(self.payload, connector=self.connector)
+            await update_integration(
+                self.payload,
+                connector=self.connector,
+                cache_service=self.cache_service
+            )
 
         exc = ctx.exception
-        self.assertEqual(exc.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(exc.detail, 'not found')
-        mock_cache.delete_by_prefix.assert_not_awaited()
+        self.assertEqual(exc.status_code, status.HTTP_424_FAILED_DEPENDENCY)
+        self.assertEqual(exc.detail, {'message': 'Database error: not found'})
+        self.cache_service.cache.delete_by_prefix.assert_not_awaited()
 
-    @patch('api.router.update_integration_router.integration_service_cache')
     @patch('api.router.update_integration_router.IntegrationRepository')
     @patch('api.router.update_integration_router.get_current_identity')
-    async def test_sqlalchemy_error_raises_500(self, mock_get_current_identity, mock_repo_cls, mock_cache):
+    async def test_sqlalchemy_error_raises_500(self, mock_get_current_identity, mock_repo_cls):
         mock_get_current_identity.return_value = self.identity
 
         from sqlalchemy.exc import SQLAlchemyError
@@ -84,32 +88,35 @@ class TestUpdateIntegration(unittest.IsolatedAsyncioTestCase):
         repo.update_integration = AsyncMock(side_effect=SQLAlchemyError('db down'))
         mock_repo_cls.return_value = repo
 
-        mock_cache.delete_by_prefix = AsyncMock()
-
         with self.assertRaises(HTTPException) as ctx:
-            await update_integration(self.payload, connector=self.connector)
+            await update_integration(
+                self.payload,
+                connector=self.connector,
+                cache_service=self.cache_service
+            )
 
         exc = ctx.exception
         self.assertEqual(exc.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(exc.detail, 'Database error: db down')
-        mock_cache.delete_by_prefix.assert_not_awaited()
+        self.assertEqual(exc.detail, {'message': 'Unexpected error: db down'})
+        self.cache_service.cache.delete_by_prefix.assert_not_awaited()
 
-    @patch('api.router.update_integration_router.integration_service_cache')
     @patch('api.router.update_integration_router.IntegrationRepository')
     @patch('api.router.update_integration_router.get_current_identity')
-    async def test_unhandled_error_raises_400(self, mock_get_current_identity, mock_repo_cls, mock_cache):
+    async def test_unhandled_error_raises_500(self, mock_get_current_identity, mock_repo_cls):
         mock_get_current_identity.return_value = self.identity
 
         repo = Mock()
         repo.update_integration = AsyncMock(side_effect=RuntimeError('boom'))
         mock_repo_cls.return_value = repo
 
-        mock_cache.delete_by_prefix = AsyncMock()
-
         with self.assertRaises(HTTPException) as ctx:
-            await update_integration(self.payload, connector=self.connector)
+            await update_integration(
+                self.payload,
+                connector=self.connector,
+                cache_service=self.cache_service
+            )
 
         exc = ctx.exception
-        self.assertEqual(exc.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(exc.detail, 'Unhandled error: boom')
-        mock_cache.delete_by_prefix.assert_not_awaited()
+        self.assertEqual(exc.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(exc.detail, {'message': 'Unexpected error: boom'})
+        self.cache_service.cache.delete_by_prefix.assert_not_awaited()

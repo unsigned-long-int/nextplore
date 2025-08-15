@@ -70,10 +70,10 @@ export const useIntegrationsData = () => {
                 message: `Integration ${id} deleted.`,
                 icon: <IconCheck size={16} />, color: 'green'
             });
-        } catch {
+        } catch (e) {
             showNotification({
                 title: 'Delete Failed',
-                message: `Could not delete integration.`,
+                message: `Could not delete integration. Failed: ${e}`,
                 icon: <IconX size={16} />, color: 'red'
         });
         }

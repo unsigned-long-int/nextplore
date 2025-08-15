@@ -49,13 +49,19 @@ async def create_integration(
             user_identity.user_id
         )
     except IntegrationCreateFailed as e:
-        logger.error(f'create integration error: {e}', exc_info=True)
+        logger.error(
+            f'Create integration failed with DB error: {e}', 
+            exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={'message': f'Database error: {str(e)}'}
         )
     except Exception as e:
-        logger.error(f'create integration error: {e}', exc_info=True)
+        logger.error(
+            f'Unexpected create integration error: {e}', 
+            exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={'message': f'Unexpected error: {str(e)}'}

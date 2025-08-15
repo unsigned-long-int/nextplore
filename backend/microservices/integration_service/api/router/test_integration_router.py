@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, status, HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -6,6 +7,8 @@ from nextplore_sdk.database.sql_connection_service.session_starter import fetch_
 from nextplore_sdk.database.connection_builder.database_connection_builder import build_connection_string, ConnectionMeta
 from nextplore_sdk.contracts.integration_service.prepared_integration_test_request import PreparedIntegrationTestRequest
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
@@ -31,14 +34,20 @@ async def test_integration(payload: PreparedIntegrationTestRequest) -> None:
             connection.execute(text('SELECT 1'))
 
     except SQLAlchemyError as e:
+        logger.error(
+            f'Test integration failed with DB error: {e}', 
+            exc_info=True
+        )
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f'Database error: {str(e)}'
+            status_code=status.HTTP_424_FAILED_DEPENDENCY,
+            detail={'message': f'Database error: {str(e)}'}
         )
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f'Unhandled error: {str(e)}'
+        logger.error(
+            f'Unexpected test integration error: {e}', 
+            exc_info=True
         )
-
-        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'message': f'Unexpected error: {str(e)}'}
+        )

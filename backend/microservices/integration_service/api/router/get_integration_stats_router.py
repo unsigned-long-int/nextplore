@@ -48,13 +48,19 @@ async def get_integration_stats(
         )
         return response
     except IntegrationGetFailed as e:
-        logger.error(f'Get integration stats request failed with db error: {e}', exc_info=True)
+        logger.error(
+            f'Get integration stats request failed with DB error: {e}', 
+            exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
-            detail={'message': str(e)}
+            detail={'message': f'Database error: {str(e)}'}
         )
     except Exception as e:
-        logger.error(f'Get integration stats failed with unexpected error: {e}', exc_info=True)
+        logger.error(
+            f'Get integration stats failed with unexpected error: {e}', 
+            exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={'message': f'Unexpected error: {str(e)}'}

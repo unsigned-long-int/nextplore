@@ -1,9 +1,30 @@
-from typing import List 
-
-
 class IntegrationCrawlRemoteError(Exception):
-    def __init__(self, message: str, failed_ids: List[str] = None):
-        self.message = message
-        self.failed_ids = failed_ids or []
-        
-        super().__init__(message)
+    pass
+
+
+class IntegrationCreateRemoteError(Exception):
+    pass
+
+
+class IntegrationDeleteRemoteError(Exception):
+    pass
+
+
+class IntegrationGetRemoteError(Exception):
+    pass
+
+
+class IntegrationGetProfilesRemoteError(Exception):
+    pass
+
+
+class IntegrationGetStatsRemoteError(Exception):
+    pass
+
+
+class IntegrationTestRemoteError(Exception):
+    pass
+
+
+class IntegrationUpdateRemoteError(Exception):
+    pass

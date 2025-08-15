@@ -1,5 +1,5 @@
+import logging
 from fastapi import APIRouter, status, HTTPException, Depends
-from sqlalchemy.exc import SQLAlchemyError
 
 
 from api.context import get_current_identity
@@ -12,6 +12,8 @@ from cache import CacheService, get_cache_service
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 from nextplore_sdk.contracts.integration_service.prepared_integration_update_request import PreparedIntegrationUpdateRequest
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix='/v1/integration', tags=['Integration'])
 
@@ -36,13 +38,21 @@ async def update_integration(
             user_identity.user_id
         )
     except IntegrationUpdateFailed as e:
+        logger.error(
+            f'Update integration failed with DB error {e}', 
+            exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
-            detail=str(e)
+            detail={'message': f'Database error: {str(e)}'}
         )
 
     except Exception as e:
+        logger.error(
+            f'Unexpected update integration error: {e}',
+            exc_info=True
+        )
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f'Unhandled error: {str(e)}'
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'message': f'Unexpected error: {str(e)}'}
         )

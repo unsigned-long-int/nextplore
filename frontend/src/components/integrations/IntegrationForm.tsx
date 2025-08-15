@@ -56,7 +56,7 @@ export const IntegrationForm: React.FC<IntegrationFormProps> = ({
         setTesting(true);
         try {
             const result = await testIntegration(values);
-            if (!result.success) throw new Error(!result.message ? 'Unhandled Error': result.message);
+            if (!result.success) throw new Error('Unhandled Error');
             showNotification({
                 title: 'Integration Test Successful',
                 message: `Connection: ${values.connection_name} was successful.`,

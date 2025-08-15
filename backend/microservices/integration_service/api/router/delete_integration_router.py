@@ -43,15 +43,18 @@ async def delete_integration(
         )
 
     except IntegrationDeleteFailed as e:
-        logger.error(f'delete integration error: {e}. Integration not found.', exc_info=True)
+        logger.error(
+            f'Delete integration failed with DB error: {e}.', 
+            exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
-            detail={'message': str(e)}
+            detail={'message': f'Database error: {str(e)}'}
         )
 
     except Exception as e:
         logger.error(f'Unexpected delete integration error: {e}', exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={'message': f'Unexpected error: {str(e)}'}
         )

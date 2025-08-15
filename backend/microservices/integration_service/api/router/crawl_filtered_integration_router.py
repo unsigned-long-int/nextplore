@@ -38,15 +38,16 @@ async def craw_filtered_integration(
         )
         return response
     except CrawlIntegrationsFailed as e:
-        logger.error(f'Crawl integration failed for integrations: {e.failed_ids}', exc_info=True)
+        logger.error(
+            f'Crawl integration failed for integrations: {e.failed_ids} with DB error: {e}', 
+            exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
-            detail={
-                'message': e.message
-            }
+            detail={'message': e.message}
         )
     except Exception as e:
-        logger.error(f'Crawl integration failed due to unexpected error: {e}', exc_info=True)
+        logger.error(f'Crawl integration unexpected error: {e}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={'message': f'Unexpected error: {str(e)}'}

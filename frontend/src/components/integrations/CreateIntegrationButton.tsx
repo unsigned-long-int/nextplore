@@ -80,7 +80,7 @@ export const CreateIntegrationButton = () => {
         const token = await getToken();
         const result = await createIntegration(data, token);
         try {
-            if (!result.success) throw new Error(!result.message ? 'Unhandled Error': result.message);
+            if (!result.success) throw new Error('Unhandled Error');
             showNotification({
                 title: 'Integration Created',
                 message: `${data.connection_name} was successfully created and will be vectorized`,

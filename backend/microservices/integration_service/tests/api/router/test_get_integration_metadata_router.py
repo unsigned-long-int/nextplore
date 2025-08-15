@@ -10,40 +10,49 @@ from api.router.get_integration_metadata_router import get_integration
 class TestGetIntegration(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.identity = SimpleNamespace(user_id=uuid4(), organization_id=uuid4())
-
         self.payload = SimpleNamespace(
             user_id=uuid4(),
             organization_id=uuid4(),
             integration_id=uuid4(),
         )
-
         self.connector = object()
+        self.cache_service = SimpleNamespace(
+            get_integration_metadata=AsyncMock(),
+            set_integration_metadata=AsyncMock(),
+        )
 
     @patch('api.router.get_integration_metadata_router.IntegrationMetadataResponse')
     @patch('api.router.get_integration_metadata_router.decrypt_integration')
     @patch('api.router.get_integration_metadata_router.IntegrationRepository')
-    @patch('api.router.get_integration_metadata_router.integration_service_cache')
     @patch('api.router.get_integration_metadata_router.get_current_identity')
-    async def test_returns_cached_response(self, mock_get_current_identity, mock_cache, repo_cls, decrypt_mock, response_cls):
+    async def test_returns_cached_response(
+        self,
+        mock_get_current_identity,
+        repo_cls,
+        decrypt_mock,
+        response_cls,
+    ):
         mock_get_current_identity.return_value = self.identity
 
         cached = {'from': 'cache'}
-        mock_cache.get_integration_metadata = AsyncMock(return_value=cached)
-        mock_cache.set_integration_metadata = AsyncMock()
+        self.cache_service.get_integration_metadata.return_value = cached
 
-        result = await get_integration(self.payload, connector=self.connector)
+        result = await get_integration(
+            self.payload,
+            connector=self.connector,
+            cache_service=self.cache_service
+        )
 
         self.assertIs(result, cached)
-        mock_cache.get_integration_metadata.assert_awaited_once_with(
+        self.cache_service.get_integration_metadata.assert_awaited_once_with(
             user_identity=self.identity,
             request=self.payload,
         )
         repo_cls.assert_not_called()
         decrypt_mock.assert_not_called()
         response_cls.assert_not_called()
-        mock_cache.set_integration_metadata.assert_not_awaited()
+        self.cache_service.set_integration_metadata.assert_not_awaited()
 
-    @patch('api.router.get_integration_metadata_router.integration_service_cache')
     @patch('api.router.get_integration_metadata_router.IntegrationMetadataResponse')
     @patch('api.router.get_integration_metadata_router.decrypt_integration')
     @patch('api.router.get_integration_metadata_router.IntegrationRepository')
@@ -54,11 +63,9 @@ class TestGetIntegration(unittest.IsolatedAsyncioTestCase):
         mock_repo_cls,
         mock_decrypt,
         mock_response_cls,
-        mock_cache,
     ):
         mock_get_current_identity.return_value = self.identity
-        mock_cache.get_integration_metadata = AsyncMock(return_value=None)
-        mock_cache.set_integration_metadata = AsyncMock()
+        self.cache_service.get_integration_metadata.return_value = None
 
         repo = Mock()
         encrypted = object()
@@ -84,11 +91,15 @@ class TestGetIntegration(unittest.IsolatedAsyncioTestCase):
         built_response = {'service_type': 'postgres', 'built': True}
         mock_response_cls.side_effect = lambda **kwargs: built_response
 
-        result = await get_integration(self.payload, connector=self.connector)
+        result = await get_integration(
+            self.payload,
+            connector=self.connector,
+            cache_service=self.cache_service
+        )
 
         self.assertIs(result, built_response)
 
-        mock_cache.get_integration_metadata.assert_awaited_once_with(
+        self.cache_service.get_integration_metadata.assert_awaited_once_with(
             user_identity=self.identity, request=self.payload
         )
         repo.get_integration.assert_awaited_once_with(
@@ -111,13 +122,12 @@ class TestGetIntegration(unittest.IsolatedAsyncioTestCase):
             extra_options=decrypted.extra_options,
             autosync_on=decrypted.autosync_on,
         )
-        mock_cache.set_integration_metadata.assert_awaited_once_with(
+        self.cache_service.set_integration_metadata.assert_awaited_once_with(
             user_identity=self.identity,
             request=self.payload,
             response=built_response,
         )
 
-    @patch('api.router.get_integration_metadata_router.integration_service_cache')
     @patch('api.router.get_integration_metadata_router.decrypt_integration')
     @patch('api.router.get_integration_metadata_router.IntegrationRepository')
     @patch('api.router.get_integration_metadata_router.get_current_identity')
@@ -126,35 +136,34 @@ class TestGetIntegration(unittest.IsolatedAsyncioTestCase):
         mock_get_current_identity,
         mock_repo_cls,
         mock_decrypt,
-        mock_cache,
     ):
         mock_get_current_identity.return_value = self.identity
-        mock_cache.get_integration_metadata = AsyncMock(return_value=None)
-        mock_cache.set_integration_metadata = AsyncMock()
+        self.cache_service.get_integration_metadata.return_value = None
 
         from database.exceptions import IntegrationGetFailed
 
         class DummyGetFailed(IntegrationGetFailed):
-            def __init__(self):
-                self._msg = 'not found'
             def __str__(self):
-                return self._msg
+                return 'not found'
 
         repo = Mock()
         repo.get_integration = AsyncMock(side_effect=DummyGetFailed())
         mock_repo_cls.return_value = repo
 
         with self.assertRaises(HTTPException) as ctx:
-            await get_integration(self.payload, connector=self.connector)
+            await get_integration(
+                self.payload,
+                connector=self.connector,
+                cache_service=self.cache_service
+            )
 
         exc = ctx.exception
         self.assertEqual(exc.status_code, status.HTTP_424_FAILED_DEPENDENCY)
-        self.assertEqual(exc.detail, {'message': 'not found'})
+        self.assertEqual(exc.detail, {'message': 'Database error: not found'})
 
         mock_decrypt.assert_not_called()
-        mock_cache.set_integration_metadata.assert_not_awaited()
+        self.cache_service.set_integration_metadata.assert_not_awaited()
 
-    @patch('api.router.get_integration_metadata_router.integration_service_cache')
     @patch('api.router.get_integration_metadata_router.IntegrationMetadataResponse')
     @patch('api.router.get_integration_metadata_router.decrypt_integration')
     @patch('api.router.get_integration_metadata_router.IntegrationRepository')
@@ -165,11 +174,9 @@ class TestGetIntegration(unittest.IsolatedAsyncioTestCase):
         mock_repo_cls,
         mock_decrypt,
         mock_response_cls,
-        mock_cache,
     ):
         mock_get_current_identity.return_value = self.identity
-        mock_cache.get_integration_metadata = AsyncMock(return_value=None)
-        mock_cache.set_integration_metadata = AsyncMock()
+        self.cache_service.get_integration_metadata.return_value = None
 
         repo = Mock()
         repo.get_integration = AsyncMock(return_value=object())
@@ -178,11 +185,15 @@ class TestGetIntegration(unittest.IsolatedAsyncioTestCase):
         mock_decrypt.side_effect = RuntimeError('boom')
 
         with self.assertRaises(HTTPException) as ctx:
-            await get_integration(self.payload, connector=self.connector)
+            await get_integration(
+                self.payload,
+                connector=self.connector,
+                cache_service=self.cache_service
+            )
 
         exc = ctx.exception
         self.assertEqual(exc.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(exc.detail, {'message': 'Unexpected error: boom'})
 
-        mock_cache.set_integration_metadata.assert_not_awaited()
+        self.cache_service.set_integration_metadata.assert_not_awaited()
         mock_response_cls.assert_not_called()

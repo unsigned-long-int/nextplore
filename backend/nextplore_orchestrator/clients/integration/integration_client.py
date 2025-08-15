@@ -14,7 +14,16 @@ from nextplore_sdk.contracts.integration_service.integration_stats_request impor
 from nextplore_sdk.contracts.integration_service.integration_stats_response import IntegrationStatsResponse
 from nextplore_sdk.contracts.integration_service.integration_metadata_request import IntegrationMetadataRequest
 from nextplore_sdk.contracts.integration_service.integration_metadata_response import IntegrationMetadataResponse
-from .exceptions import IntegrationCrawlRemoteError
+from .exceptions import (
+    IntegrationCrawlRemoteError,
+    IntegrationCreateRemoteError,
+    IntegrationDeleteRemoteError,
+    IntegrationGetRemoteError,
+    IntegrationGetProfilesRemoteError,
+    IntegrationGetStatsRemoteError,
+    IntegrationTestRemoteError,
+    IntegrationUpdateRemoteError
+)
 
 
 class IntegrationClient(BaseServiceClient):
@@ -23,32 +32,91 @@ class IntegrationClient(BaseServiceClient):
 
 
     async def get_integrations(self, payload: PreparedIntegrationGetRequest) -> List[IntegrationProfileResponse]:
-        response = await self.post('/v1/integration/get-integrations', payload)
-        response.raise_for_status()
-        return [IntegrationProfileResponse(**item) for item in response.json()]
+        try:
+            response = await self.post('/v1/integration/get-integrations', payload)
+            response.raise_for_status()
+            return [IntegrationProfileResponse(**item) for item in response.json()]
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 424:
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Get integration profiles failed')
+                    raise IntegrationGetProfilesRemoteError(message)
+                except Exception:
+                    raise IntegrationGetProfilesRemoteError('Get integration profiles failed and error response could not be parsed')
+            raise
     
-
     async def update_integration(self, payload: PreparedIntegrationUpdateRequest) -> None:
-        response = await self.post('/v1/integration/update-integration', payload)
-        response.raise_for_status()
+        try:
+            response = await self.post('/v1/integration/update-integration', payload)
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 424:
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Update integration failed')
+                    raise IntegrationUpdateRemoteError(message)
+                except Exception:
+                    raise IntegrationUpdateRemoteError('Update integration failed and error response could not be parsed')
+            raise
     
 
     async def get_integration(self, payload: IntegrationMetadataRequest) -> IntegrationMetadataResponse:
-        response = await self.post('/v1/integration/get-integration', payload)
-        response.raise_for_status()
-        return IntegrationMetadataResponse(**response.json())
+        try:
+            response = await self.post('/v1/integration/get-integration', payload)
+            response.raise_for_status()
+            return IntegrationMetadataResponse(**response.json())
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 424:
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Get single integration failed')
+                    raise IntegrationGetRemoteError(message)
+                except Exception:
+                    raise IntegrationGetRemoteError('Get single integration failed and error response could not be parsed')
+            raise
     
     async def create_integration(self, payload: PreparedIntegrationCreateRequest) -> None:
-        response = await self.post('/v1/integration/create-integration', payload)
-        response.raise_for_status()
+        try:
+            response = await self.post('/v1/integration/create-integration', payload)
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 424:
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Create integration failed')
+                    raise IntegrationCreateRemoteError(message)
+                except Exception:
+                    raise IntegrationCreateRemoteError('Create integration failed and error response could not be parsed')
+            raise
 
     async def test_integration(self, payload: PreparedIntegrationTestRequest) -> None:
-        response = await self.post('/v1/integration/test-integration', payload)
-        response.raise_for_status()
+        try:
+            response = await self.post('/v1/integration/test-integration', payload)
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 424:
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Test integration failed')
+                    raise IntegrationTestRemoteError(message)
+                except Exception:
+                    raise IntegrationTestRemoteError('Test integration failed and error response could not be parsed')
+            raise
 
     async def delete_integration(self, payload: PreparedIntegrationDeleteRequest) -> None:
-        response = await self.post('/v1/integration/delete-integration', payload)
-        response.raise_for_status()
+        try:
+            response = await self.post('/v1/integration/delete-integration', payload)
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 424:
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Delete integration failed')
+                    raise IntegrationDeleteRemoteError(message)
+                except Exception:
+                    raise IntegrationDeleteRemoteError('Delete integration failed and error response could not be parsed')
+            raise
 
     async def crawl_filtered_integration(self, payload: FilteredCrawlRequest) -> CrawlResponse:
         try:
@@ -60,13 +128,22 @@ class IntegrationClient(BaseServiceClient):
                 try:
                     detail = e.response.json().get('detail', {})
                     message = detail.get('message', 'Crawling failed')
-                    failed_ids = detail.get('failed_integration_ids', [])
-                    raise IntegrationCrawlRemoteError(message=message, failed_ids=failed_ids)
+                    raise IntegrationCrawlRemoteError(message)
                 except Exception:
                     raise IntegrationCrawlRemoteError('Crawling failed and error response could not be parsed')
             raise
 
     async def get_integration_stats(self, payload: IntegrationStatsRequest) -> IntegrationStatsResponse:
-        response = await self.post('/v1/integration/get-integration-stats', payload)
-        response.raise_for_status()
-        return IntegrationStatsResponse(**response.json())
+        try:
+            response = await self.post('/v1/integration/get-integration-stats', payload)
+            response.raise_for_status()
+            return IntegrationStatsResponse(**response.json())
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 424:
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Get integration stats failed')
+                    raise IntegrationGetStatsRemoteError(message)
+                except Exception:
+                    raise IntegrationGetStatsRemoteError('Get integration stats and error response could not be parsed')
+            raise

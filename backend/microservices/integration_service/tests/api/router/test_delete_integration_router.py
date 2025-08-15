@@ -20,8 +20,10 @@ class TestDeleteIntegration(unittest.IsolatedAsyncioTestCase):
         )
 
         self.connector = object()
+        self.cache_service = SimpleNamespace(
+            cache=SimpleNamespace(delete_by_prefix=AsyncMock())
+        )
 
-    @patch('api.router.delete_integration_router.integration_service_cache')
     @patch('api.router.delete_integration_router.get_kafka_message_bus')
     @patch('api.router.delete_integration_router.IntegrationRepository')
     @patch('api.router.delete_integration_router.get_current_identity')
@@ -30,7 +32,6 @@ class TestDeleteIntegration(unittest.IsolatedAsyncioTestCase):
         mock_get_current_identity,
         mock_repo_cls,
         mock_get_bus,
-        mock_cache,
     ):
         mock_get_current_identity.return_value = self.identity
 
@@ -41,9 +42,11 @@ class TestDeleteIntegration(unittest.IsolatedAsyncioTestCase):
         bus = SimpleNamespace(publish=AsyncMock())
         mock_get_bus.return_value = bus
 
-        mock_cache.delete_by_prefix = AsyncMock()
-
-        result = await delete_integration(self.payload, connector=self.connector)
+        result = await delete_integration(
+            self.payload,
+            connector=self.connector,
+            cache_service=self.cache_service
+        )
         self.assertIsNone(result)
 
         repo_instance.delete_integration.assert_awaited_once_with(
@@ -58,11 +61,10 @@ class TestDeleteIntegration(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(getattr(event, 'organization_id', None), self.identity.organization_id)
         self.assertEqual(getattr(event, 'integration_id', None), self.integration_id)
 
-        mock_cache.delete_by_prefix.assert_awaited_once_with(
+        self.cache_service.cache.delete_by_prefix.assert_awaited_once_with(
             self.identity.organization_id, self.identity.user_id
         )
 
-    @patch('api.router.delete_integration_router.integration_service_cache')
     @patch('api.router.delete_integration_router.get_kafka_message_bus')
     @patch('api.router.delete_integration_router.IntegrationRepository')
     @patch('api.router.delete_integration_router.get_current_identity')
@@ -71,44 +73,42 @@ class TestDeleteIntegration(unittest.IsolatedAsyncioTestCase):
         mock_get_current_identity,
         mock_repo_cls,
         mock_get_bus,
-        mock_cache,
     ):
         mock_get_current_identity.return_value = self.identity
 
-
         class DummyDeleteFailed(IntegrationDeleteFailed):
-            def __init__(self):
-                self._msg = 'not found'
             def __str__(self):
-                return self._msg
+                return 'not found'
 
         repo_instance = Mock()
         repo_instance.delete_integration = AsyncMock(side_effect=DummyDeleteFailed())
         mock_repo_cls.return_value = repo_instance
 
-        mock_get_bus.return_value = SimpleNamespace(publish=AsyncMock())
-        mock_cache.delete_by_prefix = AsyncMock()
+        bus = SimpleNamespace(publish=AsyncMock())
+        mock_get_bus.return_value = bus
 
         with self.assertRaises(HTTPException) as ctx:
-            await delete_integration(self.payload, connector=self.connector)
+            await delete_integration(
+                self.payload,
+                connector=self.connector,
+                cache_service=self.cache_service
+            )
 
         exc = ctx.exception
         self.assertEqual(exc.status_code, status.HTTP_424_FAILED_DEPENDENCY)
-        self.assertEqual(exc.detail, {'message': 'not found'})
+        self.assertEqual(exc.detail, {'message': 'Database error: not found'})
 
-        mock_get_bus.return_value.publish.assert_not_awaited()
-        mock_cache.delete_by_prefix.assert_not_awaited()
+        bus.publish.assert_not_awaited()
+        self.cache_service.cache.delete_by_prefix.assert_not_awaited()
 
-    @patch('api.router.delete_integration_router.integration_service_cache')
     @patch('api.router.delete_integration_router.get_kafka_message_bus')
     @patch('api.router.delete_integration_router.IntegrationRepository')
     @patch('api.router.delete_integration_router.get_current_identity')
-    async def test_unexpected_exception_returns_400(
+    async def test_unexpected_exception_returns_500(
         self,
         mock_get_current_identity,
         mock_repo_cls,
         mock_get_bus,
-        mock_cache,
     ):
         mock_get_current_identity.return_value = self.identity
 
@@ -116,15 +116,19 @@ class TestDeleteIntegration(unittest.IsolatedAsyncioTestCase):
         repo_instance.delete_integration = AsyncMock(side_effect=RuntimeError('boom'))
         mock_repo_cls.return_value = repo_instance
 
-        mock_get_bus.return_value = SimpleNamespace(publish=AsyncMock())
-        mock_cache.delete_by_prefix = AsyncMock()
+        bus = SimpleNamespace(publish=AsyncMock())
+        mock_get_bus.return_value = bus
 
         with self.assertRaises(HTTPException) as ctx:
-            await delete_integration(self.payload, connector=self.connector)
+            await delete_integration(
+                self.payload,
+                connector=self.connector,
+                cache_service=self.cache_service
+            )
 
         exc = ctx.exception
-        self.assertEqual(exc.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(exc.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(exc.detail, {'message': 'Unexpected error: boom'})
 
-        mock_get_bus.return_value.publish.assert_not_awaited()
-        mock_cache.delete_by_prefix.assert_not_awaited()
+        bus.publish.assert_not_awaited()
+        self.cache_service.cache.delete_by_prefix.assert_not_awaited()
