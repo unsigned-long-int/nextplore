@@ -25,8 +25,6 @@ Choose from a variety of powerful AI models:
 - **OpenAI**
 - **LlamA**
 
-_Future roadmap_: Support for **custom inference endpoints** to integrate your own AI models.
-
 - **Unified Search Across Integrations**  
   Query data across all connected databases in one go.
 
@@ -54,7 +52,8 @@ _Future roadmap_: Support for **custom inference endpoints** to integrate your o
 ## Architecture
 
 The image below provides the basic architecture of the application.
-![architecture](docs/Entity%20Relationship%20Diagram.jpg)
+
+![architecture](docs/architecture-diagram.jpg)
 
 ### Tenant Isolation
 
@@ -66,11 +65,11 @@ The image below provides the basic architecture of the application.
 
 ### Services Isolation
 
-- Each of microservices has its own PostgreSQL role assigned and is limited to access only relevant schemas.
-- Microservices share pydantic contracts and kafka messaging events to ensure they know what to expect.
+- Each microservice is provisioned with a dedicated PostgreSQL role, scoped with the principle of least privilege. Access is strictly limited to the schemas relevant to the service's domain, ensuring data segregation, minimizing blast radius, and supporting multi-tenant security requirements.
+- Inter-service communication follows an event-driven architecture implemented on Apache Kafka. To maintain strict, language-agnostic contract guarantees, producing services register and version AVRO schemas in the Confluent Schema Registry. This ensures schema evolution compatibility and prevents consumer-producer contract drift.
+- Kafka messages are transmitted in a compact, byte-encoded format, minimizing payload size and network overhead. Serialization and deserialization are handled via the AVRO-based implementation of the Codec interface, enabling a modular serialization layer. This design allows for seamless substitution with alternative serialization mechanisms such as Protocol Buffers or JSON without impacting upstream or downstream service logic.
+- Kafka messages are partitioned by tenant-id to guarantee ordered delivery and consistent event processing within each tenant's scope.
 
-###
-
-## Configuration
+### Logging
 
 ## License
