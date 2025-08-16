@@ -1,7 +1,9 @@
 import { Center, Paper, Stack, Text, Title } from '@mantine/core';
+import svg from '../assets/nextplore-logo-v-4.svg';
 import { LoginButton } from '../components/LoginButton';
 import { LightRays } from '../components/login/LoginPageBackground';
 import classes from '../styles/LoginPage.module.css';
+
 
 export const LoginPage = () => {
   return (
@@ -28,6 +30,7 @@ export const LoginPage = () => {
       <Center className={classes.center}>
         <Paper className={classes.card} shadow="xl" radius="lg">
           <Stack gap="md" align="center">
+            <img src={svg} alt='Logo' height={80} width={80}/>
             <Title className={classes.title}>
               Welcome to <span className={classes.brand}>Nextplore</span>
             </Title>
