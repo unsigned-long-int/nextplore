@@ -1,8 +1,79 @@
+<p align="center">
+  <img src="docs/nextplore-logo.png" alt="Nextplore Logo" width="200"/>
+</p>
+
+<h1 align="center">Nextplore</h1>
+
+<p align="center">
+  AI-powered insights • Secure • Instant • Beautiful.
+</p>
+
+---
+
+> ⚠️ **Status: WIP**  
+> Nextplore is under active development. Interfaces and features may change without notice.
+
 # Nextplore - LLM-powered SQL ORM Context Creator
 
-[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](./license.md)
+> Nextplore is a multi-tenant microservice SaaS designed to leverage Large Language Models (LLMs) and advanced metaprogramming to enable general users or developers to interact with range of databases easily without knowing SQL language. It enables natural language querying across variety of database systems including Snowflake, MySQL, MSSQL, PostgreSQL. Nextplore supports different LLMs integrations including Deepseek, Qwen, meta-Llama and GPT-4o.
 
-Nextplore is a multi-tenant microservice SaaS designed to leverage Large Language Models (LLMs) and advanced metaprogramming to enable general users or developers to interact with range of databases easily without knowing SQL language. It enables natural language querying across variety of database systems including Snowflake, MySQL, MSSQL, PostgreSQL. Nextplore supports different LLMs integrations including Deepseek, Qwen, meta-Llama and GPT-4o.
+<p align="center">
+  <a href="./license.md">
+    <img src="https://img.shields.io/badge/License-Proprietary-red.svg" alt="License: Proprietary">
+  </a>
+  <a href="./readme.md">
+    <img src="https://img.shields.io/badge/docs-open-blue" alt="Docs">
+  </a>
+  <img src="https://img.shields.io/badge/Status-WIP-yellowgreen" alt="Status: WIP">
+</p>
+
+---
+
+## Table Of Contents
+
+- [Demo & Screenshots](#demo--screenshots)
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Security & Compliance](#security--compliance)
+- [Databases & Storage](#databases--storage)
+- [APIs & SDKs](#apis--sdks)
+- [CLI & Admin Tools](#cli--admin-tools)
+- [Observability](#observability)
+- [Running in Production](#running-in-production)
+- [Tenancy at Scale – Gotchas](#tenancy-at-scale--gotchas)
+- [Testing & Quality](#testing--quality)
+- [Troubleshooting](#troubleshooting)
+- [Upgrade & Migration Guide](#upgrade--migration-guide)
+- [Roadmap & Changelog](#roadmap--changelog)
+- [Contribution Guide](#contribution-guide)
+- [Licensing & Notices](#licensing--notices)
+- [Support](#support)
+- [Appendices](#appendices)
+
+---
+
+## Demo & Screenshots
+
+### Natual Language AI Query
+
+Request any data across your integrations and get structured response.
+
+![AI Query Use Case](./docs/ai-query-use-case.gif)
+
+- **New Integrations Creation/Update/Delete**
+
+![Integrations Use Case](./docs/integrations-use-case.gif)
+
+- **Vectors Metadata Overview**
+
+![Vectors Metadata Use Case](./docs/vectors-metadata-use-case.gif)
+
+- **MFA Tenant Login**
+
+![MFA Login](./docs/mfa-login.gif)
+
+---
 
 ## Overview
 
@@ -10,11 +81,13 @@ Nextplore aims to enable developers or general users to interact with a variety 
 
 Due to abstraction of [DBAPI](https://peps.python.org/pep-0249/) the interaction with range of databases becomes possible regardless of the internals of particular database dialects. Nextplore creates ORMs by leveraging [factory pattern](https://refactoring.guru/design-patterns/factory-method) applied together with [metaprogramming](https://www.geeksforgeeks.org/python/metaprogramming-metaclasses-python/). This is achieved by converting natural language responses into structured JSON output schema which serve as arguments for a variety of metafactories responsible for generating new ORMs.
 
-Since databases may grow very large consisting of hundreds of schemas and tables, the metadata of tables are embedded and stored at [QDrant](https://qdrant.tech/). Respective metadata (i.e. integration, database, tables, schemas) is stored in PostgreSQL together with QDrant ID. This allows nextplore to apply [RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/) where only most relevant tables are used as basis for structured LLMs responses. The user natural language prompt is converted into vector, then cosine similarity is calculated between and top N vectors are matched as future knowledge source for chosen LLM.
+Since databases may grow very large consisting of hundreds of schemas and tables, the metadata of tables are embedded and stored at [QDrant](https://qdrant.tech/). Respective metadata (i.e. integration, database, tables, schemas) is stored in PostgreSQL together with QDrant ID. This allows nextplore to apply [RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/) where only most relevant tables are used as basis for structured LLMs responses. The user natural language prompt is converted into vector, then cosine similarity is calculated between and **top N** vectors are matched as future knowledge source for chosen LLM.
+
+---
 
 ## Features
 
-### AI Query
+### Natual Language Querying
 
 **Nextplore** enables you to explore and interact with **any relational data** across multiple databases **without writing a single line of SQL**.
 
@@ -44,12 +117,28 @@ With AI-driven search, you can query **all available metadata** from your connec
   View the **exact SQL** generated for your request.
 
 - **Data Export**  
-  Export selected results directly.
+  Export selected results directly for further analysis.
 
 - **Model Flexibility**  
   Choose your preferred AI model for query processing.
 
-![AI Query Use Case](./docs/ai-query-use-case.gif)
+### Integrations
+
+**Nextplore** supports integrations with the range of different **DBMS** including [Snowflake](https://www.snowflake.com/en/), [MySQL](https://www.mysql.com/), [MSSQL](https://www.microsoft.com/en/sql-server), [PostgreSQL](https://www.postgresql.org/). You can explore data across all your integrations using natural language.
+
+> ⚠️ **Authentication: Basic**  
+> In MVP only basic authentication is currently supported.
+
+---
+
+### Metadata Overview
+
+**Nextplore** provides a comprehensive view of the metadata associated with each integration.  
+It allows users to seamlessly inspect and validate active integrations, with a focus on the tables and columns most relevant for **Retrieval-Augmented Generation (RAG)** query resolution.
+
+By exposing both system-defined and descriptive metadata (e.g., SQL Server _extended properties_, PostgreSQL `COMMENT` fields), the platform helps users identify where metadata should be refined or extended.
+
+This refinement enables RAG pipelines to more accurately surface the correct datasets for user queries, ultimately improving both retrieval precision and interpretability of query results.
 
 ## Architecture
 
@@ -73,5 +162,7 @@ The image below provides the basic architecture of the application.
 - Kafka messages are partitioned by tenant-id to guarantee ordered delivery and consistent event processing within each tenant's scope.
 
 ### Logging
+
+---
 
 ## License
