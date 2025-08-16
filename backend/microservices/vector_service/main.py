@@ -11,7 +11,6 @@ from api.router import (
 )
 
 
-
 app = FastAPI(
     title='Vector Handling Service',
     description='Handles vectors retrieval and upserts',

@@ -3,7 +3,10 @@ import types
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch, call
 
+from fastapi import HTTPException
+
 from api.router.get_vector_profiles_router import get_vector_profiles
+from database.exceptions import VectorProfilesGetFailed
 
 
 def make_payload(integration_id='int-123'):
@@ -25,46 +28,53 @@ def make_vector_profile(integration_id, schema_name, table_name, table_meta_dict
 
 class TestGetVectorProfiles(unittest.IsolatedAsyncioTestCase):
     @patch('api.router.get_vector_profiles_router.get_current_identity')
-    @patch('api.router.get_vector_profiles_router.vector_service_cache')
     @patch('api.router.get_vector_profiles_router.VectorRepository')
     @patch('api.router.get_vector_profiles_router.VectorProfileResponse')
     async def test_cache_hit_returns_cached_immediately(
-        self, mock_resp_cls, mock_repo_cls, mock_cache, mock_get_id
+        self, mock_resp_cls, mock_repo_cls, mock_get_id
     ):
         user_identity = make_identity()
         mock_get_id.return_value = user_identity
 
         payload = make_payload()
         cached = [MagicMock(name='CachedVectorProfileResponse')]
-        mock_cache.get_vector_profiles = AsyncMock(return_value=cached)
-        mock_cache.set_vector_profiles = AsyncMock()
+
+        cache_service = MagicMock()
+        cache_service.get_vector_profiles = AsyncMock(return_value=cached)
+        cache_service.set_vector_profiles = AsyncMock()
 
         connector = MagicMock(name='DatabaseBackendConnector')
 
-        result = await get_vector_profiles(payload, connector)
+        result = await get_vector_profiles(
+            payload,
+            connector=connector,
+            cache_service=cache_service,
+        )
 
         self.assertIs(result, cached)
-        mock_cache.get_vector_profiles.assert_awaited_once_with(
-            user_identity=user_identity, request=payload
+
+        cache_service.get_vector_profiles.assert_awaited_once_with(
+            user_identity=user_identity,
+            request=payload,
         )
         mock_repo_cls.assert_not_called()
         mock_resp_cls.assert_not_called()
-        mock_cache.set_vector_profiles.assert_not_awaited()
+        cache_service.set_vector_profiles.assert_not_awaited()
 
     @patch('api.router.get_vector_profiles_router.get_current_identity')
-    @patch('api.router.get_vector_profiles_router.vector_service_cache')
     @patch('api.router.get_vector_profiles_router.VectorRepository')
     @patch('api.router.get_vector_profiles_router.VectorProfileResponse')
     async def test_cache_miss_queries_repo_builds_response_and_sets_cache(
-        self, mock_resp_cls, mock_repo_cls, mock_cache, mock_get_id
+        self, mock_resp_cls, mock_repo_cls, mock_get_id
     ):
         user_identity = make_identity(org_id=9001, user_id=77)
         mock_get_id.return_value = user_identity
 
         payload = make_payload(integration_id='int-XYZ')
 
-        mock_cache.get_vector_profiles = AsyncMock(return_value=None)
-        mock_cache.set_vector_profiles = AsyncMock()
+        cache_service = MagicMock()
+        cache_service.get_vector_profiles = AsyncMock(return_value=None)
+        cache_service.set_vector_profiles = AsyncMock()
 
         repo_instance = MagicMock(name='VectorRepositoryInstance')
         mock_repo_cls.return_value = repo_instance
@@ -79,7 +89,11 @@ class TestGetVectorProfiles(unittest.IsolatedAsyncioTestCase):
 
         connector = MagicMock(name='DatabaseBackendConnector')
 
-        result = await get_vector_profiles(payload, connector)
+        result = await get_vector_profiles(
+            payload,
+            connector=connector,
+            cache_service=cache_service,
+        )
 
         mock_repo_cls.assert_called_once_with(connector)
         repo_instance.get_vector_profiles.assert_awaited_once_with(
@@ -107,7 +121,100 @@ class TestGetVectorProfiles(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertEqual(result, [r1, r2])
-        mock_cache.set_vector_profiles.assert_awaited_once_with(
-            user_identity=user_identity, request=payload, response=[r1, r2]
+        cache_service.set_vector_profiles.assert_awaited_once_with(
+            user_identity=user_identity,
+            request=payload,
+            response=[r1, r2],
         )
 
+    @patch('api.router.get_vector_profiles_router.get_current_identity')
+    @patch('api.router.get_vector_profiles_router.VectorRepository')
+    @patch('api.router.get_vector_profiles_router.VectorProfileResponse')
+    async def test_empty_db_result_returns_empty_and_caches(
+        self, mock_resp_cls, mock_repo_cls, mock_get_id
+    ):
+        mock_get_id.return_value = make_identity()
+
+        payload = make_payload('int-empty')
+
+        cache_service = MagicMock()
+        cache_service.get_vector_profiles = AsyncMock(return_value=None)
+        cache_service.set_vector_profiles = AsyncMock()
+
+        repo_instance = MagicMock()
+        mock_repo_cls.return_value = repo_instance
+        repo_instance.get_vector_profiles = AsyncMock(return_value=[])
+
+        connector = MagicMock()
+
+        result = await get_vector_profiles(
+            payload,
+            connector=connector,
+            cache_service=cache_service,
+        )
+
+        mock_resp_cls.assert_not_called()
+        self.assertEqual(result, [])
+        cache_service.set_vector_profiles.assert_awaited_once_with(
+            user_identity=make_identity(),
+            request=payload,
+            response=[],
+        )
+
+    @patch('api.router.get_vector_profiles_router.get_current_identity')
+    @patch('api.router.get_vector_profiles_router.VectorRepository')
+    async def test_vectorprofilesgetfailed_maps_to_424(
+        self, mock_repo_cls, mock_get_id
+    ):
+        mock_get_id.return_value = make_identity()
+        payload = make_payload('int-err')
+
+        cache_service = MagicMock()
+        cache_service.get_vector_profiles = AsyncMock(return_value=None)
+
+        repo_instance = MagicMock()
+        mock_repo_cls.return_value = repo_instance
+        repo_instance.get_vector_profiles = AsyncMock(
+            side_effect=VectorProfilesGetFailed('DB said nope')
+        )
+
+        connector = MagicMock()
+
+        with self.assertRaises(HTTPException) as ctx:
+            await get_vector_profiles(
+                payload,
+                connector=connector,
+                cache_service=cache_service,
+            )
+
+        self.assertEqual(ctx.exception.status_code, 424)
+        self.assertIn('Database error:', ctx.exception.detail.get('message', ''))
+
+    @patch('api.router.get_vector_profiles_router.get_current_identity')
+    @patch('api.router.get_vector_profiles_router.VectorRepository')
+    async def test_unexpected_exception_maps_to_500(
+        self, mock_repo_cls, mock_get_id
+    ):
+        mock_get_id.return_value = make_identity()
+        payload = make_payload('int-500')
+
+        cache_service = MagicMock()
+        cache_service.get_vector_profiles = AsyncMock(return_value=None)
+
+        repo_instance = MagicMock()
+        mock_repo_cls.return_value = repo_instance
+        repo_instance.get_vector_profiles = AsyncMock(
+            side_effect=RuntimeError('boom')
+        )
+
+        connector = MagicMock()
+
+        with self.assertRaises(HTTPException) as ctx:
+            await get_vector_profiles(
+                payload,
+                connector=connector,
+                cache_service=cache_service,
+            )
+
+        self.assertEqual(ctx.exception.status_code, 500)
+        self.assertIn('Unexpected error:', ctx.exception.detail.get('message', ''))

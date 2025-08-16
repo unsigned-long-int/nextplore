@@ -4,9 +4,8 @@ from uuid import UUID
 
 
 @dataclass(frozen=True)
-class QdrantVectorPoint:
+class VectorPoint:
     id: UUID
     user_id: UUID
     organization_id: UUID
     vector: List[float]
-    

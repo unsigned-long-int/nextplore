@@ -1,1 +1,2 @@
 from .get_connector import get_connector
+from .get_vector_store_service import get_vector_store_service

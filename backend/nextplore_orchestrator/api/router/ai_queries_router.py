@@ -13,6 +13,7 @@ from api.dependencies.microservices import (
 from clients.ai_orm_context import ModelResponseRemoteError
 from clients.embedding import EmbeddingResponseRemoteError
 from clients.integration import IntegrationGetRemoteError
+from clients.vector import VectorSearchDBRemoteError, VectorGetMetasRemoteError
 from internal_services.orm_factory.ai_query_processor import AIQueryProcessor
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,13 @@ async def ai_query(
             user_identity=user_identity
         )
         return await processor.run(request)
-    except (ModelResponseRemoteError, EmbeddingResponseRemoteError, IntegrationGetRemoteError) as e:
+    except (
+        ModelResponseRemoteError, 
+        EmbeddingResponseRemoteError, 
+        IntegrationGetRemoteError, 
+        VectorSearchDBRemoteError,
+        VectorGetMetasRemoteError
+    ) as e:
         logger.error(
             'AI query failed (remote)',
             extra={'org_id': str(org_id), 'user_id': str(user_id)},

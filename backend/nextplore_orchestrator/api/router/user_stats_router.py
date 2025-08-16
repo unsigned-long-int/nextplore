@@ -7,6 +7,7 @@ from api.dependencies.microservices import get_integration_client, get_vector_cl
 from api.dependencies.cache import get_orchestrator_cache_service
 from cache.orchestrator_cache import OrchestratorCacheService
 from clients.integration import IntegrationGetStatsRemoteError
+from clients.vector import VectorGetStatsRemoteError
 from nextplore_sdk.contracts.nextplore_orchestrator_service.user_stats import UserStats
 from nextplore_sdk.contracts.integration_service.integration_stats_request import IntegrationStatsRequest
 from nextplore_sdk.contracts.vector_service.vector_stats_request import VectorStatsRequest
@@ -54,6 +55,16 @@ async def get_user_stats(
     except IntegrationGetStatsRemoteError as e:
         logger.error(
             'Integration get stats failed (remote)',
+            extra={'org_id': str(org_id), 'user_id': str(user_id)},
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_424_FAILED_DEPENDENCY,
+            detail={'message': str(e)}
+        )
+    except VectorGetStatsRemoteError as e:
+        logger.error(
+            'Vector get stats failed (remote)',
             extra={'org_id': str(org_id), 'user_id': str(user_id)},
             exc_info=True
         )

@@ -1,1 +1,0 @@
-from .qdrant_upsert_service import upsert_qdrant_vectors

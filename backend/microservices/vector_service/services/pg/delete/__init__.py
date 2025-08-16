@@ -1,1 +1,0 @@
-from .pg_delete_service import delete_pg_vector_metadata

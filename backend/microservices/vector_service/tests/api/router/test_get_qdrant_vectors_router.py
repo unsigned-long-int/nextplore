@@ -13,61 +13,72 @@ def make_payload(embedding=None):
 
 class GetQdrantVectorsTests(unittest.IsolatedAsyncioTestCase):
     @patch('api.router.get_qdrant_vectors_router.get_current_identity')
-    @patch('api.router.get_qdrant_vectors_router.vector_service_cache')
-    @patch('api.router.get_qdrant_vectors_router.search_nearest_vectors', new_callable=AsyncMock)
-    @patch('api.router.get_qdrant_vectors_router.QDrantVectorResponse')
-    async def test_cache_hit(self, mock_resp_cls, mock_search, mock_cache, mock_identity):
+    async def test_cache_hit(self, mock_identity):
         user_identity = 'user-xyz'
         mock_identity.return_value = user_identity
 
         payload = make_payload()
-        cached_response = {'vector_ids': [42]}
-        mock_cache.get_qdrant_vectors = AsyncMock(return_value=cached_response)
-        mock_cache.set_qdrant_vectors = AsyncMock()
 
-        result = await get_qdrant_vectors(payload)
+        cache_service = MagicMock()
+        cache_service.get_qdrant_vectors = AsyncMock(return_value={'vector_ids': [42]})
+        cache_service.set_qdrant_vectors = AsyncMock()
 
-        self.assertIs(result, cached_response)
+        vector_store_service = MagicMock()
+        vector_store_service.search_nearest_vectors = AsyncMock()
 
-        mock_cache.get_qdrant_vectors.assert_awaited_once_with(
+        result = await get_qdrant_vectors(
+            payload,
+            cache_service=cache_service,
+            vector_store_service=vector_store_service
+        )
+
+        self.assertIs(result, cache_service.get_qdrant_vectors.return_value)
+
+        cache_service.get_qdrant_vectors.assert_awaited_once_with(
             user_identity=user_identity,
             request=payload,
         )
+        vector_store_service.search_nearest_vectors.assert_not_awaited()
+        cache_service.set_qdrant_vectors.assert_not_awaited()
 
-        mock_search.assert_not_awaited()
-        mock_resp_cls.assert_not_called()
-        mock_cache.set_qdrant_vectors.assert_not_awaited()
-
-    @patch('api.router.get_qdrant_vectors_router.get_current_identity')
-    @patch('api.router.get_qdrant_vectors_router.vector_service_cache')
-    @patch('api.router.get_qdrant_vectors_router.search_nearest_vectors', new_callable=AsyncMock)
     @patch('api.router.get_qdrant_vectors_router.QDrantVectorResponse')
-    async def test_cache_miss_builds_and_sets_cache(self, mock_resp_cls, mock_search, mock_cache, mock_identity):
+    @patch('api.router.get_qdrant_vectors_router.get_current_identity')
+    async def test_cache_miss_builds_and_sets_cache(self, mock_identity, mock_resp_cls):
         user_identity = {'sub': 'abc'}
         mock_identity.return_value = user_identity
 
         payload = make_payload([0.9, 0.8])
-        mock_cache.get_qdrant_vectors = AsyncMock(return_value=None)
-        mock_cache.set_qdrant_vectors = AsyncMock()
+
+        cache_service = MagicMock()
+        cache_service.get_qdrant_vectors = AsyncMock(return_value=None)
+        cache_service.set_qdrant_vectors = AsyncMock()
 
         found_ids = [10, 11, 12]
-        mock_search.return_value = found_ids
+        vector_store_service = MagicMock()
+        vector_store_service.search_nearest_vectors = AsyncMock(return_value=found_ids)
 
         response_instance = MagicMock(name='QDrantVectorResponseInstance')
         mock_resp_cls.return_value = response_instance
 
-        result = await get_qdrant_vectors(payload)
+        result = await get_qdrant_vectors(
+            payload,
+            cache_service=cache_service,
+            vector_store_service=vector_store_service
+        )
 
-        mock_cache.get_qdrant_vectors.assert_awaited_once_with(
+        cache_service.get_qdrant_vectors.assert_awaited_once_with(
             user_identity=user_identity,
             request=payload,
         )
-        mock_search.assert_awaited_once_with(user_identity, payload.embedding)
+        vector_store_service.search_nearest_vectors.assert_awaited_once_with(
+            user_identity,
+            payload.embedding
+        )
 
         mock_resp_cls.assert_called_once_with(vector_ids=found_ids)
         self.assertIs(result, response_instance)
 
-        mock_cache.set_qdrant_vectors.assert_awaited_once_with(
+        cache_service.set_qdrant_vectors.assert_awaited_once_with(
             user_identity=user_identity,
             request=payload,
             response=response_instance,
