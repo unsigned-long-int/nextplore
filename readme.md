@@ -122,6 +122,8 @@ With AI-driven search, you can query **all available metadata** from your connec
 - **Model Flexibility**  
   Choose your preferred AI model for query processing.
 
+---
+
 ### Integrations
 
 **Nextplore** supports integrations with the range of different **DBMS** including [Snowflake](https://www.snowflake.com/en/), [MySQL](https://www.mysql.com/), [MSSQL](https://www.microsoft.com/en/sql-server), [PostgreSQL](https://www.postgresql.org/). You can explore data across all your integrations using natural language.
@@ -140,11 +142,15 @@ By exposing both system-defined and descriptive metadata (e.g., SQL Server _exte
 
 This refinement enables RAG pipelines to more accurately surface the correct datasets for user queries, ultimately improving both retrieval precision and interpretability of query results.
 
+---
+
 ## Architecture
 
 The image below provides the basic architecture of the application.
 
 ![architecture](docs/architecture-diagram.jpg)
+
+---
 
 ### Tenant Isolation
 
@@ -154,12 +160,16 @@ The image below provides the basic architecture of the application.
 - To ensure only authenticated users reach microservices endpoints, JWT validation (with caching) is performed through middleware where user credentials are validated and context is set per user identity.
 - Each of event sent by kafka follows the interface requiring to contain reference to user identity. Kafka events contain headers which allow message bus to partition them by tenant.
 
+---
+
 ### Services Isolation
 
 - Each microservice is provisioned with a dedicated PostgreSQL role, scoped with the principle of least privilege. Access is strictly limited to the schemas relevant to the service's domain, ensuring data segregation, minimizing blast radius, and supporting multi-tenant security requirements.
 - Inter-service communication follows an event-driven architecture implemented on Apache Kafka. To maintain strict, language-agnostic contract guarantees, producing services register and version AVRO schemas in the Confluent Schema Registry. This ensures schema evolution compatibility and prevents consumer-producer contract drift.
 - Kafka messages are transmitted in a compact, byte-encoded format, minimizing payload size and network overhead. Serialization and deserialization are handled via the AVRO-based implementation of the Codec interface, enabling a modular serialization layer. This design allows for seamless substitution with alternative serialization mechanisms such as Protocol Buffers or JSON without impacting upstream or downstream service logic.
 - Kafka messages are partitioned by tenant-id to guarantee ordered delivery and consistent event processing within each tenant's scope.
+
+---
 
 ### Logging
 
