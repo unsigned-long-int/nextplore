@@ -128,8 +128,38 @@ With AI-driven search, you can query **all available metadata** from your connec
 
 **Nextplore** supports integrations with the range of different **DBMS** including [Snowflake](https://www.snowflake.com/en/), [MySQL](https://www.mysql.com/), [MSSQL](https://www.microsoft.com/en/sql-server), [PostgreSQL](https://www.postgresql.org/). You can explore data across all your integrations using natural language.
 
-> ⚠️ **Authentication: Basic**  
-> In MVP only basic authentication is currently supported.
+> ⚠️ **Authentication**  
+> Currently, only the following authentication methods are supported. All connections use TLS with TrustServerCertificate=no, so the server's certificate must be issued by a publicly trusted Certificate Authority (CA). Certificates from private or internal CAs are not supported.
+
+| DB         | Native Authentication                       | Cloud-hosted: Azure                               | Cloud-hosted: AWS | Cloud-hosted: GCP | Key-Pair/JWT | Kerberos/Windows |
+| ---------- | ------------------------------------------- | ------------------------------------------------- | ----------------- | ----------------- | ------------ | ---------------- |
+| SQL Server | ✅ (MSSQL's native auth with password)      | ✅ (AD Service Principal, oAuth 2.0 Access Token) | ❌                | ❌                | ❌           | ❌               |
+| MySQL      | ✅ (MySQL's native auth with password)      | ✅ (oAuth 2.0 Access Token)                       | ❌                | ❌                | ❌           | ❌               |
+| PostgreSQL | ✅ (PostgreSQL's native auth with password) | ✅ (oAuth 2.0 Access Token)                       | ❌                | ❌                | ❌           | ❌               |
+
+#### SQL Server
+
+**Nextplore** supports multiple authentication methods for **SQL Server**:
+
+- **SQL authentication** with username/password.
+- For servers hosted on Azure, you can use either:
+
+  - **Microsoft Entra (Azure AD) Service Principal authentication**.
+  - **OAuth 2.0** (Azure AD access token).
+
+#### MySQL
+
+**Nextplore** also supports different authentication methods for **MySQL**:
+
+- **Native authentication** with username/password (e.g. `caching_sha2_password` or `mysql_native_password`).
+- For **Azure Database** for MySQL, you can also enable **OAuth 2.0** authentication.
+
+### PostgreSQL
+
+**Nextplore** provides multiple authentication methods for **PostgreSQL**:
+
+- **Native authentication** with username/password.
+- For **Azure Database** for PostgreSQL, you can also enable **OAuth 2.0** authentication.
 
 ---
 
