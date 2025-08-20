@@ -132,11 +132,13 @@ With AI-driven search, you can query **all available metadata** from your connec
 > All connections are secured using TLS with `TrustServerCertificate=false`, enforcing strict certificate validation. As a result, the server must present an SSL/TLS certificate issued by a publicly trusted Certificate Authority (CA). Certificates signed by private or internal CAs are not supported.
 > **Note**: Nextplore also maintains region-specific [CA bundles](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.CertificatesDownload) across all AWS regions to ensure compatibility and validation integrity.
 
-| DB         | Native Authentication                       | Cloud-hosted: Azure                               | Cloud-hosted: AWS | Cloud-hosted: GCP | Key-Pair/JWT | Kerberos/Windows |
-| ---------- | ------------------------------------------- | ------------------------------------------------- | ----------------- | ----------------- | ------------ | ---------------- |
-| SQL Server | ✅ (MSSQL's native auth with password)      | ✅ (AD Service Principal, oAuth 2.0 Access Token) | ❌                | ❌                | ❌           | ❌               |
-| MySQL      | ✅ (MySQL's native auth with password)      | ✅ (oAuth 2.0 Access Token)                       | ❌                | ❌                | ❌           | ❌               |
-| PostgreSQL | ✅ (PostgreSQL's native auth with password) | ✅ (oAuth 2.0 Access Token)                       | ❌                | ❌                | ❌           | ❌               |
+| DB         | Native Authentication                       | Cloud IAM: Azure                                  | Cloud IAM: AWS                   | Cloud IAM: GCP | Key-Pair/JWT | Kerberos/Windows |
+| ---------- | ------------------------------------------- | ------------------------------------------------- | -------------------------------- | -------------- | ------------ | ---------------- |
+| SQL Server | ✅ (MSSQL's native auth with password)      | ✅ (AD Service Principal, oAuth 2.0 Access Token) | ❌                               | ❌             | ❌           | ❌               |
+| MySQL      | ✅ (MySQL's native auth with password)      | ✅ (oAuth 2.0 Access Token)                       | ✅ (Assume Role with temp token) | ❌             | ❌           | ❌               |
+| PostgreSQL | ✅ (PostgreSQL's native auth with password) | ✅ (oAuth 2.0 Access Token)                       | ❌                               | ❌             | ❌           | ❌               |
+
+---
 
 #### SQL Server
 
@@ -144,6 +146,8 @@ With AI-driven search, you can query **all available metadata** from your connec
 
 - **SQL authentication** with username/password.
 - For servers hosted on Azure, you can use **Microsoft Entra (Azure AD) Service Principal authentication** with **oAuth 2.0**
+
+##### IAM Azure
 
 Microsoft provides a very good [guide](https://learn.microsoft.com/en-gb/azure/azure-sql/database/authentication-aad-configure?view=azuresql&tabs=azure-portal) on how to connect with **oAuth 2.0** on Azure SQL.
 
@@ -180,6 +184,8 @@ CREATE USER [<Microsoft_Entra_principal_name>] FROM EXTERNAL PROVIDER;
 
 6. You may want to restrict rights of the user to **SELECT-ONLY** and to certain schemas/tables that you want to query with **Nextplore** in the future.
 
+---
+
 #### MySQL
 
 **Nextplore** also supports different authentication methods for **MySQL**:
@@ -187,6 +193,8 @@ CREATE USER [<Microsoft_Entra_principal_name>] FROM EXTERNAL PROVIDER;
 - **Native authentication** with username/password (e.g. `caching_sha2_password` or `mysql_native_password`).
 - For **Azure Database** for MySQL, you can also enable **OAuth 2.0** authentication.
 - For **Aurora and RDS** hosted on AWS, you can also enable **IAM** connection with temporary tokens through [Assume Role](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
+
+##### IAM Azure
 
 To enable **oAuth 2.0** authentication for **MySQL** on Azure, follow these steps:
 
@@ -215,6 +223,8 @@ CREATE AADUSER '<service_principal_name>';
 10. You may want to restrict rights of the user to **SELECT-ONLY** and to certain schemas/tables that you want to query with **Nextplore** in the future.
 
 Here is also a microsoft [guide](https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-azure-ad) on the same.
+
+##### IAM AWS
 
 To enable **IAM** connection on AWS, follow these steps:
 
