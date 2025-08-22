@@ -130,7 +130,9 @@ With AI-driven search, you can query **all available metadata** from your connec
 
 > ⚠️ **Authentication**  
 > All connections are secured using TLS with `TrustServerCertificate=false`, enforcing strict certificate validation. As a result, the server must present an SSL/TLS certificate issued by a publicly trusted Certificate Authority (CA). Certificates signed by private or internal CAs are not supported.
+
 > ⚠️ **Note 1**: Nextplore also maintains region-specific [CA bundles](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.CertificatesDownload) across all AWS regions to ensure compatibility and validation integrity.
+
 > ⚠️ **Note 2**: Currently, Nextplore does not support private endpoints accessible only through customer VNets or VPNs.
 > However, Nextplore guarantees static egress IPs, which allow you to safely expose your database endpoint to the public network while restricting inbound access exclusively to Nextplore's IP(s). I recommend configuring your firewall or network security group to permit connections only from this address.
 
