@@ -130,13 +130,15 @@ With AI-driven search, you can query **all available metadata** from your connec
 
 > ⚠️ **Authentication**  
 > All connections are secured using TLS with `TrustServerCertificate=false`, enforcing strict certificate validation. As a result, the server must present an SSL/TLS certificate issued by a publicly trusted Certificate Authority (CA). Certificates signed by private or internal CAs are not supported.
-> **Note**: Nextplore also maintains region-specific [CA bundles](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.CertificatesDownload) across all AWS regions to ensure compatibility and validation integrity.
+> ⚠️ **Note 1**: Nextplore also maintains region-specific [CA bundles](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.CertificatesDownload) across all AWS regions to ensure compatibility and validation integrity.
+> ⚠️ **Note 2**: Currently, Nextplore does not support private endpoints accessible only through customer VNets or VPNs.
+> However, Nextplore guarantees static egress IPs, which allow you to safely expose your database endpoint to the public network while restricting inbound access exclusively to Nextplore's IP(s). I recommend configuring your firewall or network security group to permit connections only from this address.
 
-| DB         | Native Authentication                       | Cloud IAM: Azure                                  | Cloud IAM: AWS                   | Cloud IAM: GCP | Key-Pair/JWT | Kerberos/Windows |
-| ---------- | ------------------------------------------- | ------------------------------------------------- | -------------------------------- | -------------- | ------------ | ---------------- |
-| SQL Server | ✅ (MSSQL's native auth with password)      | ✅ (AD Service Principal, oAuth 2.0 Access Token) | ❌                               | ❌             | ❌           | ❌               |
-| MySQL      | ✅ (MySQL's native auth with password)      | ✅ (oAuth 2.0 Access Token)                       | ✅ (Assume Role with temp token) | ❌             | ❌           | ❌               |
-| PostgreSQL | ✅ (PostgreSQL's native auth with password) | ✅ (oAuth 2.0 Access Token)                       | ❌                               | ❌             | ❌           | ❌               |
+| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure                             | Cloud IAM: AWS                   | Cloud IAM: GCP | Key-Pair/JWT | Kerberos/Windows |
+| ---------- | -------------------------------------- | -------------------------------------------- | -------------------------------- | -------------- | ------------ | ---------------- |
+| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate) | ❌                               | ❌             | ❌           | ❌               |
+| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate) | ✅ (Assume Role with temp token) | ❌             | ❌           | ❌               |
+| PostgreSQL | ✅ (PostgreSQL's pwd auth)             | ✅ (oAuth 2.0 - Client Secret / Certificate) | ✅ (Assume Role with temp token) | ❌             | ❌           | ❌               |
 
 ---
 
@@ -144,19 +146,17 @@ With AI-driven search, you can query **all available metadata** from your connec
 
 **Nextplore** supports multiple authentication methods for **SQL Server**:
 
-- **SQL authentication** with username/password.
+- **SQL native authentication** with username/password.
 - For servers hosted on Azure, you can use **Microsoft Entra (Azure AD) Service Principal authentication** with **oAuth 2.0**
 
 ##### IAM Azure
 
-Microsoft provides a very good [guide](https://learn.microsoft.com/en-gb/azure/azure-sql/database/authentication-aad-configure?view=azuresql&tabs=azure-portal) on how to connect with **oAuth 2.0** on Azure SQL.
-
-Here is also a high-level **overview** how you may use **oAuth 2.0** that:
+Microsoft provides a very comprehensive [guide](https://learn.microsoft.com/en-gb/azure/azure-sql/database/authentication-aad-configure?view=azuresql&tabs=azure-portal) on how to connect with **oAuth 2.0** on Azure SQL Server.
 
 > ⚠️ **Note:**
 > With minor syntatic sugar differences the configuration of oAuth 2.0 on Azure is very similar for SQL Server, MySQL and PostgreSQL. For non-native DBMS logging in as initial admin is enabled via token auth.
 
-1. Under your running Azure Server Instance, set **Microsoft Entra Admin** (_it will be used for initial connection and creating users in SQL Server_)
+1. Under your running Azure Server Instance, set **Microsoft Entra Admin** (_it will be used for initial connection and creating AAD users in SQL Server_)
 2. Connect to your instance from **VSCode** or **ADS** with **Microsoft Entra Id - Universal with MFA Support** authentication type using your **Microsoft Entra Admin** account.
    - **ADS**:
      - left-bottom account corner
@@ -170,19 +170,27 @@ Here is also a high-level **overview** how you may use **oAuth 2.0** that:
      - provide database name (optional)
      - choose authentication type **Microsoft Entra Id - Universal with MFA Support**
      - log in via browser with MFA
-3. Register **Service Principal** (Application) in Azure.
+3. Register Application in Azure.
    - Ensure your service principal has `Directory Readers` role in Azure.
 4. Create Microsoft Entra Principals in SQL.
    - Ensure microsoft entra principal name in SQL matches exactly the one you just registered.
-5. Then when creating integration on **Nextplore** just provide your client secret, tenant id, client id.
-   - **Nextplore** will store them encrypted and will take care of [**oAuth 2.0**]
-   - Note, that your client secrets will NOT be used in connection string and authentication will happen using temp byte token as described [here](https://learn.microsoft.com/en-us/sql/connect/odbc/using-azure-active-directory?view=sql-server-ver17#authenticating-with-an-access-token)
 
 ```sql
 CREATE USER [<Microsoft_Entra_principal_name>] FROM EXTERNAL PROVIDER;
 ```
 
-6. You may want to restrict rights of the user to **SELECT-ONLY** and to certain schemas/tables that you want to query with **Nextplore** in the future.
+5. You may want to restrict rights of the user to **SELECT-ONLY** and to certain schemas/tables that you want to query with **Nextplore** in the future.
+6. Then you have 2 options:
+   - **Client Secret** Auth:
+     - Add secrets to your registered app
+     - When creating integration on **Nextplore** just provide your client secret, tenant id, client id.
+     - **Nextplore** will store them encrypted and will take care of [**oAuth 2.0**]
+     - Note, that your client secrets will NOT be used in connection string and authentication will happen using temp byte token as described [here](https://learn.microsoft.com/en-us/sql/connect/odbc/using-azure-active-directory?view=sql-server-ver17#authenticating-with-an-access-token)
+   - **Certificate** Auth:
+     - Although **Nextplore** supports using secrets for oAuth 2.0, the use of those is **discouraged** due to exposure of secrets (for flexible servers) in connection strings and short-life nature of secrets.
+     - It is highly advised to use Certificate authentication instead. Certificates are long-lived and provide much better way to authenticate.
+     - If you choose authentication with Azure IAM via Certificate, **Nextplore** will generate certficate key pairs (RSA 3072) and store private key securely in AKV and provide you with public one.
+     - Then you will just need to upload this public key to your registered app, so that it can verify JWT which Nextplore signed with private key.
 
 ---
 
@@ -192,13 +200,13 @@ CREATE USER [<Microsoft_Entra_principal_name>] FROM EXTERNAL PROVIDER;
 
 - **Native authentication** with username/password (e.g. `caching_sha2_password` or `mysql_native_password`).
 - For **Azure Database** for MySQL, you can also enable **OAuth 2.0** authentication.
-- For **Aurora and RDS** hosted on AWS, you can also enable **IAM** connection with temporary tokens through [Assume Role](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
+- For **Aurora and RDS** on AWS, you can also enable **IAM** connection with temporary tokens via [Role Assumption Policy](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
 
 ##### IAM Azure
 
 To enable **oAuth 2.0** authentication for **MySQL** on Azure, follow these steps:
 
-1. Create MySQL instance on Azure for **MySQL** flexible servers.
+1. Create (if not done already) MySQL instance on Azure for **MySQL** flexible servers.
 2. Create **user managed identity** ([UMI](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/how-manage-user-assigned-managed-identities?pivots=identity-mi-methods-azp)).
 3. Assign following privelleges to UMI:
    - User.Read.All
@@ -207,20 +215,22 @@ To enable **oAuth 2.0** authentication for **MySQL** on Azure, follow these step
 4. Set Microsoft Entra Admin (same as by SQL Server)
 5. Enable either **Microsoft Entra authentication only** or **MySQL and Microsoft Entra authentication** under Authentication in your MySQL instance on Azure.
 6. Once enabled, Microsoft Entra admin may log in and create AAD users for connections. (in our case AAD user will be service principal)
-7. Unlike SQL Server where connection was performed seamlessly through ADS or VSCODE, to log in you need to provide a valid access token as password yourself.
-8. To do so get token in Azure CLI like this:
+7. Register application if not done -> this will be used as AAD user for connection.
+8. Unlike SQL Server where connection was performed interactively through ADS or VSCODE, for initial login as admin you need to provide a valid access token as password yourself.
+9. To do so get token in Azure CLI like this:
    - log in to azure via browser and choose/confirm your subscription:
      `az login`
    - once confirmed and logged in fetch the token into TOKEN variable:
      `TOKEN=$(az account get-access-token --resource-type oss-rdbms -o tsv --query accessToken)`
-   - now you may go to **MySQL Workbench** and set obtained token as password and you username as Entra Admin you set on MySQL instance in Azure (for other connections, check the [guide](https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-azure-ad)).
-9. When you are inside, create the AAD user with this statement:
+   - now you may go to **MySQL Workbench** and insert obtained token as password and your your Entra Admin as user name (for other ways to initially connect, check the [guide](https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-azure-ad)).
+10. When you are inside MySQL, create the AAD user with this statement:
 
 ```sql
 CREATE AADUSER '<service_principal_name>';
 ```
 
-10. You may want to restrict rights of the user to **SELECT-ONLY** and to certain schemas/tables that you want to query with **Nextplore** in the future.
+11. You may want to restrict rights of the user to **SELECT-ONLY** and to certain schemas/tables that you want to query with **Nextplore** in the future.
+12. Again, oAuth 2.0 access to the service principal may be configured via secret or certificate with the latter being preferred method.
 
 Here is also a microsoft [guide](https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-azure-ad) on the same.
 
@@ -232,13 +242,17 @@ To enable **IAM** connection on AWS, follow these steps:
 2. Connect to MySQL (e.g. via MySQL Workbench) with your admin account (_you should have created this when making the instance_)
 3. Create user for future connection:
    Here, again you may want to restrict what **Nextplore** service may access in your DB.
+4. In MySQL **IAM access** is provided by [AWSAuthenticationPlugin](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.DBAccounts.html)
 
 ```sql
+-- create user identified with AWSAuthenticationPlugin which will handle IAM token auth
 CREATE USER 'test_user'@'%' IDENTIFIED WITH AWSAuthenticationPlugin AS 'RDS';
-GRANT SELECT, INSERT, UPDATE, DELETE ON your_database.* TO 'test_user'@'%';
+
+-- GRANT least privelege access to DB or retrict further to schemas
+GRANT SELECT ON your_database.* TO 'test_user'@'%';
 ```
 
-4. Create IAM policy for `test_user`:
+5. Create **IAM** policy for `test_user`:
 
 **Example: IAM Policy**
 
@@ -249,17 +263,21 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON your_database.* TO 'test_user'@'%';
 		{
 			"Effect": "Allow",
 			"Action": "rds-db:connect",
-			"Resource": "arn:aws:rds-db:<region>:<account_id>:dbuser:<resource-id-mysql>/test_user"
+			"Resource": "arn:aws:rds-db:<REGION>:<ACCOUNT_ID>:dbuser:<RESOURCE-ID>/test_user"
 		}
 	]
 }
 ```
 
-5. Since **Nextplore** uses **Assume Role** you need to create role to set up the trust relationship with AWS **Nextplore** account.
+`**REGION**`: region of your DB.
+`**ACCOUNT_ID**`: your account ID.
+`**RESOURCE-ID**`: resource id of your DB instance.
+
+6. Since **Nextplore** uses **Role Assumption** for AWS IAM, you need to create role to set up the permission policy for AWS **Nextplore** account with your DB user.
 
 > ⚠️ **Note:**:
 >
-> - **Nextplore** uses AWS Service - `ec2.amazonaws.com` - under **`NextploreExecutionRole`** for accessing your DB instance. So you should name principal accordingly (see example below).
+> - **Nextplore** uses AWS Service - `ec2.amazonaws.com` - under **`NextploreExecutionRole`** for accessing your DB instance. So in your permission policy, you should name principal accordingly (see example below).
 > - **Nextplore** also validates the role names it is allowed to assume. So please ensure arn follows this naming convention: **`arn:aws:iam::<YOUR_ACCOUNT_ID>:role/NextploreRdsAccessRole`**.
 
 **Example: Trust Policy**
@@ -286,9 +304,11 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON your_database.* TO 'test_user'@'%';
 
 **`EXTERNAL_ID`**: Unique connection id for Nextplore
 
-- we will provide you with the one during integration creation with **AWS IAM**
+- we will provide you with this when you create your integration
 
-6. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
+7. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
+
+---
 
 ### PostgreSQL
 
@@ -296,14 +316,18 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON your_database.* TO 'test_user'@'%';
 
 - **Native authentication** with username/password.
 - For **Azure Database** for PostgreSQL, you can also enable **OAuth 2.0** authentication.
+- For **Aurora and RDS** on AWS, you can also enable **IAM** connection with temporary tokens via [Role Assumption](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
+
+#### IAM Azure
 
 To use **oAuth 2.0** flow with Microsoft Entra, please follow these steps:
 
-1. Create **PostgreSQL** instance on Azure for flexible servers.
+1. Create (if not already done) **PostgreSQL** instance on Azure for flexible servers.
 2. Set **Microsoft Entra Admin(s)** for initial authentication and AD users creation (unlike MySQL, multiple admins are possible here).
-3. Obtain the login admin token the same way as described in **MySQL step 8** above.
-4. Use this token in pgAdmin to connect.
-5. For your registered application run the following statement:
+3. Register you application with `your-sp-name`.
+4. Obtain the login admin token the same way as described in **MySQL step 9** above.
+5. Use this token in **pgAdmin** to connect.
+6. For your registered application run the following **statement**:
 
 ```sql
 SELECT * FROM pg_catalog.pgaadauth_create_principal_with_oid(
@@ -315,18 +339,99 @@ SELECT * FROM pg_catalog.pgaadauth_create_principal_with_oid(
 )
 ```
 
-I highly recommend you to read much more detailed microsoft [guide](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/security-entra-configure) on the same.
+7. Again here, enable app authentication either with **secret** or **certificate** (preferred).
+
+For more info you can refer to this [guide](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/security-entra-configure).
+
+#### IAM AWS
+
+To connect via **IAM** in AWS, follow these steps:
+
+1. Create **PostgreSQL** instance on AWS under if not done.
+2. Connect to **PostgreSQL** (e.g. via pgAdmin or psql) with your admin account (_you should have created this when making the instance_)
+3. Create user for future connection:
+   Here, again you may want to restrict what **Nextplore** service may access in your DB.
+4. In **PostgreSQL** you need to grant **rds_iam** role to the user for **IAM** authentication.
+
+```sql
+CREATE USER test_user WITH LOGIN;
+
+GRANT rds_iam TO test_user;
+
+GRANT CONNECT ON DATABASE starwars_universe TO test_user;
+GRANT USAGE ON SCHEMA death_star TO test_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA death_star TO test_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA death_star GRANT SELECT ON TABLES TO test_user;
+```
+
+5. Create **IAM** policy for `test_user`:
+
+**Example: IAM Policy**
+
+```
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": "rds-db:connect",
+			"Resource": "arn:aws:rds-db:<REGION>:<ACCOUNT_ID>:dbuser:<RESOURCE-ID>/test_user"
+		}
+	]
+}
+```
+
+`**REGION**`: region of your DB.
+`**ACCOUNT_ID**`: your account ID.
+`**RESOURCE-ID**`: resource id of your DB instance.
+
+6. Since **Nextplore** uses **Role Assumption** you need to create role to set up the trust relationship with AWS **Nextplore** account.
+
+> ⚠️ **Note:**:
+>
+> - **Nextplore** uses AWS Service - `ec2.amazonaws.com` - under **`NextploreExecutionRole`** for accessing your DB instance. So in your permission policy, you should name principal accordingly (see example below).
+> - **Nextplore** also validates the role names it is allowed to assume. So please ensure arn follows this naming convention: **`arn:aws:iam::<YOUR_ACCOUNT_ID>:role/NextploreRdsAccessRole`**.
+
+**Example: Trust Policy**
+
+```
+
+{
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Effect": "Allow",
+        "Principal": { "AWS": "arn:aws:iam::<NEXTPLORE_SAAS_AWS_ACCOUNT_ID>:role/NextploreExecutionRole" },
+        "Action": "sts:AssumeRole",
+        "Condition": {
+            "StringEquals": {
+                "sts:ExternalId": "<EXTERNAL_ID>"
+            }
+        }
+    }]
+}
+
+```
+
+**`NEXTPLORE_SAAS_AWS_ACCOUNT_ID`**: Nextplore AWS Account
+
+- we will provide you with this when you create your integration
+
+**`EXTERNAL_ID`**: Unique connection id for Nextplore
+
+- we will provide you with this when you create your integration
+
+7. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
 
 ---
 
 > ⚠️ **Note:**
-> To enabled more robust integration experience, it is planned to add certificates (instead of secrets) authentication and gateway agent for Kerberos in the next releases.
+> To enable more robust integration experience, it is planned to add gateway agent for **Kerberos** in the next releases.
 
 ---
 
 ### Metadata Overview
 
-**Nextplore** provides a comprehensive view of the metadata associated with each integration.  
+**Nextplore** provides a comprehensive view of the metadata associated with each integration.
 It allows users to seamlessly inspect and validate active integrations, with a focus on the tables and columns most relevant for **Retrieval-Augmented Generation (RAG)** query resolution.
 
 By exposing both system-defined and descriptive metadata (e.g., SQL Server _extended properties_, PostgreSQL `COMMENT` fields), the platform helps users identify where metadata should be refined or extended.
@@ -367,3 +472,7 @@ The image below provides the basic architecture of the application.
 ---
 
 ## License
+
+```
+
+```
