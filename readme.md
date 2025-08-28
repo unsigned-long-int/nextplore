@@ -168,7 +168,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    To retrieve `DNS Name` follow these steps:
 
    - Authenticate using **gcloud CLI**
-   - Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe)) (replace placeholders with your instance details):
+   - Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe) (replace placeholders with your instance details):
 
    ```
    gcloud sql instances describe INSTANCE_NAME \
@@ -277,7 +277,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    To retrieve `DNS Name` follow these steps:
 
    - Authenticate using **gcloud CLI**
-   - Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe)) (replace placeholders with your instance details):
+   - Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe) (replace placeholders with your instance details):
 
    ```
    gcloud sql instances describe INSTANCE_NAME \
@@ -438,8 +438,9 @@ To enable **IAM** authentication on GCP, follow these steps:
 5. Go to Users -> Add User Account -> Cloud IAM and enter **Nextplore GCP Service Account**.
 6. Connect to your instance with admin you set when creating the instance.
 7. Assign the least privelege access to the **Nextplore GCP Service Account** user.
-   > ⚠️ **Note:**:
-   > **GCP** shortens the service account name when creating user to ensure it does not exceed user name length limits. So service account `nextplore-service@nextplore-123.iam.gserviceaccount.com` becomes just `nextplore-service@nextplore-123.iam`. This is the account you need to provide SQL access to.
+
+> ⚠️ **Note:**:
+> **GCP** shortens the service account name when creating user to ensure it does not exceed user name length limits. So service account `nextplore-service@nextplore-123.iam.gserviceaccount.com` becomes just `nextplore-service@nextplore-123.iam`. This is the account you need to provide SQL access to.
 
 **Example MySQL Login Access Provision**:
 
@@ -473,7 +474,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    To retrieve `DNS Name` follow these steps:
 
    - Authenticate using **gcloud CLI**
-   - Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe)) (replace placeholders with your instance details):
+   - Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe) (replace placeholders with your instance details):
 
    ```
    gcloud sql instances describe INSTANCE_NAME \
