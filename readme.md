@@ -128,19 +128,20 @@ With AI-driven search, you can query **all available metadata** from your connec
 
 **Nextplore** natively integrates with multiple database management systems (DBMS), including [Snowflake](https://www.snowflake.com/en/), [MySQL](https://www.mysql.com/), [MSSQL](https://www.microsoft.com/en/sql-server), [PostgreSQL](https://www.postgresql.org/). For authentication and authorization, it supports standards-based **Identity and Access Management (IAM)** integration with major cloud providers: Azure, AWS, and GCP - enabling secure, policy-driven access to managed services.
 
-> ⚠️ **Authentication**  
-> All connections are secured using TLS with `TrustServerCertificate=false`, enforcing strict certificate validation. As a result, the server must present an SSL/TLS certificate issued by a publicly trusted Certificate Authority (CA). Certificates signed by private or internal CAs are not supported.
+> :passport_control: **Authentication**  
+> All connections are established over TLS with `TrustServerCertificate=false`, enforcing strict **X.509 certificate validation**. As a result, the server must present an SSL/TLS certificate issued by a publicly trusted **Certificate Authority (CA)**. Certificates signed by private or internal CAs are **not supported**.
 
-> ⚠️ **Note 1**: Nextplore also maintains region-specific [CA bundles](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.CertificatesDownload) across all AWS regions to ensure compatibility and validation integrity.
+> ⚠️ **Note 1**: To ensure end-to-end trust validation, **Nextplore** ships and maintains [CA bundles](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html#UsingWithRDS.SSL.CertificatesDownload) across all **AWS** regions and [CA budnles](https://cloud.google.com/sql/docs/postgres/manage-ssl-instance) for all **GCP** regions.
 
 > ⚠️ **Note 2**: Currently, Nextplore does not support private endpoints accessible only through customer VNets or VPNs.
-> However, Nextplore guarantees static egress IPs, which allow you to safely expose your database endpoint to the public network while restricting inbound access exclusively to Nextplore's IP(s). I recommend configuring your firewall or network security group to permit connections only from this address.
+> However, Nextplore guarantees static egress IPs, which allow you to safely expose your database endpoint to the public network while restricting inbound access exclusively to Nextplore's IP(s). It is recommended to configure your firewall or network security group to permit connections only from this address.
+> :blush: **Exception**: For **GCP**-hosted instances **Nextplore** gives you possibility to avoid IP whitelisting via [Cloud Authentication Proxy Connectors](https://cloud.google.com/sql/docs/mysql/language-connectors) as described [here](#sql-native-authentication).
 
-| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure                             | Cloud IAM: AWS                   | Cloud IAM: GCP | Key-Pair/JWT | Kerberos/Windows |
-| ---------- | -------------------------------------- | -------------------------------------------- | -------------------------------- | -------------- | ------------ | ---------------- |
-| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate) | ❌                               | ❌             | ❌           | ❌               |
-| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate) | ✅ (Assume Role with temp token) | ❌             | ❌           | ❌               |
-| PostgreSQL | ✅ (PostgreSQL's pwd auth)             | ✅ (oAuth 2.0 - Client Secret / Certificate) | ✅ (Assume Role with temp token) | ❌             | ❌           | ❌               |
+| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure                             | Cloud IAM: AWS                   | Cloud IAM: GCP                        | Key-Pair/JWT | Kerberos/Windows |
+| ---------- | -------------------------------------- | -------------------------------------------- | -------------------------------- | ------------------------------------- | ------------ | ---------------- |
+| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate) | ❌                               | ❌                                    | ❌           | ❌               |
+| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate) | ✅ (Assume Role with temp token) | ✅ (IAM DB Auth with Cloud Connector) | ❌           | ❌               |
+| PostgreSQL | ✅ (PostgreSQL's pwd auth)             | ✅ (oAuth 2.0 - Client Secret / Certificate) | ✅ (Assume Role with temp token) | ✅ (IAM DB Auth with Cloud Connector) | ❌           | ❌               |
 
 ---
 
@@ -150,6 +151,60 @@ With AI-driven search, you can query **all available metadata** from your connec
 
 - **SQL native authentication** with username/password.
 - For servers hosted on Azure, you can use **Microsoft Entra (Azure AD) Service Principal authentication** with **oAuth 2.0**
+- There is no **IAM auth** available for **AWS** and **GCP** for now.
+
+##### SQL native authentication
+
+To enable password authentication for instances hosted on **AWS** and **Azure**, you need to provide only host name, username and password. **Nextplore** automatically takes care of TLS via shared CA bundles.
+
+By default, **GCP** exposes only a public IP address rather than a hostname, as described in the [official documentation](https://cloud.google.com/sql/docs/sqlserver/configure-ssl-instance).
+
+To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to configure password authentication:
+
+1. **Native Connection**
+   To enable CA verification, **Nextplore** configures DNS resolution against the instance. This requires both the **public IP** address and the corresponding **DNS name** to be provided, ensuring that certificate validation can be performed automatically.
+
+   To retrieve `DNS Name` follow these steps:
+
+   - Authenticate using **gcloud CLI**
+   - Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe)) (replace placeholders with your instance details):
+
+   ```
+   gcloud sql instances describe INSTANCE_NAME \
+   --project=PROJECT_ID
+   ```
+
+   - Locate the `dnsName` field in the output. It will be in the following format:
+
+   ```
+   INSTANCE_UID.PROJECT_DNS_LABEL.REGION_NAME.sql.goog.
+   ```
+
+   In this case your connection stays encrypted and verifiable, but you need to additionally **whitelist** **Nextplore egress IP** in your firewall settings.
+
+   When creating your integration with simple **auth** you need to provide the **following**:
+
+   - host (your retrieved `dnsName` from **GCP**)
+   - public IP
+   - database
+   - username
+   - password
+
+2. **gcloud Proxy Connection**
+   **Nextplore** also provides implementation of engine creator via [GCP Cloud SQL Connector](https://cloud.google.com/sql/docs/postgres/connect-connectors) which overtakes encryption and removes the burden of managing firewall rules or SSL certificates manually. It means as long as your instance is hosted on Azure, you do not have to include **Nextplore egress IP** in your firewall whitelist.
+   To do so, **Nextplore** runs **GCP** service account to which you need to give respective access rights. (similar to AWS role permissions)
+
+   To enable **Connector Login**, follow the following **steps**:
+
+   - On **GCP** go to IAM -> Grant Access
+   - Add **Nextplore GCP service account** and provide it with `Cloud SQL Client` role. (service account name will be shown on creation)
+
+   When creating your integration with **GCP Cloud Connector** you need to provide the **following**:
+
+   - host (your connection name from GCP instance)
+   - database
+   - username (for SQL login)
+   - password (for SQL login)
 
 ##### IAM Azure
 
@@ -203,6 +258,60 @@ CREATE USER [<Microsoft_Entra_principal_name>] FROM EXTERNAL PROVIDER;
 - **Native authentication** with username/password (e.g. `caching_sha2_password` or `mysql_native_password`).
 - For **Azure Database** for MySQL, you can also enable **OAuth 2.0** authentication.
 - For **Aurora and RDS** on AWS, you can also enable **IAM** connection with temporary tokens via [Role Assumption Policy](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
+- For **GCP**, you have the possibility to connect with **IAM** authentication with temporary tokens via [Cloud Connector](https://cloud.google.com/sql/docs/postgres/iam-logins).
+
+##### SQL native authentication
+
+To enable password authentication for instances hosted on **AWS** and **Azure**, you need to provide only host name, username and password. **Nextplore** automatically takes care of TLS via shared CA bundles.
+
+By default, **GCP** exposes only a public IP address rather than a hostname, as described in the [official documentation](https://cloud.google.com/sql/docs/sqlserver/configure-ssl-instance).
+
+To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to configure password authentication:
+
+1. **Native Connection**
+   To enable CA verification, **Nextplore** configures DNS resolution against the instance. This requires both the **public IP** address and the corresponding **DNS name** to be provided, ensuring that certificate validation can be performed automatically.
+
+   To retrieve `DNS Name` follow these steps:
+
+   - Authenticate using **gcloud CLI**
+   - Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe)) (replace placeholders with your instance details):
+
+   ```
+   gcloud sql instances describe INSTANCE_NAME \
+   --project=PROJECT_ID
+   ```
+
+   - Locate the `dnsName` field in the output. It will be in the following format:
+
+   ```
+   INSTANCE_UID.PROJECT_DNS_LABEL.REGION_NAME.sql.goog.
+   ```
+
+   In this case your connection stays encrypted and verifiable, but you need to additionally **whitelist** **Nextplore egress IP** in your firewall settings.
+
+   When creating your integration with simple **auth** you need to provide the **following**:
+
+   - host (your retrieved `dnsName` from **GCP**)
+   - public IP
+   - database
+   - username
+   - password
+
+2. **gcloud Proxy Connection**
+   **Nextplore** also provides implementation of engine creator via [GCP Cloud SQL Connector](https://cloud.google.com/sql/docs/postgres/connect-connectors) which overtakes encryption and removes the burden of managing firewall rules or SSL certificates manually. It means as long as your instance is hosted on Azure, you do not have to include **Nextplore egress IP** in your firewall whitelist.
+   To do so, **Nextplore** runs **GCP** service account to which you need to give respective access rights. (similar to AWS role permissions)
+
+   To enable **Connector Login**, follow the following **steps**:
+
+   - On **GCP** go to IAM -> Grant Access
+   - Add **Nextplore GCP service account** and provide it with `Cloud SQL Client` role. (service account name will be shown on creation)
+
+   When creating your integration with **GCP Cloud Connector** you need to provide the **following**:
+
+   - host (your connection name from GCP instance)
+   - database
+   - username (for SQL login)
+   - password (for SQL login)
 
 ##### IAM Azure
 
@@ -238,9 +347,9 @@ Here is also a microsoft [guide](https://learn.microsoft.com/en-us/azure/mysql/f
 
 ##### IAM AWS
 
-To enable **IAM** connection on AWS, follow these steps:
+To enable **IAM** authentication on AWS, follow these steps:
 
-1. Create MySQL instance on AWS under:
+1. Create (if not done already) MySQL instance on **AWS**.
 2. Connect to MySQL (e.g. via MySQL Workbench) with your admin account (_you should have created this when making the instance_)
 3. Create user for future connection:
    Here, again you may want to restrict what **Nextplore** service may access in your DB.
@@ -271,9 +380,9 @@ GRANT SELECT ON your_database.* TO 'test_user'@'%';
 }
 ```
 
-`**REGION**`: region of your DB.
-`**ACCOUNT_ID**`: your account ID.
-`**RESOURCE-ID**`: resource id of your DB instance.
+**`REGION`**: region of your DB.
+**`ACCOUNT_ID`**: your account ID.
+**`RESOURCE-ID`**: resource id of your DB instance.
 
 6. Since **Nextplore** uses **Role Assumption** for AWS IAM, you need to create role to set up the permission policy for AWS **Nextplore** account with your DB user.
 
@@ -310,6 +419,27 @@ GRANT SELECT ON your_database.* TO 'test_user'@'%';
 
 7. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
 
+##### IAM GPC
+
+To enable **IAM** authentication on GCP, follow these steps:
+
+1. Create (if not done already) managed MySQL instance on **GCP**.
+2. During creation make sure to set `Public IP` in the IP instance assignment and `cloudsql_iam_authentication(on)` flag.
+3. Go to IAM -> Grant Access and add provided **Nextplore GCP Service Account** and assign both `Cloud SQL Client` and `Cloud SQL Instance` roles.
+4. After instance is provisioned, make sure to set `Allow only SSL connections` under Connections -> Security.
+5. Go to Users -> Add User Account -> Cloud IAM and enter **Nextplore GCP Service Account**.
+6. Connect to your instance with admin you set when creating the instance.
+7. Assign the least privelege access to the **Nextplore GCP Service Account** user.
+   > ⚠️ **Note:**:
+   > **GCP** shortens the service account name when creating user to ensure it does not exceed user name length limits. So service account `nextplore-service@nextplore-123.iam.gserviceaccount.com` becomes just `nextplore-service@nextplore-123.iam`. This is the account you need to provide SQL access to.
+
+**Example MySQL Login Access Provision**:
+
+```sql
+-- GRANT least privelege access to DB or retrict further to schemas
+GRANT SELECT ON your_database.* TO 'nextplore-service@nextplore-123.iam';
+```
+
 ---
 
 ### PostgreSQL
@@ -319,6 +449,59 @@ GRANT SELECT ON your_database.* TO 'test_user'@'%';
 - **Native authentication** with username/password.
 - For **Azure Database** for PostgreSQL, you can also enable **OAuth 2.0** authentication.
 - For **Aurora and RDS** on AWS, you can also enable **IAM** connection with temporary tokens via [Role Assumption](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
+
+##### SQL native authentication
+
+To enable password authentication for instances hosted on **AWS** and **Azure**, you need to provide only host name, username and password. **Nextplore** automatically takes care of TLS via shared CA bundles.
+
+By default, **GCP** exposes only a public IP address rather than a hostname, as described in the [official documentation](https://cloud.google.com/sql/docs/sqlserver/configure-ssl-instance).
+
+To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to configure password authentication:
+
+1. **Native Connection**
+   To enable CA verification, **Nextplore** configures DNS resolution against the instance. This requires both the **public IP** address and the corresponding **DNS name** to be provided, ensuring that certificate validation can be performed automatically.
+
+   To retrieve `DNS Name` follow these steps:
+
+   - Authenticate using **gcloud CLI**
+   - Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe)) (replace placeholders with your instance details):
+
+   ```
+   gcloud sql instances describe INSTANCE_NAME \
+   --project=PROJECT_ID
+   ```
+
+   - Locate the `dnsName` field in the output. It will be in the following format:
+
+   ```
+   INSTANCE_UID.PROJECT_DNS_LABEL.REGION_NAME.sql.goog.
+   ```
+
+   In this case your connection stays encrypted and verifiable, but you need to additionally **whitelist** **Nextplore egress IP** in your firewall settings.
+
+   When creating your integration with simple **auth** you need to provide the **following**:
+
+   - host (your retrieved `dnsName` from **GCP**)
+   - public IP
+   - database
+   - username
+   - password
+
+2. **gcloud Proxy Connection**
+   **Nextplore** also provides implementation of engine creator via [GCP Cloud SQL Connector](https://cloud.google.com/sql/docs/postgres/connect-connectors) which overtakes encryption and removes the burden of managing firewall rules or SSL certificates manually. It means as long as your instance is hosted on Azure, you do not have to include **Nextplore egress IP** in your firewall whitelist.
+   To do so, **Nextplore** runs **GCP** service account to which you need to give respective access rights. (similar to AWS role permissions)
+
+   To enable **Connector Login**, follow the following **steps**:
+
+   - On **GCP** go to IAM -> Grant Access
+   - Add **Nextplore GCP service account** and provide it with `Cloud SQL Client` role. (service account name will be shown on creation)
+
+   When creating your integration with **GCP Cloud Connector** you need to provide the **following**:
+
+   - host (your connection name from GCP instance)
+   - database
+   - username (for SQL login)
+   - password (for SQL login)
 
 #### IAM Azure
 
@@ -423,6 +606,56 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA death_star GRANT SELECT ON TABLES TO test_use
 - we will provide you with this when you create your integration
 
 7. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
+
+##### IAM GPC
+
+To enable **IAM** authentication on GCP, follow these steps:
+
+1. Create (if not done already) managed PostgreSQL instance on **GCP**.
+2. During creation make sure to set `Public IP` in the IP instance assignment and `cloudsql_iam_authentication(on)` flag.
+3. Go to IAM -> Grant Access and add provided **Nextplore GCP Service Account** and assign both `Cloud SQL Client` and `Cloud SQL Instance` roles.
+4. After instance is provisioned, make sure to set `Allow only SSL connections` under Connections -> Security.
+5. Go to Users -> Add User Account -> Cloud IAM and enter **Nextplore GCP Service Account**.
+6. Connect to your instance with admin you set when creating the instance.
+7. Assign the least privelege access to the **Nextplore GCP Service Account** user in the database.
+
+> ⚠️ **Note:**:
+> **GCP** shortens the service account name when creating user to ensure it does not exceed user name length limits. So service account `nextplore-service@nextplore-123.iam.gserviceaccount.com` becomes just `nextplore-service@nextplore-123.iam`. This is the account you need to provide SQL access to.
+
+**Example PostgreSQL Login Access Provision**:
+
+```sql
+
+GRANT CONNECT ON DATABASE hogwarts to "nextplore-service@nextplore-123.iam"
+GRANT USAGE ON SCHEMA public to "nextplore-service@nextplore-123.iam"
+GRANT SELECT ON ALL TABLES IN SCHEMA public to "nextplore-service@nextplore-123.iam"
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT SELECT ON TABLES TO "nextplore-service@nextplore-123.iam"
+```
+
+---
+
+#### SSL TLS Certificates Exception (GCP-only)
+
+**CA verification** of **AWS**- and **Azure**-hosted instances is supported natively by resolving the exposed hostname.
+
+For **GCP**-hosted servers, however, additional configuration is required. By default, **GCP** exposes only a public IP address rather than a hostname, as described in the [official documentation](https://cloud.google.com/sql/docs/sqlserver/configure-ssl-instance). To enable CA verification, **Nextplore** configures DNS resolution against the instance. This requires both the **public IP** address and the corresponding **DNS name** to be provided, ensuring that certificate validation can be performed automatically.
+
+To retrieve `DNS Name` follow these steps:
+
+1. Authenticate using **gcloud CLI**
+2. Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe)) (replace placeholders with your instance details):
+
+```
+gcloud sql instances describe INSTANCE_NAME \
+  --project=PROJECT_ID
+```
+
+3. Locate the `dnsName` field in the output. It will be in the following format:
+
+```
+INSTANCE_UID.PROJECT_DNS_LABEL.REGION_NAME.sql.goog.
+```
 
 ---
 
