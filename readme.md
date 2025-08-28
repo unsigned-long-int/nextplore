@@ -137,11 +137,11 @@ With AI-driven search, you can query **all available metadata** from your connec
 > However, Nextplore guarantees static egress IPs, which allow you to safely expose your database endpoint to the public network while restricting inbound access exclusively to Nextplore's IP(s). It is recommended to configure your firewall or network security group to permit connections only from this address.
 > :blush: **Exception**: For **GCP**-hosted instances **Nextplore** gives you possibility to avoid IP whitelisting via [Cloud Authentication Proxy Connectors](https://cloud.google.com/sql/docs/mysql/language-connectors) as described [here](#sql-native-authentication).
 
-| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure                             | Cloud IAM: AWS                   | Cloud IAM: GCP                        | Key-Pair/JWT | Kerberos/Windows |
-| ---------- | -------------------------------------- | -------------------------------------------- | -------------------------------- | ------------------------------------- | ------------ | ---------------- |
-| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate) | ❌                               | ❌                                    | ❌           | ❌               |
-| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate) | ✅ (Assume Role with temp token) | ✅ (IAM DB Auth with Cloud Connector) | ❌           | ❌               |
-| PostgreSQL | ✅ (PostgreSQL's pwd auth)             | ✅ (oAuth 2.0 - Client Secret / Certificate) | ✅ (Assume Role with temp token) | ✅ (IAM DB Auth with Cloud Connector) | ❌           | ❌               |
+| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> | Cloud IAM: AWS <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> | Cloud IAM: GCP <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> | Key-Pair/JWT | Kerberos/Windows |
+| ---------- | -------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------ | ---------------- |
+| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ❌                                                                                  | ❌                                                                                  | ❌           | ❌               |
+| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌           | ❌               |
+| PostgreSQL | ✅ (PostgreSQL's pwd auth)             | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌           | ❌               |
 
 ---
 
@@ -151,7 +151,7 @@ With AI-driven search, you can query **all available metadata** from your connec
 
 - **SQL native authentication** with username/password.
 - For servers hosted on Azure, you can use **Microsoft Entra (Azure AD) Service Principal authentication** with **oAuth 2.0**
-- There is no **IAM auth** available for **AWS** and **GCP** for now.
+- There is no **IAM auth** available for **AWS** and **GCP** for SQL Server.
 
 ##### SQL native authentication
 
@@ -206,7 +206,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - username (for SQL login)
    - password (for SQL login)
 
-##### IAM Azure
+##### <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> IAM Azure
 
 Microsoft provides a very comprehensive [guide](https://learn.microsoft.com/en-gb/azure/azure-sql/database/authentication-aad-configure?view=azuresql&tabs=azure-portal) on how to connect with **oAuth 2.0** on Azure SQL Server.
 
@@ -255,7 +255,7 @@ CREATE USER [<Microsoft_Entra_principal_name>] FROM EXTERNAL PROVIDER;
 
 **Nextplore** also supports different authentication methods for **MySQL**:
 
-- **Native authentication** with username/password (e.g. `caching_sha2_password` or `mysql_native_password`).
+- **SQL Native authentication** with username/password (e.g. `caching_sha2_password` or `mysql_native_password`).
 - For **Azure Database** for MySQL, you can also enable **OAuth 2.0** authentication.
 - For **Aurora and RDS** on AWS, you can also enable **IAM** connection with temporary tokens via [Role Assumption Policy](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
 - For **GCP**, you have the possibility to connect with **IAM** authentication with temporary tokens via [Cloud Connector](https://cloud.google.com/sql/docs/postgres/iam-logins).
@@ -313,7 +313,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - username (for SQL login)
    - password (for SQL login)
 
-##### IAM Azure
+##### <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> IAM Azure
 
 To enable **oAuth 2.0** authentication for **MySQL** on Azure, follow these steps:
 
@@ -345,7 +345,7 @@ CREATE AADUSER '<service_principal_name>';
 
 Here is also a microsoft [guide](https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-azure-ad) on the same.
 
-##### IAM AWS
+##### <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> IAM AWS
 
 To enable **IAM** authentication on AWS, follow these steps:
 
@@ -367,16 +367,16 @@ GRANT SELECT ON your_database.* TO 'test_user'@'%';
 
 **Example: IAM Policy**
 
-```
+```json
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Action": "rds-db:connect",
-			"Resource": "arn:aws:rds-db:<REGION>:<ACCOUNT_ID>:dbuser:<RESOURCE-ID>/test_user"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "rds-db:connect",
+      "Resource": "arn:aws:rds-db:<REGION>:<ACCOUNT_ID>:dbuser:<RESOURCE-ID>/test_user"
+    }
+  ]
 }
 ```
 
@@ -393,19 +393,23 @@ GRANT SELECT ON your_database.* TO 'test_user'@'%';
 
 **Example: Trust Policy**
 
-```
+```json
 {
   "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Principal": { "AWS": "arn:aws:iam::<NEXTPLORE_SAAS_AWS_ACCOUNT_ID>:role/NextploreExecutionRole" },
-    "Action": "sts:AssumeRole",
-    "Condition": {
-      "StringEquals": {
-        "sts:ExternalId": "<EXTERNAL_ID>"
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::<NEXTPLORE_SAAS_AWS_ACCOUNT_ID>:role/NextploreExecutionRole"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "sts:ExternalId": "<EXTERNAL_ID>"
+        }
       }
     }
-  }]
+  ]
 }
 ```
 
@@ -419,7 +423,7 @@ GRANT SELECT ON your_database.* TO 'test_user'@'%';
 
 7. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
 
-##### IAM GPC
+##### <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> IAM GPC
 
 To enable **IAM** authentication on GCP, follow these steps:
 
@@ -503,7 +507,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - username (for SQL login)
    - password (for SQL login)
 
-#### IAM Azure
+#### <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> IAM Azure
 
 To use **oAuth 2.0** flow with Microsoft Entra, please follow these steps:
 
@@ -528,7 +532,7 @@ SELECT * FROM pg_catalog.pgaadauth_create_principal_with_oid(
 
 For more info you can refer to this [guide](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/security-entra-configure).
 
-#### IAM AWS
+#### <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> IAM AWS
 
 To connect via **IAM** in AWS, follow these steps:
 
@@ -566,9 +570,9 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA death_star GRANT SELECT ON TABLES TO test_use
 }
 ```
 
-`**REGION**`: region of your DB.
-`**ACCOUNT_ID**`: your account ID.
-`**RESOURCE-ID**`: resource id of your DB instance.
+**`REGION`**: region of your DB.
+**`ACCOUNT_ID`**: your account ID.
+**`RESOURCE-ID`**: resource id of your DB instance.
 
 6. Since **Nextplore** uses **Role Assumption** you need to create role to set up the trust relationship with AWS **Nextplore** account.
 
@@ -579,22 +583,24 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA death_star GRANT SELECT ON TABLES TO test_use
 
 **Example: Trust Policy**
 
-```
-
+```json
 {
-    "Version": "2012-10-17",
-    "Statement": [{
-        "Effect": "Allow",
-        "Principal": { "AWS": "arn:aws:iam::<NEXTPLORE_SAAS_AWS_ACCOUNT_ID>:role/NextploreExecutionRole" },
-        "Action": "sts:AssumeRole",
-        "Condition": {
-            "StringEquals": {
-                "sts:ExternalId": "<EXTERNAL_ID>"
-            }
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::<NEXTPLORE_SAAS_AWS_ACCOUNT_ID>:role/NextploreExecutionRole"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "sts:ExternalId": "<EXTERNAL_ID>"
         }
-    }]
+      }
+    }
+  ]
 }
-
 ```
 
 **`NEXTPLORE_SAAS_AWS_ACCOUNT_ID`**: Nextplore AWS Account
@@ -607,7 +613,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA death_star GRANT SELECT ON TABLES TO test_use
 
 7. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
 
-##### IAM GPC
+##### <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> IAM GPC
 
 To enable **IAM** authentication on GCP, follow these steps:
 
@@ -631,30 +637,6 @@ GRANT USAGE ON SCHEMA public to "nextplore-service@nextplore-123.iam"
 GRANT SELECT ON ALL TABLES IN SCHEMA public to "nextplore-service@nextplore-123.iam"
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT SELECT ON TABLES TO "nextplore-service@nextplore-123.iam"
-```
-
----
-
-#### SSL TLS Certificates Exception (GCP-only)
-
-**CA verification** of **AWS**- and **Azure**-hosted instances is supported natively by resolving the exposed hostname.
-
-For **GCP**-hosted servers, however, additional configuration is required. By default, **GCP** exposes only a public IP address rather than a hostname, as described in the [official documentation](https://cloud.google.com/sql/docs/sqlserver/configure-ssl-instance). To enable CA verification, **Nextplore** configures DNS resolution against the instance. This requires both the **public IP** address and the corresponding **DNS name** to be provided, ensuring that certificate validation can be performed automatically.
-
-To retrieve `DNS Name` follow these steps:
-
-1. Authenticate using **gcloud CLI**
-2. Execute the following [command](https://cloud.google.com/sdk/gcloud/reference/sql/instances/describe)) (replace placeholders with your instance details):
-
-```
-gcloud sql instances describe INSTANCE_NAME \
-  --project=PROJECT_ID
-```
-
-3. Locate the `dnsName` field in the output. It will be in the following format:
-
-```
-INSTANCE_UID.PROJECT_DNS_LABEL.REGION_NAME.sql.goog.
 ```
 
 ---
