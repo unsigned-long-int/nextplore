@@ -162,6 +162,7 @@ By default, **GCP** exposes only a public IP address rather than a hostname, as 
 To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to configure password authentication:
 
 1. **Native Connection**
+
    To enable CA verification, **Nextplore** configures DNS resolution against the instance. This requires both the **public IP** address and the corresponding **DNS name** to be provided, ensuring that certificate validation can be performed automatically.
 
    To retrieve `DNS Name` follow these steps:
@@ -191,6 +192,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - password
 
 2. **gcloud Proxy Connection**
+
    **Nextplore** also provides implementation of engine creator via [GCP Cloud SQL Connector](https://cloud.google.com/sql/docs/postgres/connect-connectors) which overtakes encryption and removes the burden of managing firewall rules or SSL certificates manually. It means as long as your instance is hosted on Azure, you do not have to include **Nextplore egress IP** in your firewall whitelist.
    To do so, **Nextplore** runs **GCP** service account to which you need to give respective access rights. (similar to AWS role permissions)
 
@@ -269,6 +271,7 @@ By default, **GCP** exposes only a public IP address rather than a hostname, as 
 To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to configure password authentication:
 
 1. **Native Connection**
+
    To enable CA verification, **Nextplore** configures DNS resolution against the instance. This requires both the **public IP** address and the corresponding **DNS name** to be provided, ensuring that certificate validation can be performed automatically.
 
    To retrieve `DNS Name` follow these steps:
@@ -298,6 +301,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - password
 
 2. **gcloud Proxy Connection**
+
    **Nextplore** also provides implementation of engine creator via [GCP Cloud SQL Connector](https://cloud.google.com/sql/docs/postgres/connect-connectors) which overtakes encryption and removes the burden of managing firewall rules or SSL certificates manually. It means as long as your instance is hosted on Azure, you do not have to include **Nextplore egress IP** in your firewall whitelist.
    To do so, **Nextplore** runs **GCP** service account to which you need to give respective access rights. (similar to AWS role permissions)
 
@@ -463,6 +467,7 @@ By default, **GCP** exposes only a public IP address rather than a hostname, as 
 To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to configure password authentication:
 
 1. **Native Connection**
+
    To enable CA verification, **Nextplore** configures DNS resolution against the instance. This requires both the **public IP** address and the corresponding **DNS name** to be provided, ensuring that certificate validation can be performed automatically.
 
    To retrieve `DNS Name` follow these steps:
@@ -492,6 +497,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - password
 
 2. **gcloud Proxy Connection**
+
    **Nextplore** also provides implementation of engine creator via [GCP Cloud SQL Connector](https://cloud.google.com/sql/docs/postgres/connect-connectors) which overtakes encryption and removes the burden of managing firewall rules or SSL certificates manually. It means as long as your instance is hosted on Azure, you do not have to include **Nextplore egress IP** in your firewall whitelist.
    To do so, **Nextplore** runs **GCP** service account to which you need to give respective access rights. (similar to AWS role permissions)
 
