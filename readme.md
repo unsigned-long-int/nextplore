@@ -15,7 +15,7 @@
 
 # Nextplore - LLM-powered SQL ORM Context Creator
 
-> Nextplore is a multi-tenant microservice SaaS designed to leverage Large Language Models (LLMs) and advanced metaprogramming to enable general users or developers to interact with range of databases easily without knowing SQL language. It enables natural language querying across variety of database systems including Snowflake, MySQL, MSSQL, PostgreSQL. Nextplore supports different LLMs integrations including Deepseek, Qwen, meta-Llama and GPT-4o.
+> Nextplore is a multi-tenant microservice SaaS designed to leverage Large Language Models (LLMs) and advanced metaprogramming to enable general users or developers to interact with range of databases easily without knowing SQL language. It enables natural language querying across variety of database systems including Snowflake, MySQL, MSSQL and PostgreSQL. Nextplore supports different LLMs integrations including Deepseek, Qwen, meta-Llama and GPT-4o.
 
 <p align="center">
   <a href="./license.md">
@@ -126,7 +126,7 @@ With AI-driven search, you can query **all available metadata** from your connec
 
 ### Integrations
 
-**Nextplore** natively integrates with multiple database management systems (DBMS), including [Snowflake](https://www.snowflake.com/en/), [MySQL](https://www.mysql.com/), [MSSQL](https://www.microsoft.com/en/sql-server), [PostgreSQL](https://www.postgresql.org/). For authentication and authorization, it supports standards-based **Identity and Access Management (IAM)** integration with major cloud providers: Azure, AWS, and GCP - enabling secure, policy-driven access to managed services.
+**Nextplore** natively integrates with multiple database management systems (DBMS), including [Snowflake](https://www.snowflake.com/en/)), [MySQL](https://www.mysql.com/), [MSSQL](https://www.microsoft.com/en/sql-server), [PostgreSQL](https://www.postgresql.org/). For authentication and authorization, it supports standards-based **Identity and Access Management (IAM)** integration with major cloud providers: Azure, AWS, and GCP - enabling secure, policy-driven access to managed services.
 
 > :passport_control: **Authentication**  
 > All connections are established over TLS with `TrustServerCertificate=false`, enforcing strict **X.509 certificate validation**. As a result, the server must present an SSL/TLS certificate issued by a publicly trusted **Certificate Authority (CA)**. Certificates signed by private or internal CAs are **not supported**.
@@ -137,15 +137,16 @@ With AI-driven search, you can query **all available metadata** from your connec
 > However, Nextplore guarantees static egress IPs, which allow you to safely expose your database endpoint to the public network while restricting inbound access exclusively to Nextplore's IP(s). It is recommended to configure your firewall or network security group to permit connections only from this address.
 > :blush: **Exception**: For **GCP**-hosted instances **Nextplore** gives you possibility to avoid IP whitelisting via [Cloud Authentication Proxy Connectors](https://cloud.google.com/sql/docs/mysql/language-connectors) as described [here](#sql-native-authentication).
 
-| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> | Cloud IAM: AWS <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> | Cloud IAM: GCP <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> | Key-Pair/JWT | Kerberos/Windows |
-| ---------- | -------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------ | ---------------- |
-| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ❌                                                                                  | ❌                                                                                  | ❌           | ❌               |
-| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌           | ❌               |
-| PostgreSQL | ✅ (PostgreSQL's pwd auth)             | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌           | ❌               |
+| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> | Cloud IAM: AWS <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> | Cloud IAM: GCP <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> | Key-Pair                          | Kerberos/Windows | PAT                               |
+| ---------- | -------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------- | ---------------- | --------------------------------- |
+| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ❌                                                                                  | ❌                                                                                  | ❌                                | ❌               | ❌                                |
+| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                | ❌               | ❌                                |
+| PostgreSQL | ✅ (PostgreSQL's native pwd auth)      | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                | ❌               | ❌                                |
+| Snowflake  | ✅ (Snowflake's pwd auth)              | ❌                                                                                        | ❌                                                                                  | ❌                                                                                  | ✅ (RSA with Snowflake Connector) | ❌               | ✅ (With network and auth policy) |
 
 ---
 
-#### SQL Server
+### SQL Server
 
 **Nextplore** supports multiple authentication methods for **SQL Server**:
 
@@ -153,7 +154,7 @@ With AI-driven search, you can query **all available metadata** from your connec
 - For servers hosted on Azure, you can use **Microsoft Entra (Azure AD) Service Principal authentication** with **oAuth 2.0**
 - There is no **IAM auth** available for **AWS** and **GCP** for SQL Server.
 
-##### SQL native authentication
+#### SQL native authentication
 
 To enable password authentication for instances hosted on **AWS** and **Azure**, you need to provide only host name, username and password. **Nextplore** automatically takes care of TLS via shared CA bundles.
 
@@ -208,7 +209,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - username (for SQL login)
    - password (for SQL login)
 
-##### <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> IAM Azure
+#### <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> IAM Azure
 
 Microsoft provides a very comprehensive [guide](https://learn.microsoft.com/en-gb/azure/azure-sql/database/authentication-aad-configure?view=azuresql&tabs=azure-portal) on how to connect with **oAuth 2.0** on Azure SQL Server.
 
@@ -253,7 +254,7 @@ CREATE USER [<Microsoft_Entra_principal_name>] FROM EXTERNAL PROVIDER;
 
 ---
 
-#### MySQL
+### MySQL
 
 **Nextplore** also supports different authentication methods for **MySQL**:
 
@@ -262,7 +263,7 @@ CREATE USER [<Microsoft_Entra_principal_name>] FROM EXTERNAL PROVIDER;
 - For **Aurora and RDS** on AWS, you can also enable **IAM** connection with temporary tokens via [Role Assumption Policy](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
 - For **GCP**, you have the possibility to connect with **IAM** authentication with temporary tokens via [Cloud Connector](https://cloud.google.com/sql/docs/postgres/iam-logins).
 
-##### SQL native authentication
+#### SQL native authentication
 
 To enable password authentication for instances hosted on **AWS** and **Azure**, you need to provide only host name, username and password. **Nextplore** automatically takes care of TLS via shared CA bundles.
 
@@ -317,7 +318,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - username (for SQL login)
    - password (for SQL login)
 
-##### <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> IAM Azure
+#### <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> IAM Azure
 
 To enable **oAuth 2.0** authentication for **MySQL** on Azure, follow these steps:
 
@@ -349,7 +350,7 @@ CREATE AADUSER '<service_principal_name>';
 
 Here is also a microsoft [guide](https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-azure-ad) on the same.
 
-##### <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> IAM AWS
+#### <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> IAM AWS
 
 To enable **IAM** authentication on AWS, follow these steps:
 
@@ -427,7 +428,7 @@ GRANT SELECT ON your_database.* TO 'test_user'@'%';
 
 7. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
 
-##### <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> IAM GPC
+#### <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> IAM GPC
 
 To enable **IAM** authentication on GCP, follow these steps:
 
@@ -459,7 +460,7 @@ GRANT SELECT ON your_database.* TO 'nextplore-service@nextplore-123.iam';
 - For **Azure Database** for PostgreSQL, you can also enable **OAuth 2.0** authentication.
 - For **Aurora and RDS** on AWS, you can also enable **IAM** connection with temporary tokens via [Role Assumption](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
 
-##### SQL native authentication
+#### SQL native authentication
 
 To enable password authentication for instances hosted on **AWS** and **Azure**, you need to provide only host name, username and password. **Nextplore** automatically takes care of TLS via shared CA bundles.
 
@@ -648,6 +649,74 @@ GRANT SELECT ON TABLES TO "nextplore-service@nextplore-123.iam"
 
 ---
 
+### Snowflake
+
+**Nextplore** provides multiple authentication methods for **Snowflake**:
+
+- **Native authentication** with username/password.
+- **[Key-pair (RSA) Auth](https://docs.snowflake.com/en/user-guide/key-pair-auth)** with public/private keys.
+- **[Programmatic Access Token (PAT)](https://docs.snowflake.com/en/user-guide/programmatic-access-tokens)** with temporary tokens.
+
+#### Native authentication
+
+To enable native authentication you can easily create role (with least desired priveleges and provide username and user password in your integrations credentials).
+**Nextplore** highly recommends you to enable additional network policy for the user and whitelist Nextplore public IP only.
+Here is a code sample which you can quickly run in your [Snowsight](https://docs.snowflake.com/en/user-guide/ui-snowsight).
+
+```sql
+CREATE ROLE NEXTPLORE_SERVICE;
+
+GRANT USAGE ON WAREHOUSE <YOUR-WAREHOUSE> TO ROLE NEXTPLORE_SERVICE;
+GRANT USAGE ON DATABASE <YOUR-DATABASE> TO ROLE NEXTPLORE_SERVICE;
+GRANT USAGE ON SCHEMA <YOUR-SCHEMA> TO ROLE NEXTPLORE_SERVICE;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA <YOUR-SCHEMA> TO ROLE NEXTPLORE_SERVICE;
+GRANT SELECT ON FUTURE TABLES IN SCHEMA <YOUR-SCHEMA> TO ROLE NEXTPLORE_SERVICE; -- if you want Nextplore to synchronise changes for future tables as well
+
+CREATE USER NEXTPLORE_USER PASSWORD='NotEasyToGuess!' MUST_CHANGE_PASSWORD=FALSE
+DEFAULT_ROLE = NEXTPLORE_SERVICE
+DEFAULT_WAREHOUSE=<YOUR-WAREHOUSE>
+DEFAULT_NAMESPACE=<YOUR-DATABASE>.<YOUR-SCHEMA>
+
+-- create and set network policy for the user
+CREATE OR REPLACE NETWORK POLICY nextplore_only
+ALLOWED_IP_LIST = (<nextplore-public-ip>)
+
+ALTER USER NEXTPLORE_PWD SET NETWORK_POLICY = NEXTPLORE_USER;
+
+```
+
+#### Key-pair (RSA) Auth
+
+#### Programmatic Access Token (PAT)
+
+**Nextplore** provides you with possibility to use also PAT for authentication in Snowflake. **Nextplore** discourages this though, since tokens are short-lived and need to be rotated. Use those when you want a quick test for a particular small set of data.
+
+To use **PAT**, you need to fullfil **network access policy** (overridable but not recommended) and **authentication policy** requirements as described in [official documenation](https://docs.snowflake.com/en/user-guide/programmatic-access-tokens).
+
+Here is a **code sample** how you can configure **PAT** on snowflake:
+
+```sql
+-- create and set network policy for the user
+CREATE OR REPLACE NETWORK POLICY nextplore_only
+ALLOWED_IP_LIST = (<nextplore-public-ip>)
+
+ALTER USER NEXTPLORE_PWD SET NETWORK_POLICY = NEXTPLORE_USER;
+
+CREATE AUTHENTICATION POLICY nextplore_auth
+    PAT_POLICY=(
+        NETWORK_POLICY_EVALUATION = ENFORCED_REQUIRED
+        DEFAULT_EXPIRY_IN_DAYS = 15, -- expiration default for PAT
+        MAX_EXPIRY_IN_DAYS = 90); -- cap max allowed lifetime for PAT
+
+
+ALTER USER NEXTPLORE_PWD
+ADD PROGRAMMATIC ACCESS TOKEN NEXTPLORE_PAT
+DAYS_TO_EXPIRY = 30; -- copy paste token and insert as password in your integration
+```
+
+---
+
 > ⚠️ **Note:**
 > To enable more robust integration experience, it is planned to add gateway agent for **Kerberos** in the next releases.
 
@@ -700,3 +769,9 @@ The image below provides the basic architecture of the application.
 ```
 
 ```
+
+---
+
+## Roadmap
+
+> Future releases will include support for **Snowflake** and **client agents** for Kerberos authentication.
