@@ -565,7 +565,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA death_star GRANT SELECT ON TABLES TO test_use
 
 **Example: IAM Policy**
 
-```
+```json
 {
 	"Version": "2012-10-17",
 	"Statement": [
