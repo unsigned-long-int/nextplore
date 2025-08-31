@@ -55,7 +55,7 @@
 
 ## Demo & Screenshots
 
-### Natual Language AI Query
+### Natural Language AI Query
 
 Request any data across your integrations and get structured response.
 
@@ -137,12 +137,12 @@ With AI-driven search, you can query **all available metadata** from your connec
 > However, Nextplore guarantees static egress IPs, which allow you to safely expose your database endpoint to the public network while restricting inbound access exclusively to Nextplore's IP(s). It is recommended to configure your firewall or network security group to permit connections only from this address.
 > :blush: **Exception**: For **GCP**-hosted instances **Nextplore** gives you possibility to avoid IP whitelisting via [Cloud Authentication Proxy Connectors](https://cloud.google.com/sql/docs/mysql/language-connectors) as described [here](#sql-native-authentication).
 
-| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> | Cloud IAM: AWS <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> | Cloud IAM: GCP <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> | Key-Pair                          | Kerberos/Windows | PAT                               |
-| ---------- | -------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------- | ---------------- | --------------------------------- |
-| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ❌                                                                                  | ❌                                                                                  | ❌                                | ❌               | ❌                                |
-| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                | ❌               | ❌                                |
-| PostgreSQL | ✅ (PostgreSQL's native pwd auth)      | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                | ❌               | ❌                                |
-| Snowflake  | ✅ (Snowflake's pwd auth)              | ❌                                                                                        | ❌                                                                                  | ❌                                                                                  | ✅ (RSA with Snowflake Connector) | ❌               | ✅ (With network and auth policy) |
+| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> | Cloud IAM: AWS <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> | Cloud IAM: GCP <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> | Key-Pair                 | Kerberos/Windows | PAT                               |
+| ---------- | -------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------ | ---------------- | --------------------------------- |
+| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ❌                                                                                  | ❌                                                                                  | ❌                       | ❌               | ❌                                |
+| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                       | ❌               | ❌                                |
+| PostgreSQL | ✅ (PostgreSQL's native pwd auth)      | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                       | ❌               | ❌                                |
+| Snowflake  | ✅ (Snowflake's pwd auth)              | ❌                                                                                        | ❌                                                                                  | ❌                                                                                  | ✅ (RSA with signed JWT) | ❌               | ✅ (With network and auth policy) |
 
 ---
 
@@ -567,14 +567,14 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA death_star GRANT SELECT ON TABLES TO test_use
 
 ```json
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Action": "rds-db:connect",
-			"Resource": "arn:aws:rds-db:<REGION>:<ACCOUNT_ID>:dbuser:<RESOURCE-ID>/test_user"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "rds-db:connect",
+      "Resource": "arn:aws:rds-db:<REGION>:<ACCOUNT_ID>:dbuser:<RESOURCE-ID>/test_user"
+    }
+  ]
 }
 ```
 
@@ -661,6 +661,7 @@ GRANT SELECT ON TABLES TO "nextplore-service@nextplore-123.iam"
 
 To enable native authentication you can easily create role (with least desired priveleges and provide username and user password in your integrations credentials).
 **Nextplore** highly recommends you to enable additional network policy for the user and whitelist Nextplore public IP only.
+
 Here is a code sample which you can quickly run in your [Snowsight](https://docs.snowflake.com/en/user-guide/ui-snowsight).
 
 ```sql
@@ -687,6 +688,19 @@ ALTER USER NEXTPLORE_PWD SET NETWORK_POLICY = NEXTPLORE_USER;
 ```
 
 #### Key-pair (RSA) Auth
+
+**Nextplore** supports **key-pair authentication** for secure user access to **Snowflake**. When this method is enabled, **Nextplore** generates a **RSA key-pair** and provides the corresponding **public key (.pub)**, which must be registered with the designated Snowflake user account. The **private key** is securely stored in **Azure Key Vault (AKV)**, where it remains encrypted at rest.
+
+During authentication, **Nextplore** leverages the private key to sign **JWT**, which is subsequently validated against the public key associated with the Snowflake user. This ensures a secure, asymmetric cryptographic validation process, aligning with Snowflake's recommended best practices.
+
+Provided that you have created user and role with least privelege access, the following code snippet can be executed directly in [Snowsight](https://docs.snowflake.com/en/user-guide/ui-snowsight) to configure the user with provided public key.
+
+```sql
+GRANT MODIFY PROGRAMMATIC AUTHENTICATION METHODS ON USER <NEXTPLORE-USER>
+  TO ROLE <NEXTPLORE-ROLE>;
+
+ALTER USER NEXTPLORE_PWD SET RSA_PUBLIC_KEY='<.pub key provided by Nextplore>';
+```
 
 #### Programmatic Access Token (PAT)
 
