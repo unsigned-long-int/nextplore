@@ -1,0 +1,59 @@
+from typing import Dict, Tuple, Optional, Type
+
+from connection_maker.models.auth import Auth
+from connection_maker.models.cloud import Cloud
+from connection_maker.models.db import DB 
+from connection_maker.auth.auth_strategy import AuthStrategy
+from connection_maker.driver_adapters.driver_adapter import DriverAdapter
+from connection_maker.auth.auth_strategy import AuthStrategy
+from connection_maker.auth.azure_asql_strategy import AzureIamAsqlStrategy
+from connection_maker.auth.credential_auth_strategy import CredentialAuthStrategy
+from connection_maker.auth.iam_request_signing_auth_strategy import IamRequestSigningStrategy
+from connection_maker.auth.snowflake_auth_strategy import SnowflakeAuthStrategy
+from connection_maker.auth.snowflake_jwt_auth_strategy import SnowflakeJwtAuthStrategy
+from connection_maker.credentials_providers.credentials_provider import CredentialsProvider
+from connection_maker.credentials_providers.aws_role_credentials_provider import AWSRoleCredentialsProvider
+from connection_maker.credentials_providers.azure_cert_credentials_provider import AzureCertCredentialsProvider
+from connection_maker.credentials_providers.azure_secret_credentials_provider import AzureSecretCredentialsProvider
+from connection_maker.credentials_providers.native_password_credentials_provider import NativePasswordCredentialsProvider
+from connection_maker.credentials_providers.snowflake_secret_credentials_provider import SnowflakeSecretCredentialsProvider
+from connection_maker.credentials_providers.snowflake_private_key_credentials_provider import SnowflakePrivateKeyCredentialsProvider
+from connection_maker.driver_adapters.mysql.pymysql_adapter import MysqlPyMysqlAdapter
+from connection_maker.driver_adapters.postgresql.psycopg2_adapter import PostgresqlPsycopg2Adapter
+from connection_maker.driver_adapters.sqlserver.pyodbc_adapter import SqlserverPyOdbcAdapter
+from connection_maker.driver_adapters.sqlserver.gcp_pytds_adapter import GcpSqlserverPyTdsAdapter
+from connection_maker.driver_adapters.postgresql.gcp_pg8000_adapter import GcpPostgresqlPg8000Adapter
+from connection_maker.driver_adapters.mysql.gcp_pymysql_adapter import GcpMysqlPyMySQLAdapter
+from connection_maker.driver_adapters.postgresql.gcp_pg8000_iam_adapter import GcpPostgresqlPg8000IamAdapter
+from connection_maker.driver_adapters.mysql.gcp_pymysql_iam_adapter import GcpMysqlPyMysqlIamAdapter
+from connection_maker.driver_adapters.snowflake.snowflake_adapter import SnowflakeAdapter
+from connection_maker.driver_adapters.snowflake.snowflake_jwt_adapter import SnowflakeJwtAdapter
+
+
+STRATEGY_REGISTRY: Dict[Tuple[Cloud, DB, Auth], Tuple[Type[AuthStrategy], Type[DriverAdapter], Optional[Type[CredentialsProvider]]]] = {
+    (Cloud.AZURE, DB.MYSQL, Auth.SECRET): (CredentialAuthStrategy, MysqlPyMysqlAdapter, AzureSecretCredentialsProvider),
+    (Cloud.AZURE, DB.POSTGRESQL, Auth.SECRET): (CredentialAuthStrategy, PostgresqlPsycopg2Adapter, AzureSecretCredentialsProvider),
+    (Cloud.AZURE, DB.MYSQL, Auth.CERT): (CredentialAuthStrategy, MysqlPyMysqlAdapter, AzureCertCredentialsProvider),
+    (Cloud.AZURE, DB.POSTGRESQL, Auth.CERT): (CredentialAuthStrategy, PostgresqlPsycopg2Adapter, AzureCertCredentialsProvider),
+    (Cloud.AZURE, DB.SQLSERVER, Auth.SECRET): (AzureIamAsqlStrategy, SqlserverPyOdbcAdapter, AzureSecretCredentialsProvider),
+    (Cloud.AZURE, DB.SQLSERVER, Auth.CERT): (AzureIamAsqlStrategy, SqlserverPyOdbcAdapter, AzureCertCredentialsProvider),
+    (Cloud.AZURE, DB.MYSQL, Auth.PASSWORD_NATIVE): (CredentialAuthStrategy, MysqlPyMysqlAdapter, NativePasswordCredentialsProvider),
+    (Cloud.AZURE, DB.POSTGRESQL, Auth.PASSWORD_NATIVE): (CredentialAuthStrategy, PostgresqlPsycopg2Adapter, NativePasswordCredentialsProvider),
+    (Cloud.AZURE, DB.SQLSERVER, Auth.PASSWORD_NATIVE): (CredentialAuthStrategy, SqlserverPyOdbcAdapter, NativePasswordCredentialsProvider),
+    (Cloud.AWS, DB.MYSQL, Auth.PASSWORD_NATIVE): (CredentialAuthStrategy, MysqlPyMysqlAdapter, NativePasswordCredentialsProvider),
+    (Cloud.AWS, DB.POSTGRESQL, Auth.PASSWORD_NATIVE): (CredentialAuthStrategy, PostgresqlPsycopg2Adapter, NativePasswordCredentialsProvider),
+    (Cloud.AWS, DB.SQLSERVER, Auth.PASSWORD_NATIVE): (CredentialAuthStrategy, SqlserverPyOdbcAdapter, NativePasswordCredentialsProvider),
+    (Cloud.AWS, DB.MYSQL, Auth.IAM): (CredentialAuthStrategy, MysqlPyMysqlAdapter, AWSRoleCredentialsProvider),
+    (Cloud.AWS, DB.POSTGRESQL, Auth.IAM): (CredentialAuthStrategy, PostgresqlPsycopg2Adapter, AWSRoleCredentialsProvider),
+    (Cloud.GCP, DB.SQLSERVER, Auth.PASSWORD_NATIVE): (CredentialAuthStrategy, SqlserverPyOdbcAdapter, NativePasswordCredentialsProvider),
+    (Cloud.GCP, DB.SQLSERVER, Auth.PASSWORD_PROXY): (CredentialAuthStrategy, GcpSqlserverPyTdsAdapter, NativePasswordCredentialsProvider),
+    (Cloud.GCP, DB.POSTGRESQL, Auth.PASSWORD_NATIVE): (CredentialAuthStrategy, PostgresqlPsycopg2Adapter, NativePasswordCredentialsProvider),
+    (Cloud.GCP, DB.POSTGRESQL, Auth.PASSWORD_PROXY): (CredentialAuthStrategy, GcpPostgresqlPg8000Adapter, NativePasswordCredentialsProvider),
+    (Cloud.GCP, DB.MYSQL, Auth.PASSWORD_NATIVE): (CredentialAuthStrategy, MysqlPyMysqlAdapter, NativePasswordCredentialsProvider),
+    (Cloud.GCP, DB.MYSQL, Auth.PASSWORD_PROXY): (CredentialAuthStrategy, GcpMysqlPyMySQLAdapter, NativePasswordCredentialsProvider),
+    (Cloud.GCP, DB.POSTGRESQL, Auth.IAM): (IamRequestSigningStrategy, GcpPostgresqlPg8000IamAdapter, None),
+    (Cloud.GCP, DB.MYSQL, Auth.IAM): (IamRequestSigningStrategy, GcpMysqlPyMysqlIamAdapter, None),
+    (Cloud.SNOWFLAKE_MANAGED, DB.SNOWFLAKE, Auth.PASSWORD_NATIVE): (SnowflakeAuthStrategy, SnowflakeAdapter, NativePasswordCredentialsProvider),
+    (Cloud.SNOWFLAKE_MANAGED, DB.SNOWFLAKE, Auth.SECRET): (SnowflakeAuthStrategy, SnowflakeAdapter, SnowflakeSecretCredentialsProvider),
+    (Cloud.SNOWFLAKE_MANAGED, DB.SNOWFLAKE, Auth.JWT): (SnowflakeJwtAuthStrategy, SnowflakeJwtAdapter, SnowflakePrivateKeyCredentialsProvider)
+}

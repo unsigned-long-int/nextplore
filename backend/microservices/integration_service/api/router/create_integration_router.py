@@ -3,9 +3,9 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from api.context import get_current_identity
 from api.dependencies import get_connector
-from database.repositories import IntegrationRepository
+from database.repositories import IntegrationRepository, SecretRepository
 from database.exceptions import IntegrationCreateFailed
-from utils.encryption import encrypt_integration, DecryptedIntegration
+from utils.mappers import to_domain_integration, to_domain_secrets
 from cache import CacheService, get_cache_service
 from messaging.message_bus import get_kafka_message_bus
 from messaging.events.integration_service import IntegrationCreated
@@ -24,22 +24,39 @@ async def create_integration(
     cache_service: CacheService = Depends(get_cache_service)
 ) -> None:
     user_identity = get_current_identity()
-    integration_repo = IntegrationRepository(connector)
 
-    decrypted_integration = DecryptedIntegration(
-        **payload.model_dump()
-    )
+    integration_repo = IntegrationRepository(connector)
+    secret_repo = SecretRepository(connector)
+
     try:
-        encrypted_integration = encrypt_integration(decrypted_integration)
+        integration = to_domain_integration(
+            organization_id=user_identity.organization_id,
+            user_id=user_identity.user_id,
+            integration_create_request=payload
+        )
         integration_id = await integration_repo.create_integration(
             organization_id=user_identity.organization_id,
             user_id=user_identity.user_id,
-            encrypted_integration=encrypted_integration
+            integration=integration
         )
+
+        secrets = to_domain_secrets(
+            organization_id=user_identity.organization_id,
+            user_id=user_identity.user_id,
+            integration_id=integration_id,
+            integration_create_request=payload
+        )
+        await secret_repo.create_secrets(
+            organization_id=user_identity.organization_id,
+            user_id=user_identity.user_id,
+            integration_id=integration_id,
+            secrets=secrets
+        )
+
         await get_kafka_message_bus().publish(
             IntegrationCreated(
-                user_id=encrypted_integration.user_id,
-                organization_id=encrypted_integration.organization_id,
+                user_id=integration.user_id,
+                organization_id=integration.organization_id,
                 integration_id=integration_id
             )
         )

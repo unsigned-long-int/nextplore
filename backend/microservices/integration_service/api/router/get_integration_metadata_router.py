@@ -9,7 +9,7 @@ from api.dependencies import get_connector
 from cache import CacheService, get_cache_service
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 from nextplore_sdk.contracts.integration_service.integration_metadata_request import IntegrationMetadataRequest
-from nextplore_sdk.contracts.integration_service.integration_metadata_response import IntegrationMetadataResponse
+from nextplore_sdk.contracts.integration_service.integration_connection_profile import IntegrationMetadataResponse
 
 
 logger = logging.getLogger(__name__)
@@ -31,27 +31,33 @@ async def get_integration(
         if cached:
             return cached
         integration_repo = IntegrationRepository(connector)
-        encrypted_integration = await integration_repo.get_integration(
+        integration_mv_orm = await integration_repo.get_integration_secret_mv(
             user_id=payload.user_id,
             organization_id=payload.organization_id,
             integration_id=payload.integration_id
         )
-
-        decrypted_integration = decrypt_integration(encrypted_integration)
         response = IntegrationMetadataResponse(
-            service_type=decrypted_integration.service_type,
-            auth_method=decrypted_integration.auth_method,
-            connection_name=decrypted_integration.connection_name,
-            host=decrypted_integration.host,
-            port=decrypted_integration.port,
-            database_name=decrypted_integration.database_name,
-            username=decrypted_integration.username,
-            password=decrypted_integration.password,
-            kerberos_principal=decrypted_integration.kerberos_principal,
-            windows_domain=decrypted_integration.windows_domain,
-            extra_options=decrypted_integration.extra_options,
-            autosync_on=decrypted_integration.autosync_on
+            auth=integration_mv_orm.auth,
+            cloud=integration_mv_orm.cloud,
+            db=integration_mv_orm.db,
+            database_name=integration_mv_orm.database_name,
+            port=integration_mv_orm.port,
+            warehouse=integration_mv_orm.warehouse,
+            username=
+
+
+
+            auth=integration_orm.auth,
+            cloud=integration_orm.cloud,
+            db=integration_orm.db,
+            connection_name=integration_orm.connection_name,
+            host=integration_orm.host,
+            database_name=integration_orm.database_name,
+            autosync_on=integration_orm.autosync_on,
+            warehouse=integration_orm.warehouse,
+            port=integration_orm.port
         )
+
         await cache_service.set_integration_metadata(
             user_identity=user_identity,
             request=payload,

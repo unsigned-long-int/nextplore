@@ -17,3 +17,7 @@ class IntegrationCreateFailed(Exception):
 class IntegrationGetFailed(Exception):
     pass
 
+
+class SecretsCreateFailed(Exception):
+    pass
+

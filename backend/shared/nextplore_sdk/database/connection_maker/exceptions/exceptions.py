@@ -1,0 +1,2 @@
+class MissingRegistry(Exception):
+    pass

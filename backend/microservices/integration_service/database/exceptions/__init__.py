@@ -3,5 +3,6 @@ from .exceptions import (
     IntegrationNotFound, 
     IntegrationUpdateFailed,
     IntegrationCreateFailed,
-    IntegrationGetFailed
+    IntegrationGetFailed,
+    SecretsCreateFailed
 )

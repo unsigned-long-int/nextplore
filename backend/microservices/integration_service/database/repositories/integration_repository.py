@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import select, update, delete
 from sqlalchemy.exc import SQLAlchemyError
 
-from domain_models import IntegrationProfile
+from domain_models import IntegrationProfile, Integration
 from utils.encryption import EncryptedIntegration
 from database.exceptions import (
     IntegrationDeleteFailed, 
@@ -13,7 +13,7 @@ from database.exceptions import (
     IntegrationCreateFailed,
     IntegrationGetFailed
 )
-from database.models.integration_orm import IntegrationORM
+from database.models import IntegrationORM, IntegrationSecretMvORM
 from nextplore_sdk.database.dependencies.database_backend_connector import DatabaseBackendConnector
 
 
@@ -36,20 +36,20 @@ class IntegrationRepository:
             logger.error(f'Get integration ids failed: {e}', exc_info=True)
             raise IntegrationGetFailed from e
         
-    async def get_integration(self, user_id: UUID, organization_id: UUID, integration_id: str) -> EncryptedIntegration:
+    async def get_integration_secret_mv(self, user_id: UUID, organization_id: UUID, integration_id: str) -> List[IntegrationSecretMvORM]:
         try:
             async with self._db.session_scope(organization_id, user_id) as scoped_session:
                 result = await scoped_session.execute(
-                    select(IntegrationORM)
-                    .where(IntegrationORM.organization_id == organization_id)
-                    .where(IntegrationORM.user_id == user_id)
-                    .where(IntegrationORM.id == integration_id)
+                    select(IntegrationSecretMvORM)
+                    .where(IntegrationSecretMvORM.organization_id == organization_id)
+                    .where(IntegrationSecretMvORM.user_id == user_id)
+                    .where(IntegrationSecretMvORM.integration_id == integration_id)
                 )
-                integration = result.scalar_one_or_none()
-                if integration is None:
+                integration_secrets = result.scalars().all()
+                if not integration_secrets:
                     raise IntegrationNotFound(f'No integration found for ID: {integration_id}')
 
-                return self._to_encrypted_integration(integration)
+                return integration_secrets
         except SQLAlchemyError as e:
             logger.error(f'Get integration failed with database error: {e}', exc_info=True)
             raise IntegrationGetFailed from e
@@ -66,24 +66,27 @@ class IntegrationRepository:
 
             return self._to_encrypted_integration(integration)
         
-    async def create_integration(self, organization_id: UUID, user_id: UUID, encrypted_integration: EncryptedIntegration) -> UUID:
+    async def create_integration(self, organization_id: UUID, user_id: UUID, integration: Integration) -> UUID:
         try:
             async with self._db.session_scope(organization_id, user_id) as scoped_session:
                 integration_orm = IntegrationORM(
-                    organization_id = encrypted_integration.organization_id,
-                    user_id = encrypted_integration.user_id,
-                    service_type = encrypted_integration.service_type,
-                    auth_method = encrypted_integration.auth_method,
-                    connection_name = encrypted_integration.connection_name,
-                    host = encrypted_integration.host,
-                    port = encrypted_integration.port,
-                    database_name = encrypted_integration.database_name,
-                    encrypted_username = encrypted_integration.encrypted_username,
-                    encrypted_password = encrypted_integration.encrypted_password,
-                    encrypted_kerberos_principal = encrypted_integration.encrypted_kerberos_principal,
-                    encrypted_windows_domain = encrypted_integration.encrypted_windows_domain,
-                    encrypted_extra_options = encrypted_integration.encrypted_extra_options,
-                    autosync_on=encrypted_integration.autosync_on
+                    organization_id=organization_id,
+                    user_id=user_id,
+                    auth=integration.auth,
+                    cloud=integration.cloud,
+                    db=integration.db,
+                    connection_name=integration.connection_name,
+                    host=integration.host,
+                    port=integration.port,
+                    database_name=integration.database_name,
+                    warehouse=integration.warehouse,
+                    tenant_id=integration.tenant_id,
+                    client_id=integration.client_id,
+                    region=integration.region,
+                    azure_cert_kid=integration.azure_cert_kid,
+                    azure_public_key_pem=integration.azure_public_key_pem,
+                    snowflake_public_key_pem=integration.snowflake_public_key_pem,
+                    autosync_on=integration.autosync_on
                 )
                 scoped_session.add(integration_orm)
                 await scoped_session.flush()

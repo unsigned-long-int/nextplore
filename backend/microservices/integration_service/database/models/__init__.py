@@ -1,1 +1,3 @@
+from .integration_secret_mv_orm import IntegrationSecretMvORM
 from .integration_orm import IntegrationORM
+from .secret_orm import SecretORM
