@@ -1,4 +1,3 @@
-// CreateIntegrationButton.tsx
 import { cibPostgresql } from "@coreui/icons";
 import { CIcon } from "@coreui/icons-react";
 import { Button, Menu, Modal, Text, useMantineTheme } from "@mantine/core";
@@ -15,10 +14,10 @@ import axios from "axios";
 import { useState } from "react";
 
 import { useTokenProvider } from "../../authentication/useTokenProvider";
-import type { IntegrationCreateRequest } from "../../interface/integration-create-request.interface";
-import { DB } from "../../interface/integration-create-request.interface";
-import type { IntegrationCreateResponse } from "../../interface/integration-create-response-interface";
+import { DB } from "../../interface/integration/db.interface";
 import { IntegrationForm } from "./IntegrationForm";
+import type { IntegrationCreateRequest } from "../../interface/integration/integration-create-request.interface";
+
 
 const INTEGRATIONS = [
   { key: "snowflake", label: "Snowflake", icon: (theme: any) => <IconBrandSnowflake size={16} color={theme.colors.blue[6]} stroke={1.5} />, shortcut: "Ctrl + P" },
@@ -28,15 +27,15 @@ const INTEGRATIONS = [
 ];
 
 export const createIntegration = async (
-  data: IntegrationCreateRequest,
-  token: string | null
-): Promise<IntegrationCreateResponse> => {
-  const response = await axios.post(
-    "http://localhost:8005/nextplore-orchestrator/create-integration",
-    data,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return response.data;
+    data: IntegrationCreateRequest,
+    token: string | null
+) => {
+    const response = await axios.post(
+        "http://localhost:8005/v1/nextplore-orchestrator/integrations",
+        data,
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
 };
 
 export const CreateIntegrationButton = () => {
@@ -53,8 +52,7 @@ export const CreateIntegrationButton = () => {
   const handleFormSubmit = async (data: IntegrationCreateRequest) => {
     try {
       const token = await getToken();
-      const result = await createIntegration(data, token);
-      if (!result.success) throw new Error('Unhandled Error');
+      await createIntegration(data, token);
       showNotification({
         title: 'Integration Created',
         message: `${data.connection_name} was successfully created and will be vectorized`,
