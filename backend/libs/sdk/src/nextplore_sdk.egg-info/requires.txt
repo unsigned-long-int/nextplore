@@ -1,0 +1,11 @@
+redis>=6.1.0
+pydantic>=2.10.6
+sqlalchemy>=2.0.38
+openai>=1.98.0
+boto3>=1.40.12
+azure-identity>=1.24.0
+azure-keyvault>=4.2.0
+cloud-sql-python-connector>=1.18.4
+snowflake-connector-python>=3.17.2
+google-auth>=2.40.3
+cryptography>=45.0.3

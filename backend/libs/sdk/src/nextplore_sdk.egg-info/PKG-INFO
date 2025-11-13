@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: nextplore_sdk
+Version: 0.1.0
+Summary: High-level SDK for Nextplore (cache, API contracts, shared database libs, encryptor, logging and open AI client loader)
+Author: Oleynikov Nikolay
+License: Proprietary
+Requires-Python: >=3.13.2
+Description-Content-Type: text/markdown
+Requires-Dist: redis>=6.1.0
+Requires-Dist: pydantic>=2.10.6
+Requires-Dist: sqlalchemy>=2.0.38
+Requires-Dist: openai>=1.98.0
+Requires-Dist: boto3>=1.40.12
+Requires-Dist: azure-identity>=1.24.0
+Requires-Dist: azure-keyvault>=4.2.0
+Requires-Dist: cloud-sql-python-connector>=1.18.4
+Requires-Dist: snowflake-connector-python>=3.17.2
+Requires-Dist: google-auth>=2.40.3
+Requires-Dist: cryptography>=45.0.3

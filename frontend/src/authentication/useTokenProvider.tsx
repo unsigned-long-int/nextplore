@@ -1,15 +1,16 @@
 import { InteractionRequiredAuthError, InteractionStatus} from "@azure/msal-browser";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "./authConfig";
+import { useCallback} from "react";
 
 export function useTokenProvider() {
     const { instance, inProgress, accounts } = useMsal();
 
-    const getToken = async (): Promise<string | null> => {
+    const getToken = useCallback(async (): Promise<string | null> => {
         if (inProgress === InteractionStatus.None) {
             const activeAccount = accounts[0];
             if (!activeAccount) return null;
-            
+
             try {
                 const response = await instance.acquireTokenSilent({
                     ...loginRequest,
@@ -25,7 +26,7 @@ export function useTokenProvider() {
             return null;
         }
         return null;
-    };
+    }, [instance, inProgress, accounts])
 
     return { getToken };
 }

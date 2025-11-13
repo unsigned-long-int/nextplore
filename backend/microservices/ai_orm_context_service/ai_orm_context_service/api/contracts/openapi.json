@@ -1,0 +1,322 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI ORM Service",
+    "description": "Provides range of LLM models for fetching ORM context for user query",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v1/ai-orm/context": {
+      "post": {
+        "tags": [
+          "AIORMContext"
+        ],
+        "summary": "Get Orm Context",
+        "operationId": "get_orm_context_v1_ai_orm_context_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ORMContextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ORMContextResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ai-orm/models": {
+      "get": {
+        "tags": [
+          "AIORMContext"
+        ],
+        "summary": "Get Models",
+        "operationId": "get_models_v1_ai_orm_models_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Models"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Context": {
+        "properties": {
+          "integration_registry_repr": {
+            "type": "string",
+            "title": "Integration Registry Repr"
+          },
+          "integrations_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Integrations Enum"
+          },
+          "schemas_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Schemas Enum"
+          },
+          "tables_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tables Enum"
+          },
+          "columns_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Columns Enum"
+          },
+          "filter_op_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Filter Op Enum"
+          },
+          "agg_funcs_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Agg Funcs Enum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "integration_registry_repr",
+          "integrations_enum",
+          "schemas_enum",
+          "tables_enum",
+          "columns_enum",
+          "filter_op_enum",
+          "agg_funcs_enum"
+        ],
+        "title": "Context"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ModelInfo": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model_id": {
+            "type": "string",
+            "title": "Model Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "model_id",
+          "label",
+          "tags"
+        ],
+        "title": "ModelInfo"
+      },
+      "Models": {
+        "properties": {
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelInfo"
+            },
+            "type": "array",
+            "title": "Models"
+          }
+        },
+        "type": "object",
+        "required": [
+          "models"
+        ],
+        "title": "Models"
+      },
+      "ORMContextRequest": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model_id": {
+            "type": "string",
+            "title": "Model Id"
+          },
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "context": {
+            "$ref": "#/components/schemas/Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "model_id",
+          "query",
+          "context"
+        ],
+        "title": "ORMContextRequest"
+      },
+      "ORMContextResponse": {
+        "properties": {
+          "integration": {
+            "type": "string",
+            "title": "Integration"
+          },
+          "schema_name": {
+            "type": "string",
+            "title": "Schema Name"
+          },
+          "class_name": {
+            "type": "string",
+            "title": "Class Name"
+          },
+          "table_name": {
+            "type": "string",
+            "title": "Table Name"
+          },
+          "column_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Column Names"
+          },
+          "column_aggregates": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Column Aggregates"
+          },
+          "column_filters": {
+            "items": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Column Filters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "integration",
+          "schema_name",
+          "class_name",
+          "table_name",
+          "column_names",
+          "column_aggregates",
+          "column_filters"
+        ],
+        "title": "ORMContextResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

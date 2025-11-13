@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch, call
 
 from fastapi import HTTPException
 
-from api.router.get_vector_metas_router import get_vector_metas
-from database.exceptions import VectorGetFailed
+from vector_service.api.router.meta_router import get_vector_metas
+from integration_service.database import VectorGetFailed
 
 
 def make_payload(vector_ids=None):

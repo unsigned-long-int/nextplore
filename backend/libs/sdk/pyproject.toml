@@ -1,0 +1,34 @@
+[build-system]
+requires = ['setuptools>=40.8.0', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'nextplore_sdk'
+version = '0.1.0'
+description = 'High-level SDK for Nextplore (cache, API contracts, shared database libs, encryptor, logging and open AI client loader)'
+readme = 'README.md'
+requires-python = '>=3.13.2'
+license = {text = 'Proprietary'}
+authors = [{name = 'Oleynikov Nikolay'}]
+dependencies = [
+    'redis>=6.1.0',
+    'pydantic>=2.10.6',
+    'sqlalchemy>=2.0.38',
+    'openai>=1.98.0',
+    'boto3>=1.40.12',
+    'azure-identity>=1.24.0',
+    'azure-keyvault>=4.2.0',
+    'cloud-sql-python-connector>=1.18.4',
+    'snowflake-connector-python>=3.17.2',
+    'google-auth>=2.40.3',
+    'cryptography>=45.0.3'
+]
+
+[tool.setuptools]
+package-dir = { '' = 'src' }
+
+[tool.setuptools.packages.find]
+where = ['src']
+
+[tool.setuptools.exclude-package-data]
+mypackage = ['tests*', '*.pyc', '__pycache__']

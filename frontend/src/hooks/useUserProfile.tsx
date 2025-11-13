@@ -2,8 +2,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 
 import { useTokenProvider } from '../authentication/useTokenProvider';
-import type { UserProfile } from '../interface/user-profile.interface';
-
+import type { UserProfile } from '../interface/nextplore_orchestrator/user-profile.interface';
 
 
 export const useUserProfile = () => {
@@ -16,7 +15,7 @@ export const useUserProfile = () => {
         const fetchUser = async () => {
             try {
                 const token = await getToken();
-                const response = await axios.get('http://localhost:8005/nextplore-orchestrator/me', {
+                const response = await axios.get('http://localhost:8005/v1/nextplore-orchestrator/users/profiles', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

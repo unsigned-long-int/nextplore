@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from lifecycle import lifespan
-from api.router import embedding_router
-from api.middleware import IdentityMiddleware
+from embedding_service.lifecycle import lifespan
+from embedding_service.api.router import embedding_router
+from embedding_service.api.middleware import IdentityMiddleware
 
 
 app = FastAPI(

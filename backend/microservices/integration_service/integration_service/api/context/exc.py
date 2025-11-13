@@ -1,0 +1,2 @@
+class UserIdentityContextError(Exception):
+    pass

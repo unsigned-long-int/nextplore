@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useTokenProvider } from '../authentication/useTokenProvider';
-import type { ModelInfo } from '../interface/ai-generative-models-response.interface';
+import type { ModelInfo } from '../interface/ai_orm_context/model-info.interface';
 
 
 export const useAIGenerativeModels = () => {
@@ -10,14 +10,14 @@ export const useAIGenerativeModels = () => {
         const token = await getToken();
         try {
             const response = await axios.get(
-                'http://localhost:8005/nextplore-orchestrator/ai-generative-models',
+                'http://localhost:8005/v1/nextplore-orchestrator/ai-orm/models',
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     }
                 }
             )
-            return response.data.models;
+            return response.data;
         } catch (e: any) {
             if (axios.isAxiosError(e) && e.response?.data?.detail) {
                 const detail = e.response.data.detail;

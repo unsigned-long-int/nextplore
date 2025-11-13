@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+
 import { useTokenProvider } from '../authentication/useTokenProvider';
-import type { UserStats } from '../interface/user-stats.interface';
+import type { UserStats } from '../interface/nextplore_orchestrator/user-stats.interface';
 
 
 export const useUserStats = () => {
@@ -13,7 +14,7 @@ export const useUserStats = () => {
         const fetchStats = async () => {
             try {
                 const token = await getToken();
-                const response = await axios.get('http://localhost:8005/nextplore-orchestrator/user-stats', {
+                const response = await axios.get('http://localhost:8005/v1/nextplore-orchestrator/users/stats', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

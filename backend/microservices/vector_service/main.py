@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from lifecycle import lifespan
-from api.middleware import IdentityMiddleware
-from api.router import (
-    vector_metas_router, 
-    vector_stats_router, 
-    qdrant_vectors_router,
-    vector_profiles_router
+from vector_service.lifecycle import lifespan
+from vector_service.api.middleware import IdentityMiddleware
+from vector_service.api.router import (
+    meta_router, 
+    stats_router, 
+    nearest_neighbours_router,
+    profiles_router
 )
 
 
@@ -20,9 +20,9 @@ app = FastAPI(
 
 app.add_middleware(IdentityMiddleware)
 
-app.include_router(vector_metas_router)
-app.include_router(vector_stats_router)
-app.include_router(qdrant_vectors_router)
-app.include_router(vector_profiles_router)
+app.include_router(meta_router)
+app.include_router(stats_router)
+app.include_router(nearest_neighbours_router)
+app.include_router(profiles_router)
 
 Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)

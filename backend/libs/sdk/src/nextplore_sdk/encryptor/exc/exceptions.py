@@ -1,0 +1,2 @@
+class AzureCertCreationFailed(Exception):
+    pass

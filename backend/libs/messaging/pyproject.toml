@@ -1,0 +1,24 @@
+[build-system]
+requires = ['setuptools>=40.8.0', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'kafka_messaging'
+version = '0.1.0'
+description = 'Kafka messaging SDK for managing kafka queues and registering schemas'
+readme = 'README.md'
+requires-python = '>=3.13.2'
+license = {text = 'Proprietary'}
+authors = [{name = 'Oleynikov Nikolay'}]
+dependencies = [
+    'fastavro>=1.12.0',
+    'pydantic>=2.10.6',
+    'aiokafka>=0.12.0',
+    'confluent-kafka>=2.11.0'
+]
+
+[tool.setuptools]
+package-dir = { '' = 'src' }
+
+[tool.setuptools.packages.find]
+where = ['src']

@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from lifecycle import lifespan
-from api.router import orm_context_router, models_router
-from api.middleware import IdentityMiddleware
+from ai_orm_context_service.lifecycle import lifespan
+from ai_orm_context_service.api.router import orm_context_router, models_router
+from ai_orm_context_service.api.middleware import IdentityMiddleware
 
 
 app = FastAPI(

@@ -1,31 +1,46 @@
 import unittest
+import uuid
 from contextvars import copy_context
 
-from api.context import set_current_identity, get_current_identity, UserIdentity
-
+from integration_service.api.context import (
+    set_current_identity,
+    get_current_identity,
+    UserIdentity,
+    UserIdentityContextError
+)
 
 class TestIdentityContext(unittest.TestCase):
-    def test_default_identity_is_none(self):
+    def test_none_context(self):
         ctx = copy_context()
-        result = ctx.run(get_current_identity)
-        self.assertIsNone(result)
-    
+        with self.assertRaises(UserIdentityContextError):
+            result = ctx.run(get_current_identity)
+            self.assertIsNone(result)
+
     def test_set_and_get_identity(self):
-        identity = UserIdentity(user_id='abc123', organization_id='test-org')
+        organization_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+
+        identity = UserIdentity(organization_id, user_id)
 
         ctx = copy_context()
-        def set_and_get():
+
+        def set_and_get_identity():
             set_current_identity(identity)
             return get_current_identity()
-        
-        result = ctx.run(set_and_get)
-        self.assertEqual(result, identity)
-        self.assertEqual(result.user_id, 'abc123')
-        self.assertEqual(result.organization_id, 'test-org')
 
-    def test_identity_is_isolated_in_contexts(self):
-        identity1 = UserIdentity(user_id='user1', organization_id='test-org')
-        identity2 = UserIdentity(user_id='user2', organization_id='test-org')
+        result = ctx.run(set_and_get_identity)
+        self.assertEqual(result.organization_id, organization_id)
+        self.assertEqual(result.user_id, user_id)
+        self.assertIsInstance(identity, UserIdentity)
+
+    def test_identity_is_isolated_in_context(self):
+        user_id1 = uuid.uuid4()
+        organization_id1 = uuid.uuid4()
+        user_id2 = uuid.uuid4()
+        organization_id2 = uuid.uuid4()
+
+        identity1 = UserIdentity(organization_id1, user_id1)
+        identity2 = UserIdentity(organization_id2, user_id2)
 
         ctx1 = copy_context()
         ctx2 = copy_context()
@@ -35,6 +50,5 @@ class TestIdentityContext(unittest.TestCase):
 
         result1 = ctx1.run(get_current_identity)
         result2 = ctx2.run(get_current_identity)
-
-        self.assertEqual(result1.user_id, 'user1')
-        self.assertEqual(result2.user_id, 'user2')
+        self.assertEqual(result1, identity1)
+        self.assertEqual(result2, identity2)

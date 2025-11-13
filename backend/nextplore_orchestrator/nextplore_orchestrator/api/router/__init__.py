@@ -1,0 +1,12 @@
+from .ai_queries_router import router as ai_queries_router
+from .gen_models_router import router as gen_models_router
+from .user_profile_router import router as user_profile_router
+from .integration_profiles_router import router as integration_profiles_router
+from .create_integration_router import router as create_integration_router
+from .test_integration_router import router as test_integration_router
+from .vector_profiles_router import router as vector_profiles_router
+from .user_stats_router import router as user_stats_router
+from .update_integration_router import router as update_integration_router
+from .delete_integration_router import router as delete_integration_router
+from .cert_profiles_router import router as cert_profiles_router
+from .create_cert_router import router as create_cert_router

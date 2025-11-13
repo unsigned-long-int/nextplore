@@ -1,6 +1,8 @@
 import { Checkbox, ScrollArea, Table } from '@mantine/core';
-import type { IntegrationProfile } from '../../interface/integration-profile.interface';
+
 import { IntegrationRow } from './IntegrationRow';
+import type { IntegrationProfile } from '../../interface/integration/integration-profile.interface';
+
 
 
 interface Props {
@@ -25,12 +27,14 @@ export const IntegrationTable = ({ integrations, selection, toggleRow, toggleAll
                 indeterminate={selection.length > 0 && selection.length !== integrations.length}
                 />
             </Table.Th>
-            <Table.Th>Service Type</Table.Th>
+            <Table.Th>DB</Table.Th>
+            <Table.Th>Auth</Table.Th>
+            <Table.Th>Cloud</Table.Th>
             <Table.Th>Connection Name</Table.Th>
             <Table.Th>Database Name</Table.Th>
-            <Table.Th>Authentication Method</Table.Th>
+            <Table.Th>Host</Table.Th>
+            <Table.Th>Port</Table.Th>
             <Table.Th>Auto Sync</Table.Th>
-            <Table.Th>Options</Table.Th>
             </Table.Tr>
         </Table.Thead>
         <Table.Tbody>

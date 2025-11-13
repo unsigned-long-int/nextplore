@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useTokenProvider } from '../authentication/useTokenProvider';
-import type { AIQueryRequest } from '../interface/ai-query-request.interface';
-import type { AIQueryResponse } from '../interface/ai-query-response.interface';
+import type { AIQueryRequest } from '../interface/nextplore_orchestrator/ai-query-request.interface';
+import type { AIQueryResponse } from '../interface/nextplore_orchestrator/ai-query-response.interface';
 
 
 export const useAIQueryRequest = () => {
@@ -12,7 +12,7 @@ export const useAIQueryRequest = () => {
 
         try {
             const response = await axios.post(
-                'http://localhost:8005/nextplore-orchestrator/ai-query',
+                'http://localhost:8005/v1/nextplore-orchestrator/ai-orm/query',
                 request,
                 {
                     headers: {

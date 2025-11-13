@@ -9,3 +9,4 @@ backend/shared/dist/
 backend/shared/*.egg-info
 .vscode
 build
+.wheelhouse

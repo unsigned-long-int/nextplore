@@ -1,5 +1,10 @@
 accelerate==1.9.0
+azure-identity==1.24.0
+azure-keyvault==4.2.0
+boto3==1.40.12
+cloud-sql-python-connector==1.18.4
 fastapi==0.115.12
+google-auth==2.40.3
 instructor==1.10.0
 openai==1.98.0
 prometheus-fastapi-instrumentator==7.1.0
@@ -7,6 +12,7 @@ pydantic==2.10.6
 python-json-logger==3.3.0
 redis==6.1.0
 sentence-transformers==5.0.0
+snowflake-connector-python==3.17.2
 torch==2.7.1
 transformers==4.54.1
 uvicorn==0.34.2

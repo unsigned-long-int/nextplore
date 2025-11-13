@@ -1,1 +1,0 @@
-from .handle_embedding import handle_crawl_meta_embedding, handle_query_embedding

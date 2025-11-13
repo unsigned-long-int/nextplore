@@ -2,7 +2,7 @@ import types
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from api.router.get_qdrant_vectors_router import get_qdrant_vectors
+from vector_service.api.router import get_qdrant_vectors
 
 
 def make_payload(embedding=None):

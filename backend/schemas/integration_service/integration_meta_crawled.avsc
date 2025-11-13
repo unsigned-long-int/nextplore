@@ -1,0 +1,30 @@
+{
+    "type": "record",
+    "namespace": "com.nextplore.integration",
+    "name": "IntegrationMetaCrawled",
+    "fields": [
+        {"name": "event_name", "type": "string"},
+        {"name": "version", "type": "string"},
+        {"name": "event_id", "type": {"type": "string", "logicalType": "uuid"}},
+        {"name": "timestamp", "type": {"type": "long", "logicalType": "timestamp-micros"}},
+        {"name": "user_id", "type": {"type": "string", "logicalType": "uuid"}},
+        {"name": "organization_id", "type": {"type": "string", "logicalType": "uuid"}},
+        {
+            "name": "table_metas",
+            "type": {
+                "type": "array",
+                "items": {
+                    "type": "record",
+                    "name": "TableMeta",
+                    "namespace": "com.nextplore.integration",
+                    "fields": [
+                        {"name": "integration_id", "type": {"type": "string", "logicalType": "uuid"}},
+                        {"name": "schema_name", "type": "string"},
+                        {"name": "table_name", "type": "string"},
+                        {"name": "column_names", "type": {"type": "array", "items": "string"}}
+                    ]
+                }
+            }
+        }
+    ]
+}

@@ -1,2 +1,0 @@
-class MissingModelProviderFactory(Exception):
-    pass

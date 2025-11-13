@@ -1,10 +1,11 @@
 import { showNotification } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { useCallback, useEffect, useState } from 'react';
-import type { IntegrationProfile } from '../interface/integration-profile.interface';
 import { useDeleteIntegration } from './useDeleteIntegration';
 import { useIntegrations } from './useIntegrations';
 import { useUpdateIntegration } from './useUpdateIntegrations';
+import type { IntegrationProfile } from '../interface/integration/integration-profile.interface';
+
 
 export const useIntegrationsData = () => {
     const { fetchIntegrations } = useIntegrations();
@@ -41,8 +42,7 @@ export const useIntegrationsData = () => {
         setIntegrations(updated);
 
         try {
-            const result = await updateIntegration({ id: updated[index].id, autosync_on: enabled });
-            if (!result.success) throw new Error(result.message);
+            await updateIntegration( updated[index].id, {autosync_on: enabled});
             showNotification({
                 title: 'Integration Updated',
                 message: `${updated[index].connection_name} autosync ${enabled ? 'enabled' : 'disabled'}`,
@@ -63,7 +63,7 @@ export const useIntegrationsData = () => {
         if (!confirmed) return;
 
         try {
-            await deleteIntegration({ id });
+            await deleteIntegration(id);
             setIntegrations(prev => prev.filter(i => i.id !== id));
             showNotification({
                 title: 'Integration Deleted',

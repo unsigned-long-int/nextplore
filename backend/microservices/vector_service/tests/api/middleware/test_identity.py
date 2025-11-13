@@ -6,8 +6,8 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import Scope, Receive
 
-from api.middleware import IdentityMiddleware
-from api.context import UserIdentity
+from integration_service.api import IdentityMiddleware
+from integration_service.api import UserIdentity
 
 
 class TestIdentityMiddleware(unittest.IsolatedAsyncioTestCase):

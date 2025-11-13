@@ -3,7 +3,7 @@ import uuid
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch, call
 
-from api.handlers.handle_upsert import handle_vector_upsert
+from integration_service.api.handlers import handle_vector_upsert
 
 
 def make_embedding(integration_id='int-1', schema='public', table='items', emb=None, meta_json={'k': 'v'}):

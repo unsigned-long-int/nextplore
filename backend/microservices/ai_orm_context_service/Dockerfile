@@ -3,13 +3,15 @@ FROM python:3.13-slim
 RUN groupadd -r nextplore-group \
     && useradd -r -g nextplore-group -m ai-orm-context-service
 
-ARG SHARED_TGZ
-COPY ${SHARED_TGZ} /tmp/nextplore_sdk.tar.gz
-RUN pip install --upgrade /tmp/nextplore_sdk.tar.gz && rm /tmp/nextplore_sdk.tar.gz
+ARG NEXTPLORE_SDK
+COPY ${NEXTPLORE_SDK} /tmp/wheels/
+RUN pip install --upgrade /tmp/wheels/*.whl  \
+    && rm -rf /tmp/wheels
 
 WORKDIR /app
 
 COPY microservices/ai_orm_context_service /app/
+
 RUN pip install --no-cache-dir -r requirements.txt 
 
 USER ai-orm-context-service

@@ -2,7 +2,7 @@ import types
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from api.router.get_vector_stats_router import get_vector_stats
+from vector_service.api.router.stats_router import get_vector_stats
 
 
 def make_payload(org_id=111, user_id=222):

@@ -2,7 +2,7 @@ import types
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from api.handlers.handle_delete import handle_vector_delete
+from integration_service.api.handlers import handle_vector_delete
 
 
 def make_event(org_id=111, user_id=222, integration_id=333):

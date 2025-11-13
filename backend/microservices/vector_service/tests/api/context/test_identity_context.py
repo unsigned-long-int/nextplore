@@ -1,7 +1,7 @@
 import unittest
 from contextvars import copy_context
 
-from api.context import set_current_identity, get_current_identity, UserIdentity
+from integration_service.api import set_current_identity, get_current_identity, UserIdentity
 
 
 class TestIdentityContext(unittest.TestCase):

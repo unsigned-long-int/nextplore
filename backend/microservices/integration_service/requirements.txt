@@ -10,6 +10,7 @@ pgvector==0.4.1
 prometheus-fastapi-instrumentator==7.1.0
 psycopg2==2.9.10
 pyodbc==5.2.0
+pymysql==1.1.1
 python-json-logger==3.3.0
 redis==6.1.0
 SQLAlchemy==2.0.38

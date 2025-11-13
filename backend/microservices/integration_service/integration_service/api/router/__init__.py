@@ -1,0 +1,10 @@
+from .crawl_router import router as crawl_router
+from .create_router import router as create_router
+from .delete_router import router as delete_router
+from .profiles_router import router as profiles_router
+from .test_router import router as test_router 
+from .update_router import router as update_router
+from .stats_router import router as stats_router
+from .connection_profile_router import router as connection_profile_router
+from .cert_profiles_router import router as cert_profiles_router
+from .create_certificate_router import router as create_certificate_router

@@ -3,7 +3,7 @@ import { IconListSearch } from '@tabler/icons-react';
 import cx from 'clsx';
 import { useEffect, useState } from 'react';
 import { useIntegrations } from '../../hooks/useIntegrations';
-import type { IntegrationProfile } from '../../interface/integration-profile.interface';
+import type { IntegrationProfile } from '../../interface/integration/integration-profile.interface';
 import classes from '../../styles/IntegrationsMetadataContentNavigator.module.css';
 import { LoadingOverlay } from '../loading_overlay/LoadingOverlay';
 import { VectorsMetadataContent } from './VectorsMetadataContent';
@@ -73,9 +73,9 @@ export const IntegrationsMetadataContentNavigator = () => {
             <Text fw={500} mb="sm">
                 Vectors for: {integrations[active].connection_name}
             </Text>
-            <VectorsMetadataContent 
+            <VectorsMetadataContent
                 key={integrations[active].id}
-                vector_profile_request={{ integration_id: integrations[active].id }}
+                integration_id={integrations[active].id}
             />
         </div>
     </div>

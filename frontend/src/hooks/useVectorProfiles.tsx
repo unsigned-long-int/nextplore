@@ -1,17 +1,15 @@
 import axios from 'axios';
 
 import { useTokenProvider } from '../authentication/useTokenProvider';
-import type { VectorProfileRequest } from '../interface/vector-profile-request.interface';
 
 export const useVectorProfiles = () => {
     const { getToken } = useTokenProvider();
 
-    const fetchVectorProfiles = async(vector_profile_request: VectorProfileRequest) => {
+    const fetchVectorProfiles = async(integration_id: string) => {
         const token = await getToken();
 
-        const response = await axios.post(
-            'http://localhost:8005/nextplore-orchestrator/vector-profiles', 
-            vector_profile_request,
+        const response = await axios.get(
+            `http://localhost:8005/v1/nextplore-orchestrator/integrations/${integration_id}/vectors/profiles`,
             {
             headers: {
                 Authorization: `Bearer ${token}`,

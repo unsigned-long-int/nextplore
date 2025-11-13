@@ -1,6 +1,6 @@
 import { Center, Paper, Stack, Text, Title } from '@mantine/core';
 import svg from '../assets/nextplore-logo-v-4.svg';
-import { LoginButton } from '../components/LoginButton';
+import { LoginButton } from '../components/login/LoginButton';
 import { LightRays } from '../components/login/LoginPageBackground';
 import classes from '../styles/LoginPage.module.css';
 

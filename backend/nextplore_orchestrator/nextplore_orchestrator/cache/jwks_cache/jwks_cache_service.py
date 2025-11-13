@@ -1,0 +1,25 @@
+from typing import Dict, Any, Optional
+
+from nextplore_sdk.cache.client.interface import Cache
+from nextplore_sdk.cache.utils.key_factory import get_string_cache_key
+
+
+class JWKSCacheService:
+    def __init__(self, cache: Cache) -> None:
+        self.cache = cache
+
+    async def get_jwks(
+        self,
+        jwks_url: str
+    ) -> Dict[str, Any]:
+        cache_key = get_string_cache_key(jwks_url)
+        return await self.cache.get_raw(cache_key)
+    
+    async def set_jwks(
+        self, 
+        jwks_url: str,
+        data: Dict[str, Any], 
+        ttl: Optional[int] = None
+    ) -> None:
+        cache_key = get_string_cache_key(jwks_url)
+        await self.cache.set_raw(cache_key, value=data, ttl=ttl)

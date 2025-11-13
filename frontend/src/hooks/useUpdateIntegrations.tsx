@@ -1,16 +1,16 @@
-import axios from "axios";
+import axios from 'axios';
 
-import { useTokenProvider } from "../authentication/useTokenProvider";
-import type { IntegrationUpdateRequest } from "../interface/integration-update-request";
+import { useTokenProvider } from '../authentication/useTokenProvider';
+import type { IntegrationUpdateRequest } from '../interface/integration/integration-update-request.interface';
 
 
 export const useUpdateIntegration = () => {
     const { getToken } = useTokenProvider();
 
-    const updateIntegration = async (data: IntegrationUpdateRequest) => {
+    const updateIntegration = async (id: string, data: IntegrationUpdateRequest) => {
         const token = await getToken();
-        const response = await axios.post(
-            'http://localhost:8005/nextplore-orchestrator/update-integration',
+        await axios.patch(
+            `http://localhost:8005/v1/nextplore-orchestrator/integrations/${id}`,
             data,
             {
                 headers: {
@@ -19,7 +19,6 @@ export const useUpdateIntegration = () => {
                 }
             }
         );
-        return response.data;
     };
     return { updateIntegration };
 };

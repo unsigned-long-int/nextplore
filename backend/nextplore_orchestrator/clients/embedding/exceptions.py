@@ -1,2 +1,0 @@
-class EmbeddingResponseRemoteError(Exception):
-    pass

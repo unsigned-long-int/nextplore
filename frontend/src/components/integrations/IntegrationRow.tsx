@@ -1,9 +1,10 @@
 import { Checkbox, Group, Switch, Table, Text } from '@mantine/core';
 import cx from 'clsx';
-import type { IntegrationProfile } from '../../interface/integration-profile.interface';
 import classes from '../../styles/IntegrationsList.module.css';
 import { IntegrationActionsMenu } from './IntegrationActionMenu';
 import { IntegrationIcon } from './IntegrationIcon';
+import type { IntegrationProfile } from '../../interface/integration/integration-profile.interface';
+
 
 
 interface Props {
@@ -30,13 +31,16 @@ export const IntegrationRow = ({
             </Table.Td>
             <Table.Td>
                 <Group gap="sm">
-                    <IntegrationIcon serviceType={integration.service_type} />
-                    <Text size="sm" fw={500}>{integration.service_type}</Text>
+                    <IntegrationIcon serviceType={integration.db} />
+                    <Text size="sm" fw={500}>{integration.db}</Text>
                 </Group>
             </Table.Td>
+            <Table.Td>{integration.auth}</Table.Td>
+            <Table.Td>{integration.cloud}</Table.Td>
             <Table.Td>{integration.connection_name}</Table.Td>
             <Table.Td>{integration.database_name}</Table.Td>
-            <Table.Td>{integration.auth_method}</Table.Td>
+            <Table.Td>{integration.host}</Table.Td>
+            <Table.Td>{integration.port}</Table.Td>
             <Table.Td>
             <Switch
                 checked={integration.autosync_on}

@@ -1,0 +1,439 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Vector Handling Service",
+    "description": "Handles vectors retrieval and upserts",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v1/vector/organizations/{organization_id}/users/{user_id}/vector-meta": {
+      "get": {
+        "tags": [
+          "VectorMeta"
+        ],
+        "summary": "Get Meta",
+        "operationId": "get_meta_v1_vector_organizations__organization_id__users__user_id__vector_meta_get",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VectorMetaRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VectorMetaResponse"
+                  },
+                  "title": "Response Get Meta V1 Vector Organizations  Organization Id  Users  User Id  Vector Meta Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vector/organizations/{organization_id}/users/{user_id}/stats": {
+      "get": {
+        "tags": [
+          "VectorStats"
+        ],
+        "summary": "Get Stats",
+        "operationId": "get_stats_v1_vector_organizations__organization_id__users__user_id__stats_get",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VectorStatsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vector/find:nearest-neighbours": {
+      "get": {
+        "tags": [
+          "NearestNeighbour"
+        ],
+        "summary": "Get Nearest Neighbours",
+        "operationId": "get_nearest_neighbours_v1_vector_find_nearest_neighbours_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QDrantVectorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QDrantVectorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vector/organizations/{organization_id}/users/{user_id}/integrations/{integration_id}/vector-profiles": {
+      "get": {
+        "tags": [
+          "VectorProfiles"
+        ],
+        "summary": "Get Profiles",
+        "operationId": "get_profiles_v1_vector_organizations__organization_id__users__user_id__integrations__integration_id__vector_profiles_get",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "integration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Integration Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VectorProfileResponse"
+                  },
+                  "title": "Response Get Profiles V1 Vector Organizations  Organization Id  Users  User Id  Integrations  Integration Id  Vector Profiles Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "QDrantVectorRequest": {
+        "properties": {
+          "embedding": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Embedding"
+          }
+        },
+        "type": "object",
+        "required": [
+          "embedding"
+        ],
+        "title": "QDrantVectorRequest"
+      },
+      "QDrantVectorResponse": {
+        "properties": {
+          "vector_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid4"
+            },
+            "type": "array",
+            "title": "Vector Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "vector_ids"
+        ],
+        "title": "QDrantVectorResponse"
+      },
+      "TableMeta": {
+        "properties": {
+          "integration_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Integration Id"
+          },
+          "schema_name": {
+            "type": "string",
+            "title": "Schema Name"
+          },
+          "table_name": {
+            "type": "string",
+            "title": "Table Name"
+          },
+          "column_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Column Names"
+          }
+        },
+        "type": "object",
+        "required": [
+          "integration_id",
+          "schema_name",
+          "table_name",
+          "column_names"
+        ],
+        "title": "TableMeta"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VectorMetaRequest": {
+        "properties": {
+          "vector_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid4"
+            },
+            "type": "array",
+            "title": "Vector Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "vector_ids"
+        ],
+        "title": "VectorMetaRequest"
+      },
+      "VectorMetaResponse": {
+        "properties": {
+          "integration_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Integration Id"
+          },
+          "schema_name": {
+            "type": "string",
+            "title": "Schema Name"
+          },
+          "table_name": {
+            "type": "string",
+            "title": "Table Name"
+          },
+          "table_meta": {
+            "$ref": "#/components/schemas/TableMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "integration_id",
+          "schema_name",
+          "table_name",
+          "table_meta"
+        ],
+        "title": "VectorMetaResponse"
+      },
+      "VectorProfileResponse": {
+        "properties": {
+          "integration_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Integration Id"
+          },
+          "schema_name": {
+            "type": "string",
+            "title": "Schema Name"
+          },
+          "table_name": {
+            "type": "string",
+            "title": "Table Name"
+          },
+          "table_meta": {
+            "$ref": "#/components/schemas/TableMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "integration_id",
+          "schema_name",
+          "table_name",
+          "table_meta"
+        ],
+        "title": "VectorProfileResponse"
+      },
+      "VectorStatsResponse": {
+        "properties": {
+          "vector_count": {
+            "type": "integer",
+            "title": "Vector Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "vector_count"
+        ],
+        "title": "VectorStatsResponse"
+      }
+    }
+  }
+}

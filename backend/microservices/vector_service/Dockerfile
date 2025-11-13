@@ -3,13 +3,15 @@ FROM python:3.13-slim-bookworm
 RUN groupadd -r nextplore-group \
     && useradd -r -g nextplore-group -m vector-upsert-service
 
-ARG SHARED_TGZ
-COPY ${SHARED_TGZ} /tmp/nextplore_sdk.tar.gz
+ARG NEXTPLORE_SDK
+ARG KAFKA_MESSAGING
+COPY ${NEXTPLORE_SDK} /tmp/wheels/
+COPY ${KAFKA_MESSAGING} /tmp/wheels/
+RUN pip install --upgrade /tmp/wheels/*.whl \
+    && rm -rf /tmp/wheels
 
 ARG DEBIAN_FRONTEND=noninteractive
-RUN pip install --no-cache-dir /tmp/nextplore_sdk.tar.gz \
-    && rm /tmp/nextplore_sdk.tar.gz \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
@@ -31,7 +33,7 @@ RUN pip install --no-cache-dir /tmp/nextplore_sdk.tar.gz \
 WORKDIR /app
 
 COPY microservices/vector_service /app/
-COPY messaging /app/messaging/
+COPY schemas /app/schemas/
 
 RUN pip install --no-cache-dir -r requirements.txt 
 

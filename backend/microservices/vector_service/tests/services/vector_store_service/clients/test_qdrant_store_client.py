@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, patch
 from httpx import Headers
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
-from services.vector_store_service.clients.qdrant_store_client import QDrantStoreClient
-from services.vector_store_service.exceptions import (
+from ai_orm_context_service.services import QDrantStoreClient
+from ai_orm_context_service.services import (
     DeleteVectorDBFailed,
     SearchVectorDBFailed,
     UpsertVectorDBFailed,

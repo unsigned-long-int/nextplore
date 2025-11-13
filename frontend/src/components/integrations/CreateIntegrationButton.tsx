@@ -1,3 +1,4 @@
+/*
 import { cibPostgresql } from "@coreui/icons";
 import { CIcon } from "@coreui/icons-react";
 import { Button, Menu, Modal, Text, useMantineTheme } from "@mantine/core";
@@ -106,3 +107,4 @@ export const CreateIntegrationButton = () => {
     </>
   );
 };
+ */

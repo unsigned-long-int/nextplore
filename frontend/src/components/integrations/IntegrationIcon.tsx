@@ -3,8 +3,10 @@ import { CIcon } from '@coreui/icons-react';
 import { useMantineTheme } from '@mantine/core';
 import { IconBrandMysql, IconBrandSnowflake, IconSql } from '@tabler/icons-react';
 import type { JSX } from 'react';
+import { DB } from '../../interface/integration/db.interface';
 
-export const IntegrationIcon = ({ serviceType }: { serviceType: string }) => {
+
+export const IntegrationIcon = ({ serviceType }: { serviceType: DB}) => {
     const theme = useMantineTheme();
     const icons: Record<string, JSX.Element> = {
         snowflake: <IconBrandSnowflake size={16} color={theme.colors.blue[6]} stroke={1.5} />,

@@ -3,8 +3,8 @@ import uuid
 import unittest
 from unittest.mock import AsyncMock, MagicMock
 
-from services.vector_store_service.store.store_service import VectorStoreService
-from services.vector_store_service.exceptions import (
+from ai_orm_context_service.services import VectorStoreService
+from ai_orm_context_service.services import (
     DeleteVectorDBFailed,
     SearchVectorDBFailed,
     UpsertVectorDBFailed,

@@ -2,7 +2,7 @@ import unittest
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from database.repositories.vector_repository import VectorRepository
+from integration_service.database import VectorRepository
 
 
 class _FakeSelectQuery:
