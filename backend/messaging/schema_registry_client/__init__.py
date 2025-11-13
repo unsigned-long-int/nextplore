@@ -1,1 +1,0 @@
-from .confluent import ConfluentSchemaRegistryClient
