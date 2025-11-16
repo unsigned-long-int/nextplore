@@ -438,7 +438,7 @@ To enable **IAM** authentication on GCP, follow these steps:
 4. After instance is provisioned, make sure to set `Allow only SSL connections` under Connections -> Security.
 5. Go to Users -> Add User Account -> Cloud IAM and enter **Nextplore GCP Service Account**.
 6. Connect to your instance with admin you set when creating the instance.
-7. Assign the least privelege access to the **Nextplore GCP Service Account** user.
+7. Assign the least privilege access to the **Nextplore GCP Service Account** user.
 
 > ⚠️ **Note:**:
 > **GCP** shortens the service account name when creating user to ensure it does not exceed user name length limits. So service account `nextplore-service@nextplore-123.iam.gserviceaccount.com` becomes just `nextplore-service@nextplore-123.iam`. This is the account you need to provide SQL access to.

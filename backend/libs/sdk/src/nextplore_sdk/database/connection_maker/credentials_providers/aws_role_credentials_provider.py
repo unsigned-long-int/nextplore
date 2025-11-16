@@ -1,19 +1,17 @@
 import os
 import boto3
-import uuid
 from typing import Dict, Any
 
 from .credentials_provider import CredentialsProvider
 
 
 class AWSRoleCredentialsProvider(CredentialsProvider):
-
     def _assume(self) -> Dict[str, Any]:
         base_session = boto3.Session()
         sts = base_session.client('sts', region_name=self.profile.region)
         creds = sts.assume_role(
             RoleArn=os.getenv('AWS_ROLE_ARN'),
-            RoleSessionName=f'tenant-{self.profile.tenant_id}-access'
+            RoleSessionName='nextplore-iam-auth-hop'
         )['Credentials']
         tenant = boto3.Session(
             aws_access_key_id=creds['AccessKeyId'],
@@ -22,7 +20,7 @@ class AWSRoleCredentialsProvider(CredentialsProvider):
             region_name=self.profile.region
         )
 
-        role_session_name = f'nextplore-{self.profile.tenant_id}-r{uuid.uuid4().hex[:8]}'
+        role_session_name = f'nextplore-{self.profile.database}'
         sts = tenant.client('sts', region_name=self.profile.region)
         creds = sts.assume_role(
             RoleArn=self.profile.aws_role_arn,

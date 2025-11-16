@@ -10,8 +10,8 @@ import '@mantine/notifications/styles.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthPage } from './pages/AuthPage';
-import { AppProviders } from './app/providers';
+import { AuthPage } from '@/features/login/pages/AuthPage'
+import { AppProviders } from '@/app/providers';
 
 const theme = createTheme({
     primaryColor: 'grape',

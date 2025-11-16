@@ -280,10 +280,16 @@ export const IntegrationForm: React.FC<Props> = ({
                 {(
                     form.values.cloud === Cloud.AWS
                     && form.values.auth === Auth.IAM) && (
-                        <Group grow mt='md'>
-                            <TextInput label='AWS Role ARN' {...form.getInputProps('aws_role_arn')} />
-                            <TextInput label='AWS External ID' {...form.getInputProps('aws_external_id')} />
-                        </Group>
+                        <>
+                            <Group grow mt='md'>
+                                <TextInput label='AWS Role ARN' {...form.getInputProps('aws_role_arn')} />
+                                <TextInput label='AWS External ID' {...form.getInputProps('aws_external_id')} />
+                            </Group>
+                            <Group grow mt='md'>
+                                <TextInput label='Username' {...form.getInputProps('username')} />
+                                <TextInput label='Region' {...form.getInputProps('region')} />
+                            </Group>
+                        </>
                 )}
                 <Group justify='flex-end' mt='lg'>
                     <Button
