@@ -63,7 +63,7 @@ Request any data across your integrations and get structured response.
 
 - **New Integrations Creation/Update/Delete**
 
-![Integrations Use Case](./docs/integrations-use-case.gif)
+![Integrations Use Case](./docs/integration-creation-use-case.gif)
 
 - **Vectors Metadata Overview**
 
