@@ -422,9 +422,7 @@ GRANT SELECT ON your_database.* TO 'test_user'@'%';
 
 - we will provide you with this when you create your integration
 
-**`EXTERNAL_ID`**: Unique connection id for Nextplore
-
-- we will provide you with this when you create your integration
+**`EXTERNAL_ID`**: Unique connection id for Nextplore (declared in trust policy you created). 
 
 7. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
 
@@ -446,7 +444,7 @@ To enable **IAM** authentication on GCP, follow these steps:
 **Example MySQL Login Access Provision**:
 
 ```sql
--- GRANT least privelege access to DB or retrict further to schemas
+-- GRANT least privilege access to DB or restrict further to schemas
 GRANT SELECT ON your_database.* TO 'nextplore-service@nextplore-123.iam';
 ```
 
