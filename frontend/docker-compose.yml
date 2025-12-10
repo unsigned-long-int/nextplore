@@ -3,13 +3,55 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: development
     container_name: frontend
     ports:
       - "5173:5173"
     environment:
       - NODE_ENV=development
+      - NODE_OPTIONS=--max-old-space-size=512
+      - CHOKIDAR_USEPOLLING=true
+    mem_limit: 768m
+    mem_reservation: 512m
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./package.json:/app/package.json
+      # Prevent node_modules conflicts between host and container
+      - /app/node_modules
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+
+  frontend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: frontend_prod
+    ports:
+      - "80:80"
+    mem_limit: 128m
+    mem_reservation: 64m
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    profiles: [prod]
 
 networks:
   app-network:
