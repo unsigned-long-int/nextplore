@@ -20,7 +20,7 @@ class GcpMysqlPyMysqlAdapter(DriverAdapter):
         attrs_before: Optional[Dict[Any, Any]] = None,
         **kwargs: Any
     ):
-        connector = GcpCloudSqlConnector.get('/Users/nik/Downloads/nextplore-470323-18ec66288496.json')
+        connector = GcpCloudSqlConnector.get()
         conn = connector.connect(
             host,
             driver='pymysql',

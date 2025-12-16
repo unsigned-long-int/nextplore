@@ -84,6 +84,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_REGION=${AWS_REGION}
+      - GCP_ACCESS_KEY=${GCP_ACCESS_KEY}
       - AZURE_TENANT_ID=${AZURE_TENANT_ID_CRYPTO}
       - AZURE_CLIENT_ID=${AZURE_CLIENT_ID_CRYPTO}
       - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
@@ -91,6 +92,8 @@ services:
       - DB_NAME=${DB_NAME}
       - AKV_URL=${AKV_URL}
     profiles: [integration_service, all]
+    volumes:
+      - ~/.gcp-keys/gcp-access-key.json:/app/gcp-access-key.json:ro
     depends_on:
       - kafka
       - redis

@@ -1,3 +1,4 @@
+import os
 import threading
 from typing import Optional
 
@@ -11,7 +12,7 @@ class GcpCloudSqlConnector:
     _creds_path: Optional[str] = None
 
     @classmethod
-    def get(cls, credentials_path: str) -> Connector:
+    def get(cls, credentials_path: str = os.getenv('GCP_ACCESS_KEY')) -> Connector:
         with cls._lock:
             if cls._connector is not None:
                 return cls._connector
