@@ -9,10 +9,10 @@ services:
       - "5173:5173"
     environment:
       - NODE_ENV=development
-      - NODE_OPTIONS=--max-old-space-size=512
+      - NODE_OPTIONS=--max-old-space-size=1024
       - CHOKIDAR_USEPOLLING=true
-    mem_limit: 768m
-    mem_reservation: 512m
+    mem_limit: 1536m
+    mem_reservation: 1024m
     volumes:
       - ./src:/app/src
       - ./public:/app/public
@@ -20,7 +20,6 @@ services:
       - ./vite.config.ts:/app/vite.config.ts
       - ./tsconfig.json:/app/tsconfig.json
       - ./package.json:/app/package.json
-      # Prevent node_modules conflicts between host and container
       - /app/node_modules
     networks:
       - app-network
