@@ -1,1 +1,1 @@
-from .crawl_integration import crawl_initial_integration_metadata, craw_filtered_integration_metadata
+from .crawl_integration import crawl_initial_integration_metadata, crawl_filtered_integration_metadata

@@ -29,7 +29,8 @@ class TestEmbed(unittest.TestCase):
         self.embedder_cls_mock = MagicMock()
         self.embedder_cls_mock.return_value = self.embedder_instance_mock
 
-    def test_returns_cached_embedding(self):
+    @patch('embedding_service.api.router.embed_router.get_current_identity', return_value='no-matter')
+    def test_returns_cached_embedding(self, get_current_identity_mock):
         cached = EmbeddingResponse(embedding=[0.1, 0.4, 0.8])
         self.cache_mock.get_embedding.return_value = cached
 
@@ -55,16 +56,18 @@ class TestEmbed(unittest.TestCase):
             response=EmbeddingResponse(embedding=self.embedding)
         )
 
+    @patch('embedding_service.api.router.embed_router.get_current_identity', return_value='no-matter')
     @patch('embedding_service.api.router.embed_router.dispatch_embedder')
-    def test_raises_missing_embedder_engine(self, dispatch_embedder_mock):
+    def test_raises_missing_embedder_engine(self, dispatch_embedder_mock, get_current_identity_mock):
         self.cache_mock.get_embedding.return_value = None
         dispatch_embedder_mock.side_effect = MissingEmbedderEngine('Embedder failed')
         response = self.client.post('/v1/embedding/embed', json=self.request.model_dump())
         self.assertEqual(424, response.status_code)
         self.assertIn('Embedder failed', response.json()['detail']['message'])
 
+    @patch('embedding_service.api.router.embed_router.get_current_identity', return_value='no-matter')
     @patch('embedding_service.api.router.embed_router.dispatch_embedder')
-    def test_raises_unexpected_exception(self, dispatch_embedder_mock):
+    def test_raises_unexpected_exception(self, dispatch_embedder_mock, get_current_identity_mock):
         self.cache_mock.get_embedding.return_value = None
         dispatch_embedder_mock.side_effect = RuntimeError('Something went wrong')
         response = self.client.post('/v1/embedding/embed', json=self.request.model_dump())

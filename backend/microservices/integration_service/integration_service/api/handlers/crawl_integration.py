@@ -35,7 +35,7 @@ async def crawl_initial_integration_metadata(
     )
 
 
-async def craw_filtered_integration_metadata(
+async def crawl_filtered_integration_metadata(
         user_id: UUID,
         organization_id: UUID,
         inspection_request: FilteredCrawlRequest,

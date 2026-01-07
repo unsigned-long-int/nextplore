@@ -8,7 +8,7 @@ from integration_service.api.models.filtered_crawl_request import FilteredCrawlR
 from integration_service.api.models.crawl_response import CrawlResponse
 from integration_service.services.crawl.exceptions import CrawlIntegrationsFailed
 from integration_service.api.context import get_current_identity
-from integration_service.api.handlers import craw_filtered_integration_metadata
+from integration_service.api.handlers import crawl_filtered_integration_metadata
 from integration_service.cache import CacheService, get_cache_service
 from integration_service.api.dependencies import get_backend_connector, get_engine_manager
 
@@ -46,7 +46,7 @@ async def craw_filtered_integration(
         )
         if cached:
             return cached
-        response = await craw_filtered_integration_metadata(
+        response = await crawl_filtered_integration_metadata(
             user_id=user_identity.user_id,
             organization_id=user_identity.organization_id,
             inspection_request=payload,
