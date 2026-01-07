@@ -18,7 +18,7 @@
 > Nextplore is a multi-tenant microservice SaaS designed to leverage Large Language Models (LLMs) and advanced metaprogramming to enable general users or developers to interact with range of databases easily without knowing SQL language. It enables natural language querying across variety of database systems including Snowflake, MySQL, MSSQL and PostgreSQL. Nextplore supports different LLMs integrations including Deepseek, Qwen, meta-Llama and GPT-4o.
 
 <p align="center">
-  <a href="./license/"><img src="https://img.shields.io/badge/License-Elastic_2.0-4B32C3?style=flat-square" alt="License: Elastic 2.0"></a> <a href="https://github.com/unsigned-long-int/nextplore"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github" alt="GitHub"></a> <img src="https://img.shields.io/badge/Status-WIP-yellow?style=flat-square" alt="Status: WIP">
+  <a href="license.md"><img src="https://img.shields.io/badge/License-Elastic_2.0-4B32C3?style=flat-square" alt="License: Elastic 2.0"></a> <a href="https://github.com/unsigned-long-int/nextplore"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github" alt="GitHub"></a> <img src="https://img.shields.io/badge/Status-WIP-yellow?style=flat-square" alt="Status: WIP">
 </p>
 
 <p align="center">
