@@ -31,7 +31,7 @@ async def create_certificate(
 ) -> None:
     user_identity = get_current_identity()
 
-    if organization_id != user_identity.organization_id and user_id != user_identity.user_id:
+    if organization_id != user_identity.organization_id or user_id != user_identity.user_id:
         logger.error(
             'Forbidden request',
             extra={'org_id': organization_id, 'user_id': user_id}
