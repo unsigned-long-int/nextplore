@@ -4,6 +4,7 @@ from uuid import UUID
 from dataclasses import asdict
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from integration_service.domain.models.integration import (
     IntegrationUpdate,
@@ -114,34 +115,6 @@ class IntegrationRepository:
             logger.error(msg, exc_info=True)
             raise IntegrationCreateFailed(msg) from e
         
-    async def update_integration(
-            self,
-            integration_id: UUID,
-            user_id: UUID,
-            organization_id: UUID,
-            integration_update: IntegrationUpdate
-    ) -> None:
-        try:
-            update_args = asdict(integration_update)
-            async with self._db.session_scope(organization_id, user_id) as active_session:
-                stmt = (
-                    update(IntegrationORM)
-                    .where(
-                        IntegrationORM.id == integration_id,
-                        IntegrationORM.user_id == user_id,
-                        IntegrationORM.organization_id == organization_id
-                    )
-                    .values(**update_args)
-                )
-                result = await active_session.execute(stmt)
-                if result.rowcount == 0:
-                    msg = f'Integration update failed: No integration found for ID {integration_id}'
-                    raise IntegrationUpdateFailed(msg)
-        except SQLAlchemyError as e:
-            msg = f'Update integration failed with database error: {str(e)}'
-            logger.error(msg, exc_info=True)
-            raise IntegrationUpdateFailed(msg) from e
-        
     async def delete_integration(self, user_id: UUID, organization_id: UUID, integration_id: UUID) -> None:
         try:
             async with self._db.session_scope(organization_id, user_id) as active_session:
@@ -228,22 +201,6 @@ class IntegrationRepository:
             msg = f'Get latest version of secret failed with database error: {str(e)}'
             logger.error(msg, exc_info=True)
             raise SecretsVersionGetFailed(msg) from e
-        
-    async def update_secrets(
-            self,
-            organization_id: UUID,
-            user_id: UUID,
-            secrets: Dict[SecretType, IntegrationSecret]
-    ) -> None:
-        try:
-            secrets_orm = orm_from_secrets(secrets)
-            async with self._db.session_scope(organization_id, user_id) as scoped_session:
-                scoped_session.add_all(secrets_orm)
-                await scoped_session.flush()
-        except SQLAlchemyError as e:
-            msg = f'Secrets update failed with database error: {str(e)}'
-            logger.error(msg, exc_info=True)
-            raise SecretsUpdateFailed(msg) from e
 
     async def create_cert(
         self,
@@ -284,3 +241,55 @@ class IntegrationRepository:
             msg = f'Get certificate profiles failed with database error: {str(e)}'
             logger.error(msg, exc_info=True)
             raise CertGetFailed(msg) from e
+
+    async def update_integration(
+        self,
+        integration_id: UUID,
+        user_id: UUID,
+        organization_id: UUID,
+        integration_update: IntegrationUpdate,
+        secrets: Dict[SecretType, IntegrationSecret]
+    ) -> None:
+        try:
+            async with self._db.session_scope(organization_id, user_id) as active_session:
+                await self._update_integration(
+                    active_session,
+                    integration_id,
+                    user_id,
+                    organization_id,
+                    integration_update
+                )
+                await self._update_secrets(active_session, secrets)
+        except SQLAlchemyError as e:
+            msg = f'Update integration failed with database error: {str(e)}'
+            logger.error(msg, exc_info=True)
+            raise IntegrationUpdateFailed(msg) from e
+
+
+    async def _update_integration(
+        self,
+        active_session: AsyncSession,
+        integration_id: UUID,
+        user_id: UUID,
+        organization_id: UUID,
+        integration_update: IntegrationUpdate
+    ) -> None:
+        update_args = asdict(integration_update)
+        stmt = (
+            update(IntegrationORM)
+            .where(
+                IntegrationORM.id == integration_id,
+                IntegrationORM.user_id == user_id,
+                IntegrationORM.organization_id == organization_id
+            )
+            .values(**update_args)
+        )
+        result = await active_session.execute(stmt)
+        if result.rowcount == 0:
+            msg = f'Integration update failed: No integration found for ID {integration_id}'
+            raise IntegrationUpdateFailed(msg)
+
+    async def _update_secrets(self, active_session: AsyncSession, secrets: Dict[SecretType, IntegrationSecret]) -> None:
+        secrets_orm = orm_from_secrets(secrets)
+        active_session.add_all(secrets_orm)
+        await active_session.flush()

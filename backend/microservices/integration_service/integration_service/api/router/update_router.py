@@ -57,19 +57,13 @@ async def update_integration(
             integration_request=payload,
             version=secret_version + 1
         )
-        
-        await asyncio.gather(
-            integration_repo.update_integration(
-                integration_id=integration_id,
-                user_id=user_identity.user_id,
-                organization_id=user_identity.organization_id,
-                integration_update=integration_update
-            ),
-            integration_repo.update_secrets(
-                user_id=user_identity.user_id,
-                organization_id=user_identity.organization_id,
-                secrets=secrets
-            )
+
+        await integration_repo.update_integration(
+            integration_id=integration_id,
+            user_id=user_identity.user_id,
+            organization_id=user_identity.organization_id,
+            integration_update=integration_update,
+            secrets=secrets
         )
 
         await cache_service.cache.delete_by_prefix(
@@ -91,6 +85,7 @@ async def update_integration(
             f'Unexpected update integration error: {e}',
             exc_info=True
         )
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={'message': f'Unexpected error: {str(e)}'}
