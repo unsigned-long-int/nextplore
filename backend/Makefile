@@ -1,5 +1,8 @@
 .PHONY: help up down logs stats clean
 
+SDK_PATH=./libs/sdk/src
+MSG_PATH=./libs/messaging/src
+
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
@@ -19,7 +22,9 @@ check-libs:
 	@echo "All required libraries are built"
 
 run-tests:
-	@PYTHONPATH="/Users/nik/personal_projects/nextplore/backend/libs/sdk/src" python3 -m unittest discover "microservices/ai_orm_context_service"
+	@PYTHONPATH="$(SDK_PATH)" python3 -m unittest discover "microservices/ai_orm_context_service"
+	@PYTHONPATH="$(SDK_PATH):$(MSG_PATH)" python3 -m unittest discover "microservices/embedding_service"
+	@PYTHONPATH="$(SDK_PATH):$(MSG_PATH)" python3 -m unittest discover "microservices/integration_service"
 
 clean-libs:
 	@echo "Cleaning wheels..."

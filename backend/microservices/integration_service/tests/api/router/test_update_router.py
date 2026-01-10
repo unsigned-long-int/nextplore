@@ -12,7 +12,7 @@ from integration_service.cache import get_cache_service
 from integration_service.database.exceptions import IntegrationUpdateFailed
 
 
-class TestUpdateIntegrationRouter(unittest.TestCase):
+class TestUpdateRouter(unittest.TestCase):
     def setUp(self):
         self.app = FastAPI()
         self.app.include_router(router)
@@ -32,8 +32,6 @@ class TestUpdateIntegrationRouter(unittest.TestCase):
             host='updated-host.com',
             port=5433,
             database_name='updated_db',
-            username=SecretStr('updated_user'),
-            password=SecretStr('updated_pass'),
             autosync_on=True
         )
 
