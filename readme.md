@@ -27,51 +27,49 @@
 
 ---
 
-## Table Of Contents
+**Table Of Contents**
 
-- [Demo & Screenshots](#demo--screenshots)
+- [Project Focus](#project-focus)
+- [Demo](#demo)
 - [Overview](#overview)
 - [Features](#features)
+- [Integrating](#integrating)
 - [Architecture](#architecture)
-- [Security & Compliance](#security--compliance)
-- [Databases & Storage](#databases--storage)
-- [APIs & SDKs](#apis--sdks)
-- [CLI & Admin Tools](#cli--admin-tools)
-- [Observability](#observability)
-- [Running in Production](#running-in-production)
-- [Tenancy at Scale – Gotchas](#tenancy-at-scale--gotchas)
-- [Testing & Quality](#testing--quality)
-- [Troubleshooting](#troubleshooting)
-- [Upgrade & Migration Guide](#upgrade--migration-guide)
-- [Roadmap & Changelog](#roadmap--changelog)
-- [Contribution Guide](#contribution-guide)
-- [Licensing & Notices](#licensing--notices)
-- [Support](#support)
-- [Appendices](#appendices)
+- [Security](#security)
+- [Links](#links)
+- [Roadmap](#roadmap)
 
----
+## Project Focus
 
-## Demo & Screenshots
+Nextplore is a Retrieval-Augmented Generation (RAG) platform designed to provide structured access to enterprise data across heterogeneous data stores. It connects dynamically to multiple internal databases and enables unified querying and analysis of company knowledge.
 
-### Natural Language AI Query
+The platform is strictly read-only and does not perform write operations on source systems, though future releases may introduce controlled data manipulation. Its focus is secure data retrieval, schema-aware exploration, and generation of structured insights from existing data assets. Nextplore delivers the greatest value when integrated with multiple data sources, acting as a centralized and consistent access layer for enterprise knowledge. 
+
+## Demo
+
+**Natural Language Querying**
 
 Request any data across your integrations and get structured response.
 
 ![AI Query Use Case](./docs/ai-query-use-case.gif)
 
-- **New Integrations Creation/Update/Delete**
+**Integration Creation/Update/Delete**
+
+Create and manage your integrations. 
 
 ![Integrations Use Case](./docs/integration-creation-use-case.gif)
 
-- **Vectors Metadata Overview**
+**Vectors Metadata View**
+
+View and validate vectors used for RAG. 
 
 ![Vectors Metadata Use Case](./docs/vectors-metadata-use-case.gif)
 
-- **MFA Tenant Login**
+**MFA Tenant Login**
+
+Securely create and log in to your environment.
 
 ![MFA Login](./docs/mfa-login.gif)
-
----
 
 ## Overview
 
@@ -81,11 +79,9 @@ Due to abstraction of [DBAPI](https://peps.python.org/pep-0249/) the interaction
 
 Since databases may grow very large consisting of hundreds of schemas and tables, the metadata of tables are embedded and stored at [QDrant](https://qdrant.tech/). Respective metadata (i.e. integration, database, tables, schemas) is stored in PostgreSQL together with QDrant ID. This allows nextplore to apply [RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/) where only most relevant tables are used as basis for structured LLMs responses. The user natural language prompt is converted into vector, then cosine similarity is calculated between and **top N** vectors are matched as future knowledge source for chosen LLM.
 
----
-
 ## Features
 
-### Natural Language Querying
+### Natural language querying
 
 **Nextplore** enables you to explore and interact with **any relational data** across multiple databases **without writing a single line of SQL**.
 
@@ -98,29 +94,28 @@ With AI-driven search, you can query **all available metadata** from your connec
   - **OpenAI**
   - **LlamA**
 
-- **Unified Search Across Integrations**  
+- **Unified search across integrations**  
   Query data across all connected databases in one go.
 
-- **Pivot Functions**  
+- **Pivot functions**  
   Built-in support for:
 
   - `AVG`, `SUM`, `COUNT`, `MAX`, `MIN`
 
-- **Advanced Filtering**  
+- **Advanced filtering**  
   Supported operators:
 
   - `==`, `!=`, `>`, `<`, `>=`, `<=`, `LIKE`, `NOT LIKE`, `IN`
 
-- **SQL Transparency**  
+- **SQL transparency**  
   View the **exact SQL** generated for your request.
 
-- **Data Export**  
+- **Data export**  
   Export selected results directly for further analysis.
 
-- **Model Flexibility**  
+- **Model flexibility**  
   Choose your preferred AI model for query processing.
 
----
 
 ### Integrations
 
@@ -142,9 +137,18 @@ With AI-driven search, you can query **all available metadata** from your connec
 | PostgreSQL | ✅ (PostgreSQL's native pwd auth)      | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                                                                               | ❌                                                                                                                      | ❌               |
 | Snowflake  | ✅ (Snowflake's pwd auth)              | ❌                                                                                        | ❌                                                                                  | ❌                                                                                  | ✅ (RSA with signed JWT)                                                                         | ✅ (With network and auth policy)                                                                                       | ❌               |
 
----
+### Metadata overview
 
-### SQL Server
+**Nextplore** provides a comprehensive view of the metadata associated with each integration.
+It enables users to seamlessly inspect and validate active integrations, with a focus on the tables and columns most relevant for **Retrieval-Augmented Generation (RAG)** query resolution.
+
+By exposing both system-defined and descriptive metadata (e.g., SQL Server _extended properties_, PostgreSQL `COMMENT` fields), the platform helps users identify where metadata should be refined or extended.
+
+This refinement enables RAG pipelines to more accurately surface the correct datasets for user queries, ultimately improving both retrieval precision and interpretability of query results.
+
+## Integrating
+
+### SQL server
 
 **Nextplore** supports multiple authentication methods for **SQL Server**:
 
@@ -152,7 +156,7 @@ With AI-driven search, you can query **all available metadata** from your connec
 - For servers hosted on Azure, you can use **Microsoft Entra (Azure AD) Service Principal authentication** with **oAuth 2.0**
 - There is no **IAM auth** available for **AWS** and **GCP** for SQL Server.
 
-#### SQL native authentication
+#### Native authentication
 
 To enable password authentication for instances hosted on **AWS** and **Azure**, you need to provide only host name, username and password. **Nextplore** automatically takes care of TLS via shared CA bundles.
 
@@ -207,7 +211,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - username (for SQL login)
    - password (for SQL login)
 
-#### <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> IAM Azure
+#### IAM
 
 Microsoft provides a very comprehensive [guide](https://learn.microsoft.com/en-gb/azure/azure-sql/database/authentication-aad-configure?view=azuresql&tabs=azure-portal) on how to connect with **oAuth 2.0** on Azure SQL Server.
 
@@ -250,8 +254,6 @@ CREATE USER [<Microsoft_Entra_principal_name>] FROM EXTERNAL PROVIDER;
      - If you choose authentication with Azure IAM via Certificate, **Nextplore** will generate certficate key pairs (RSA 3072) and store private key securely in AKV and provide you with public one.
      - Then you will just need to upload this public key to your registered app, so that it can verify JWT which Nextplore signed with private key.
 
----
-
 ### MySQL
 
 **Nextplore** also supports different authentication methods for **MySQL**:
@@ -261,7 +263,7 @@ CREATE USER [<Microsoft_Entra_principal_name>] FROM EXTERNAL PROVIDER;
 - For **Aurora and RDS** on AWS, you can also enable **IAM** connection with temporary tokens via [Role Assumption Policy](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
 - For **GCP**, you have the possibility to connect with **IAM** authentication with temporary tokens via [Cloud Connector](https://cloud.google.com/sql/docs/postgres/iam-logins).
 
-#### SQL native authentication
+#### Native authentication
 
 To enable password authentication for instances hosted on **AWS** and **Azure**, you need to provide only host name, username and password. **Nextplore** automatically takes care of TLS via shared CA bundles.
 
@@ -316,7 +318,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - username (for SQL login)
    - password (for SQL login)
 
-#### <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> IAM Azure
+#### IAM Azure
 
 To enable **oAuth 2.0** authentication for **MySQL** on Azure, follow these steps:
 
@@ -348,7 +350,7 @@ CREATE AADUSER '<service_principal_name>';
 
 Here is also a microsoft [guide](https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-azure-ad) on the same.
 
-#### <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> IAM AWS
+#### IAM AWS
 
 To enable **IAM** authentication on AWS, follow these steps:
 
@@ -424,7 +426,7 @@ GRANT SELECT ON your_database.* TO 'test_user'@'%';
 
 7. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
 
-#### <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> IAM GPC
+#### IAM GPC
 
 To enable **IAM** authentication on GCP, follow these steps:
 
@@ -446,8 +448,6 @@ To enable **IAM** authentication on GCP, follow these steps:
 GRANT SELECT ON your_database.* TO 'nextplore-service@nextplore-123.iam';
 ```
 
----
-
 ### PostgreSQL
 
 **Nextplore** provides multiple authentication methods for **PostgreSQL**:
@@ -456,7 +456,7 @@ GRANT SELECT ON your_database.* TO 'nextplore-service@nextplore-123.iam';
 - For **Azure Database** for PostgreSQL, you can also enable **OAuth 2.0** authentication.
 - For **Aurora and RDS** on AWS, you can also enable **IAM** connection with temporary tokens via [Role Assumption](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html).
 
-#### SQL native authentication
+#### Native authentication
 
 To enable password authentication for instances hosted on **AWS** and **Azure**, you need to provide only host name, username and password. **Nextplore** automatically takes care of TLS via shared CA bundles.
 
@@ -511,7 +511,7 @@ To ensure TLS and a full CA verification, **Nextplore** provides 2 main ways to 
    - username (for SQL login)
    - password (for SQL login)
 
-#### <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> IAM Azure
+#### IAM Azure
 
 To use **oAuth 2.0** flow with Microsoft Entra, please follow these steps:
 
@@ -536,7 +536,7 @@ SELECT * FROM pg_catalog.pgaadauth_create_principal_with_oid(
 
 For more info you can refer to this [guide](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/security-entra-configure).
 
-#### <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> IAM AWS
+#### IAM AWS
 
 To connect via **IAM** in AWS, follow these steps:
 
@@ -617,7 +617,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA death_star GRANT SELECT ON TABLES TO test_use
 
 7. Attach **IAM policy** as permission from `test_user` (_created in Step 4_) to the role you just created.
 
-##### <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> IAM GPC
+#### IAM GPC
 
 To enable **IAM** authentication on GCP, follow these steps:
 
@@ -642,8 +642,6 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public to "nextplore-service@nextplore-123.
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT SELECT ON TABLES TO "nextplore-service@nextplore-123.iam"
 ```
-
----
 
 ### Snowflake
 
@@ -683,7 +681,7 @@ ALTER USER NEXTPLORE_PWD SET NETWORK_POLICY = NEXTPLORE_USER;
 
 ```
 
-#### Key-pair (RSA) Auth
+#### Key-pair (RSA)
 
 **Nextplore** supports **key-pair authentication** for secure user access to **Snowflake**. When this method is enabled, **Nextplore** generates a **RSA key-pair** and provides the corresponding **public key (.pub)**, which must be registered with the designated Snowflake user account. The **private key** is securely stored in **Azure Key Vault (AKV)**, where it remains encrypted at rest.
 
@@ -698,7 +696,7 @@ GRANT MODIFY PROGRAMMATIC AUTHENTICATION METHODS ON USER <NEXTPLORE-USER>
 ALTER USER NEXTPLORE_PWD SET RSA_PUBLIC_KEY='<.pub key provided by Nextplore>';
 ```
 
-#### Programmatic Access Token (PAT)
+#### Programmatic access token (PAT)
 
 **Nextplore** provides you with possibility to use also PAT for authentication in Snowflake. **Nextplore** discourages this though, since tokens are short-lived and need to be rotated. Use those when you want a quick test for a particular small set of data.
 
@@ -732,55 +730,63 @@ DAYS_TO_EXPIRY = 30; -- copy paste token and insert as password in your integrat
 
 ---
 
-### Metadata Overview
-
-**Nextplore** provides a comprehensive view of the metadata associated with each integration.
-It allows users to seamlessly inspect and validate active integrations, with a focus on the tables and columns most relevant for **Retrieval-Augmented Generation (RAG)** query resolution.
-
-By exposing both system-defined and descriptive metadata (e.g., SQL Server _extended properties_, PostgreSQL `COMMENT` fields), the platform helps users identify where metadata should be refined or extended.
-
-This refinement enables RAG pipelines to more accurately surface the correct datasets for user queries, ultimately improving both retrieval precision and interpretability of query results.
-
----
-
 ## Architecture
 
 The image below provides the basic architecture of the application.
 
 ![architecture](docs/architecture-diagram.jpg)
 
----
+**Tenant Isolation**
 
-### Tenant Isolation
-
-- For tenant isolation [RLS](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) approach in a single database has been implemented (enough for MVP and small number of vendors, per-tenant-db and automatic provision with Terraform should be implemented to avoid [noisy neighbour problem](https://learn.microsoft.com/en-us/azure/architecture/antipatterns/noisy-neighbor/noisy-neighbor) if bigger tenants are coming)
+- For tenant isolation [RLS](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) approach in a single database has been implemented (enough for MVP and small number of vendors, per-tenant-db and automatic provision should be implemented to avoid [noisy neighbour problem](https://learn.microsoft.com/en-us/azure/architecture/antipatterns/noisy-neighbor/noisy-neighbor) if bigger tenants are coming)
 - To secure sensitive data (i.e. integration credentials) automatic provision of Azure Vault Store for [secret envelope](https://medium.com/@tarangchikhalia/envelope-encryption-a-secure-approach-to-secrets-management-c8abce5b24d2) has been built.
-- Tenant isolation is achieved also with redis key validation, where sha256 keys always take unique user UUID and tenant UUID generated by PostgreSQL.
-- To ensure only authenticated users reach microservices endpoints, JWT validation (with caching) is performed through middleware where user credentials are validated and context is set per user identity.
+- Tenant isolation is achieved also with redis key validation, where sha256 keys always take unique user UUID and tenant UUID generated by backend database.
+- To ensure only authenticated users reach microservices endpoints, JWT validation (with caching) is performed via middleware where user credentials are validated and context is set per user identity.
 - Each of event sent by kafka follows the interface requiring to contain reference to user identity. Kafka events contain headers which allow message bus to partition them by tenant.
 
----
-
-### Services Isolation
+**Services Isolation**
 
 - Each microservice is provisioned with a dedicated PostgreSQL role, scoped with the principle of least privilege. Access is strictly limited to the schemas relevant to the service's domain, ensuring data segregation, minimizing blast radius, and supporting multi-tenant security requirements.
 - Inter-service communication follows an event-driven architecture implemented on Apache Kafka. To maintain strict, language-agnostic contract guarantees, producing services register and version AVRO schemas in the Confluent Schema Registry. This ensures schema evolution compatibility and prevents consumer-producer contract drift.
 - Kafka messages are transmitted in a compact, byte-encoded format, minimizing payload size and network overhead. Serialization and deserialization are handled via the AVRO-based implementation of the Codec interface, enabling a modular serialization layer. This design allows for seamless substitution with alternative serialization mechanisms such as Protocol Buffers or JSON without impacting upstream or downstream service logic.
 - Kafka messages are partitioned by tenant-id to guarantee ordered delivery and consistent event processing within each tenant's scope.
 
----
+**Logging/Analytics**
 
-### Logging
+- Logging can be configured via `.conf` files per microservice. 
+- Logging provides json-formatted information on runtime state. It enables integrations with log analytics agents such as Datadog to collect, analyse and manage state of the application. 
+- API performance metrics are collected and analysed via [prometheus](https://prometheus.io/)
 
----
+**LLMs integrations**
 
-## License
+- Integration microservice uses Hugging Face as inference provider solution to integrate with LLMs. 
+- Since Hugging Face supports creation and inference of own model, Nextplore will support usage of own models for natural language querying.
 
-```
+**Microservice communication** 
 
-```
+- Nextplore offloads asynchronous requests to run via kafka message queue, thus allowing certain background jobs to run in parallel with other user activities.
+- Synchronous, blocking interactions are handled via RESTful HTTP APIs.
+- Some background jobs like syncing and etc. are run serverless at regular intervalls.
 
----
+**Storage**
+
+- Relational structured data is stored in PostgreSQL. This applies to authentication and structured metadata. 
+- Embeddings used for RAG are stored in QDrant together with references to structured metadata.
+
+## Security
+
+Given the importance and sensitivity of company's internal information, Nextplore takes all possible precautious measures to secure the data and minimise the exposure at each step. 
+
+Nextplore uses only metadata it may find on integrated data stores without having access to the content itself. You are encouraged to limit access rights as described in [integrating](#integrating) section. 
+
+Sensitive data used for authentication is secured via envelope encryption. Each vendor is provisioned with a dedicated azure key vault where key encryption key (KEK). For each created integration random data encryption key (DEK) is generated. DEK is used to encrypt the data. DEK itself is then encrypted and stored per integration. Encrypted DEK itself is used unless unwrapped with KEK with a personal vendor vault.
+
+To identify vulnerabilities, both source code, dependencies and container images are continuously scanned using Veracode. Container images are immutable, versioned, and stored in a private JFrog container registry. Code quality and maintainability are enforced through continuous static analysis via SonarQube integration.
+
+
+## Links
+[License](./license.md)
+[Personal Website](www.unsigned-long-int.co)
 
 ## Roadmap
 

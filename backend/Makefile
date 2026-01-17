@@ -11,6 +11,8 @@ build-libs:
 	@cd libs/sdk/ && python -m build -w -o ../.wheelhouse/
 	@echo "Building kafka_messaging..."
 	@cd libs/messaging/ && python -m build -w -o ../.wheelhouse/
+	@cd libs/svc_integration_contracts/ && python -m build -w -o ../.wheelhouse/
+	@echo "Building svc_integration_contracts..."
 	@echo "Libraries built successfully in libs/.wheelhouse/"
 
 check-libs:

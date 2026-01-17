@@ -5,8 +5,10 @@ RUN groupadd -r nextplore-group \
 
 ARG NEXTPLORE_SDK
 ARG KAFKA_MESSAGING
+ARG SVC_INTEGRATION_CONTRACTS
 COPY ${NEXTPLORE_SDK} /tmp/wheels/
 COPY ${KAFKA_MESSAGING} /tmp/wheels/
+COPY ${SVC_INTEGRATION_CONTRACTS} /tmp/wheels/
 RUN pip install --upgrade /tmp/wheels/*.whl  \
     && rm -rf /tmp/wheels
 

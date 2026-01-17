@@ -67,6 +67,7 @@ services:
       args:
         NEXTPLORE_SDK: libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
         KAFKA_MESSAGING: libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl
+        SVC_INTEGRATION_CONTRACTS: libs/.wheelhouse/svc_integration_contracts-0.1.0-py3-none-any.whl
     container_name: integration_service
     ports:
       - "${INTEGRATION_PORT:-8001}:8001"

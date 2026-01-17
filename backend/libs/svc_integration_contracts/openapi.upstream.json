@@ -1,0 +1,1448 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Integration Registry Inspection Service",
+    "description": "Handles crawling of the integration, fetching/upserting metadata and encryption of connections",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v1/integration/organizations/{organization_id}/users/{user_id}/crawl": {
+      "post": {
+        "tags": [
+          "CrawlIntegration"
+        ],
+        "summary": "Craw Filtered Integration",
+        "operationId": "craw_filtered_integration_v1_integration_organizations__organization_id__users__user_id__crawl_post",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilteredCrawlRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrawlResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integration/organizations/{organization_id}/users/{user_id}/integrations": {
+      "post": {
+        "tags": [
+          "CreateIntegration"
+        ],
+        "summary": "Create Integration",
+        "operationId": "create_integration_v1_integration_organizations__organization_id__users__user_id__integrations_post",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integration/organizations/{organization_id}/users/{user_id}/integrations/{integration_id}": {
+      "delete": {
+        "tags": [
+          "DeleteIntegration"
+        ],
+        "summary": "Delete Integration",
+        "operationId": "delete_integration_v1_integration_organizations__organization_id__users__user_id__integrations__integration_id__delete",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "integration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Integration Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "UpdateIntegration"
+        ],
+        "summary": "Update Integration",
+        "operationId": "update_integration_v1_integration_organizations__organization_id__users__user_id__integrations__integration_id__patch",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "integration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Integration Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integration/organizations/{organization_id}/users/{user_id}/integrations/profiles": {
+      "get": {
+        "tags": [
+          "IntegrationProfiles"
+        ],
+        "summary": "Get Profiles",
+        "operationId": "get_profiles_v1_integration_organizations__organization_id__users__user_id__integrations_profiles_get",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationProfile"
+                  },
+                  "title": "Response Get Profiles V1 Integration Organizations  Organization Id  Users  User Id  Integrations Profiles Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integration/test": {
+      "post": {
+        "tags": [
+          "TestIntegration"
+        ],
+        "summary": "Test Integration",
+        "operationId": "test_integration_v1_integration_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integration/organizations/{organization_id}/users/{user_id}/stats": {
+      "get": {
+        "tags": [
+          "IntegrationStats"
+        ],
+        "summary": "Get Stats",
+        "operationId": "get_stats_v1_integration_organizations__organization_id__users__user_id__stats_get",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationStatsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integration/organizations/{organization_id}/users/{user_id}/integrations/{integration_id}/connection-profile": {
+      "get": {
+        "tags": [
+          "ConnectionProfile"
+        ],
+        "summary": "Get Connection Profile",
+        "operationId": "get_connection_profile_v1_integration_organizations__organization_id__users__user_id__integrations__integration_id__connection_profile_get",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "integration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Integration Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationConnectionProfile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integration/organizations/{organization_id}/users/{user_id}/integrations/certificates/profiles": {
+      "get": {
+        "tags": [
+          "CertProfiles"
+        ],
+        "summary": "Get Cert Profiles",
+        "operationId": "get_cert_profiles_v1_integration_organizations__organization_id__users__user_id__integrations_certificates_profiles_get",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CertProfile"
+                  },
+                  "title": "Response Get Cert Profiles V1 Integration Organizations  Organization Id  Users  User Id  Integrations Certificates Profiles Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integration/organizations/{organization_id}/users/{user_id}/integrations/certificates": {
+      "post": {
+        "tags": [
+          "CreateCertificate"
+        ],
+        "summary": "Create Certificate",
+        "operationId": "create_certificate_v1_integration_organizations__organization_id__users__user_id__integrations_certificates_post",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CertCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Auth": {
+        "type": "string",
+        "enum": [
+          "iam",
+          "secret",
+          "cert",
+          "password_native",
+          "password_proxy",
+          "jwt"
+        ],
+        "title": "Auth"
+      },
+      "CertCreateRequest": {
+        "properties": {
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
+          "key_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Size"
+          },
+          "validity_in_months": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validity In Months"
+          }
+        },
+        "type": "object",
+        "title": "CertCreateRequest"
+      },
+      "CertProfile": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Id"
+          },
+          "state": {
+            "$ref": "#/components/schemas/CertState"
+          },
+          "cert_kid": {
+            "type": "string",
+            "title": "Cert Kid"
+          },
+          "cert_name": {
+            "type": "string",
+            "title": "Cert Name"
+          },
+          "public_cert_pem": {
+            "type": "string",
+            "title": "Public Cert Pem"
+          },
+          "thumbprint_sha256": {
+            "type": "string",
+            "title": "Thumbprint Sha256"
+          },
+          "not_before": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Not Before"
+          },
+          "not_after": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Not After"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "assigned_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned At"
+          },
+          "activated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activated At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "state",
+          "cert_kid",
+          "cert_name",
+          "public_cert_pem",
+          "thumbprint_sha256",
+          "not_before",
+          "not_after",
+          "created_at"
+        ],
+        "title": "CertProfile"
+      },
+      "CertState": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "ASIGNED",
+          "ACTIVE",
+          "REVOKED",
+          "EXPIRED",
+          "ORPHANED"
+        ],
+        "title": "CertState"
+      },
+      "Cloud": {
+        "type": "string",
+        "enum": [
+          "aws",
+          "azure",
+          "gcp",
+          "snowflake_managed"
+        ],
+        "title": "Cloud"
+      },
+      "CrawlResponse": {
+        "properties": {
+          "integration_registry_repr": {
+            "type": "string",
+            "title": "Integration Registry Repr"
+          },
+          "integrations_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Integrations Enum"
+          },
+          "schemas_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Schemas Enum"
+          },
+          "tables_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tables Enum"
+          },
+          "columns_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Columns Enum"
+          },
+          "filter_op_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Filter Op Enum"
+          },
+          "agg_funcs_enum": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Agg Funcs Enum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "integration_registry_repr",
+          "integrations_enum",
+          "schemas_enum",
+          "tables_enum",
+          "columns_enum",
+          "filter_op_enum",
+          "agg_funcs_enum"
+        ],
+        "title": "CrawlResponse"
+      },
+      "DB": {
+        "type": "string",
+        "enum": [
+          "mysql",
+          "sqlserver",
+          "postgresql",
+          "snowflake"
+        ],
+        "title": "DB"
+      },
+      "FilteredCrawlRequest": {
+        "properties": {
+          "integrations": {
+            "items": {
+              "type": "string",
+              "format": "uuid4"
+            },
+            "type": "array",
+            "title": "Integrations"
+          },
+          "schemas": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "propertyNames": {
+              "format": "uuid4"
+            },
+            "type": "object",
+            "title": "Schemas"
+          },
+          "tables": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "propertyNames": {
+              "format": "uuid4"
+            },
+            "type": "object",
+            "title": "Tables"
+          }
+        },
+        "type": "object",
+        "required": [
+          "integrations",
+          "schemas",
+          "tables"
+        ],
+        "title": "FilteredCrawlRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IntegrationConnectionProfile": {
+        "properties": {
+          "auth": {
+            "$ref": "#/components/schemas/Auth"
+          },
+          "cloud": {
+            "$ref": "#/components/schemas/Cloud"
+          },
+          "db": {
+            "$ref": "#/components/schemas/DB"
+          },
+          "host": {
+            "type": "string",
+            "title": "Host"
+          },
+          "database_name": {
+            "type": "string",
+            "title": "Database Name"
+          },
+          "port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Port"
+          },
+          "warehouse": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warehouse"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Secret"
+          },
+          "aws_external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aws External Id"
+          },
+          "aws_role_arn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aws Role Arn"
+          },
+          "snowflake_private_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snowflake Private Key"
+          },
+          "azure_cert_kid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Azure Cert Kid"
+          },
+          "azure_cert_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Azure Cert Name"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "type": "object",
+        "required": [
+          "auth",
+          "cloud",
+          "db",
+          "host",
+          "database_name"
+        ],
+        "title": "IntegrationConnectionProfile"
+      },
+      "IntegrationCreateRequest": {
+        "properties": {
+          "auth": {
+            "$ref": "#/components/schemas/Auth"
+          },
+          "cloud": {
+            "$ref": "#/components/schemas/Cloud"
+          },
+          "db": {
+            "$ref": "#/components/schemas/DB"
+          },
+          "connection_name": {
+            "type": "string",
+            "title": "Connection Name"
+          },
+          "host": {
+            "type": "string",
+            "title": "Host"
+          },
+          "database_name": {
+            "type": "string",
+            "title": "Database Name"
+          },
+          "port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Port"
+          },
+          "warehouse": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warehouse"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "kek_kid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kek Kid"
+          },
+          "azure_cert_kid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Azure Cert Kid"
+          },
+          "azure_cert_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Azure Cert Name"
+          },
+          "azure_public_key_pem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Azure Public Key Pem"
+          },
+          "snowflake_public_key_pem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snowflake Public Key Pem"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Secret"
+          },
+          "aws_role_arn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aws Role Arn"
+          },
+          "aws_external_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aws External Id"
+          },
+          "snowflake_private_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snowflake Private Key"
+          },
+          "autosync_on": {
+            "type": "boolean",
+            "title": "Autosync On",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "auth",
+          "cloud",
+          "db",
+          "connection_name",
+          "host",
+          "database_name"
+        ],
+        "title": "IntegrationCreateRequest"
+      },
+      "IntegrationProfile": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Id"
+          },
+          "auth": {
+            "$ref": "#/components/schemas/Auth"
+          },
+          "cloud": {
+            "$ref": "#/components/schemas/Cloud"
+          },
+          "db": {
+            "$ref": "#/components/schemas/DB"
+          },
+          "connection_name": {
+            "type": "string",
+            "title": "Connection Name"
+          },
+          "database_name": {
+            "type": "string",
+            "title": "Database Name"
+          },
+          "host": {
+            "type": "string",
+            "title": "Host"
+          },
+          "port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Port"
+          },
+          "autosync_on": {
+            "type": "boolean",
+            "title": "Autosync On",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "auth",
+          "cloud",
+          "db",
+          "connection_name",
+          "database_name",
+          "host"
+        ],
+        "title": "IntegrationProfile"
+      },
+      "IntegrationStatsResponse": {
+        "properties": {
+          "integration_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid4"
+            },
+            "type": "array",
+            "title": "Integration Ids"
+          },
+          "integration_count": {
+            "type": "integer",
+            "title": "Integration Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "integration_ids",
+          "integration_count"
+        ],
+        "title": "IntegrationStatsResponse"
+      },
+      "IntegrationUpdateRequest": {
+        "properties": {
+          "connection_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection Name"
+          },
+          "host": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Host"
+          },
+          "port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Port"
+          },
+          "database_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Database Name"
+          },
+          "autosync_on": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Autosync On"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connection_name",
+          "host",
+          "port",
+          "database_name",
+          "autosync_on"
+        ],
+        "title": "IntegrationUpdateRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
