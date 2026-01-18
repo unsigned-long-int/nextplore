@@ -2,6 +2,9 @@ import logging
 import asyncio
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, status, Depends
+from svc_integration_contracts.models import IntegrationConnectionProfile
+from nextplore_sdk.encryptor.client.azure_crypto_client import AzureCryptoClient
+from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 
 from integration_service.database.repositories import IntegrationRepository
 from integration_service.database.exceptions import (
@@ -13,12 +16,6 @@ from integration_service.api.context import get_current_identity
 from integration_service.services.encryption import decrypt_secret
 from integration_service.api.dependencies import get_backend_connector
 from integration_service.domain.models.secret import SecretType
-from integration_service.domain.mappers.integration import to_dto_cloud, to_dto_db, to_dto_auth
-from integration_service.domain.exceptions import MissingCloud, MissingDB, MissingAuth
-from integration_service.api.models.integration_connection_profile import IntegrationConnectionProfile
-from nextplore_sdk.encryptor.client.azure_crypto_client import AzureCryptoClient
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-
 
 logger = logging.getLogger(__name__)
 
@@ -72,9 +69,9 @@ async def get_connection_profile(
         crypto_client = AzureCryptoClient(integration.kek_kid)
 
         response = IntegrationConnectionProfile(
-            auth=to_dto_auth(integration.auth.value),
-            cloud=to_dto_cloud(integration.cloud.value),
-            db=to_dto_db(integration.db.value),
+            auth=integration.auth,
+            cloud=integration.cloud,
+            db=integration.db,
             host=integration.host,
             database_name=integration.database_name,
             port=integration.port,
@@ -115,15 +112,6 @@ async def get_connection_profile(
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={'message': f'Database error: {str(e)}'}
-        )
-    except (MissingCloud, MissingDB, MissingAuth) as e:
-        logger.error(
-            f'Connection profile failed with mapping error: {str(e)}',
-            exc_info=True
-        )
-        raise HTTPException(
-            status_code=status.HTTP_424_FAILED_DEPENDENCY,
-            detail={'message': f'Mapping error: {str(e)}'}
         )
     except Exception as e:
         logger.error(f'Unexpected single get integration request error: {e}', exc_info=True)

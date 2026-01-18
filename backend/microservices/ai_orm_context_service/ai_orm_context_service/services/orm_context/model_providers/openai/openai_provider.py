@@ -2,10 +2,9 @@ import os
 import json
 from typing import Dict, List, Any
 from pydantic import ValidationError
-
+from svc_ai_orm_context_contracts.models import ORMContextResponse, ORMContextRequest
 from nextplore_sdk.open_ai_client_loader.open_ai_client_loader import load_open_ai_client
-from ai_orm_context_service.api.models.orm_context_request import ORMContextRequest
-from ai_orm_context_service.api.models.orm_context_response import ORMContextResponse
+
 from ai_orm_context_service.services.orm_context.model_providers.base import BaseProvider
 from ai_orm_context_service.services.orm_context.exceptions import InvalidModelResponse
 

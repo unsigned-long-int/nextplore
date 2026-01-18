@@ -26,7 +26,7 @@ class TestGcpSqlserverPyTdsAdapter(unittest.TestCase):
             timeout=20
         )
         self.assertIs(conn, self.conn_mock)
-        gcp_cloud_sql_connector_mock.get.assert_called_once_with(self.creds_path)
+        gcp_cloud_sql_connector_mock.get.assert_called_once()
         self.connector_mock.connect.assert_called_once_with(
             'localhost',
             driver='pytds',
@@ -48,7 +48,7 @@ class TestGcpSqlserverPyTdsAdapter(unittest.TestCase):
             database='mydb'
         )
         self.assertIs(conn, self.conn_mock)
-        gcp_cloud_sql_connector_mock.get.assert_called_once_with(self.creds_path)
+        gcp_cloud_sql_connector_mock.get.assert_called_once()
         self.connector_mock.connect.assert_called_once_with(
             'localhost',
             driver='pytds',

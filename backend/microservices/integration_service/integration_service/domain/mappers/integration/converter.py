@@ -1,7 +1,9 @@
 from uuid import UUID
+from svc_integration_contracts.models import (
+    IntegrationUpdateRequest,
+    IntegrationCreateRequest
+)
 
-from integration_service.api.models.integration_update_request import IntegrationUpdateRequest
-from integration_service.api.models.integration_create_request import IntegrationCreateRequest
 from integration_service.domain.models.integration import (
     IntegrationUpdate,
     IntegrationCreate,

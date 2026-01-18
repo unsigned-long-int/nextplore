@@ -2,8 +2,11 @@ import unittest
 import uuid
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
+from svc_ai_orm_context_contracts.models import (
+    ORMContextRequest,
+    Context
+)
 
-from ai_orm_context_service.api.models.orm_context_request import ORMContextRequest, Context
 from ai_orm_context_service.services.orm_context.model_providers.hugging_face.inference.inference_providers import \
     NovitaInference
 

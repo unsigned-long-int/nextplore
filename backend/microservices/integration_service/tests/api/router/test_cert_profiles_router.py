@@ -4,15 +4,12 @@ from uuid import uuid4
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
+from svc_integration_contracts.models import CertProfile, CertState
 
 from integration_service.cache import get_cache_service
 from integration_service.domain.models.cert import CertProfile as CertProfileDomain
-from integration_service.domain.exceptions import MissingCertState
-from integration_service.api.models.cert_profile import CertProfile as CertProfileDTO
 from integration_service.api.router.cert_profiles_router import router
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.api.models.cert_state import CertState
 from integration_service.database.exceptions import CertGetFailed
 
 
@@ -30,7 +27,7 @@ class TestCertProfilesRouter(unittest.TestCase):
         }
         self.domain_profile = CertProfileDomain(
             id=uuid4(),
-            state=CertState.PENDING,
+            state=CertState.pending,
             public_cert_pem='--PEM---',
             thumbprint_sha256='THUMB...',
             cert_name='my-cert',
@@ -57,9 +54,9 @@ class TestCertProfilesRouter(unittest.TestCase):
         get_current_identity_mock.return_value = user_identity_mock
 
         cached = [
-            CertProfileDTO(
+            CertProfile(
                 id=uuid4(),
-                state=CertState.ACTIVE,
+                state=CertState.active,
                 cert_kid='test-kid',
                 public_cert_pem='---PEM',
                 cert_name='my-cert',
@@ -83,10 +80,8 @@ class TestCertProfilesRouter(unittest.TestCase):
 
     @patch('integration_service.api.router.cert_profiles_router.IntegrationRepository')
     @patch('integration_service.api.router.cert_profiles_router.get_current_identity')
-    @patch('integration_service.api.router.cert_profiles_router.to_dto_cert_state')
     def test_requests_cert_profiles_and_sets_cache(
         self,
-        to_dto_cert_state_mock,
         get_current_identity_mock,
         integration_repo_cls_mock,
     ):
@@ -100,10 +95,9 @@ class TestCertProfilesRouter(unittest.TestCase):
         integration_repo_instance.get_cert_profiles.return_value = [self.domain_profile]
         integration_repo_cls_mock.return_value = integration_repo_instance
 
-        to_dto_cert_state_mock.return_value = CertState.ACTIVE
-        expected_dto = CertProfileDTO(
+        expected_dto = CertProfile(
             id=self.domain_profile.id,
-            state=CertState.ACTIVE,
+            state=CertState.pending,
             cert_kid=self.domain_profile.cert_kid,
             public_cert_pem=self.domain_profile.public_cert_pem,
             thumbprint_sha256=self.domain_profile.thumbprint_sha256,
@@ -126,8 +120,6 @@ class TestCertProfilesRouter(unittest.TestCase):
             organization_id=user_identity_mock.organization_id,
             user_id=user_identity_mock.user_id,
         )
-
-        to_dto_cert_state_mock.assert_called_once_with(self.domain_profile.state.value)
 
         self.cache_mock.set_cert_profiles.assert_awaited_once()
         kwargs = self.cache_mock.set_cert_profiles.await_args.kwargs
@@ -164,30 +156,6 @@ class TestCertProfilesRouter(unittest.TestCase):
 
         self.assertEqual(424, response.status_code)
         self.assertIn('Database error: boom', response.text)
-
-    @patch('integration_service.api.router.cert_profiles_router.IntegrationRepository')
-    @patch('integration_service.api.router.cert_profiles_router.to_dto_cert_state')
-    @patch('integration_service.api.router.cert_profiles_router.get_current_identity')
-    def test_mapping_error_returns_424(self, get_current_identity_mock, to_dto_cert_state_mock, integration_repo_cls_mock):
-        user_identity_mock = MagicMock()
-        user_identity_mock.user_id = uuid4()
-        user_identity_mock.organization_id = uuid4()
-        get_current_identity_mock.return_value = user_identity_mock
-
-        self.cache_mock.get_cert_profiles.return_value = None
-
-        domain_profile = MagicMock()
-        domain_profile.state.value = 'SOMETHING'
-        integration_repo_instance = AsyncMock()
-        integration_repo_instance.get_cert_profiles.return_value = [domain_profile]
-        integration_repo_cls_mock.return_value = integration_repo_instance
-
-        to_dto_cert_state_mock.side_effect = MissingCertState('bad state')
-
-        response = self.client.get(self._url(user_identity_mock.organization_id, user_identity_mock.user_id))
-
-        self.assertEqual(424, response.status_code)
-        self.assertIn('Mapping error: bad state', response.text)
 
     @patch('integration_service.api.router.cert_profiles_router.IntegrationRepository')
     @patch('integration_service.api.router.cert_profiles_router.get_current_identity')

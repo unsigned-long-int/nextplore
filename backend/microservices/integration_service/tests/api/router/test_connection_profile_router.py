@@ -4,16 +4,17 @@ from fastapi import FastAPI
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
+from svc_integration_contracts.models import (
+    IntegrationConnectionProfile,
+    DB,
+    Auth,
+    Cloud
+)
 
-from integration_service.domain.exceptions import MissingAuth
-from integration_service.domain.mappers.integration import to_dto_auth, to_dto_cloud, to_dto_db
-from integration_service.domain.models.integration import Integration, Auth, DB, Cloud
+from integration_service.domain.models.integration import Integration
 from integration_service.cache import get_cache_service
 from integration_service.api.router.connection_profile_router import router
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.api.models.integration_connection_profile import (
-    IntegrationConnectionProfile,
-)
 from integration_service.database.exceptions import IntegrationGetFailed, SecretsGetFailed
 
 
@@ -38,9 +39,9 @@ class TestConnectionProfileRouter(unittest.TestCase):
             id=self.integration_id,
             organization_id=self.org_id,
             user_id=self.user_id,
-            auth=Auth.SECRET,
-            cloud=Cloud.AZURE,
-            db=DB.SQLSERVER,
+            auth=Auth.secret,
+            cloud=Cloud.azure,
+            db=DB.sqlserver,
             connection_name='test-connection',
             host='localhost',
             database_name='test-database',
@@ -72,9 +73,9 @@ class TestConnectionProfileRouter(unittest.TestCase):
         get_current_identity_mock.return_value = identity
 
         cached = IntegrationConnectionProfile(
-            auth=to_dto_auth(self.integration.auth.value),
-            cloud=to_dto_cloud(self.integration.cloud.value),
-            db=to_dto_db(self.integration.db.value),
+            auth=self.integration.auth,
+            cloud=self.integration.cloud,
+            db=self.integration.db,
             host=self.integration.host,
             database_name=self.integration.database_name,
             port=self.integration.port,
@@ -159,9 +160,9 @@ class TestConnectionProfileRouter(unittest.TestCase):
         )
 
         expected = IntegrationConnectionProfile(
-            auth=to_dto_auth(self.integration.auth.value),
-            cloud=to_dto_cloud(self.integration.cloud.value),
-            db=to_dto_db(self.integration.db.value),
+            auth=self.integration.auth,
+            cloud=self.integration.cloud,
+            db=self.integration.db,
             host=self.integration.host,
             database_name=self.integration.database_name,
             port=self.integration.port,
@@ -242,53 +243,6 @@ class TestConnectionProfileRouter(unittest.TestCase):
         resp = self.client.get(self._url())
         self.assertEqual(resp.status_code, 424)
         self.assertIn('Database error: no-secrets', resp.text)
-
-    @patch('integration_service.api.router.connection_profile_router.AzureCryptoClient')
-    @patch('integration_service.api.router.connection_profile_router.decrypt_secret')
-    @patch('integration_service.api.router.connection_profile_router.get_current_identity')
-    @patch('integration_service.api.router.connection_profile_router.IntegrationRepository')
-    @patch('integration_service.api.router.connection_profile_router.to_dto_auth')
-    def test_missing_dto_maps_returns_424(
-        self,
-        to_dto_auth_mock,
-        repo_cls_mock,
-        get_current_identity_mock,
-        decrypt_secret_mock,
-        azure_crypto_cls_mock,
-    ):
-        identity = MagicMock()
-        identity.organization_id = self.org_id
-        identity.user_id = self.user_id
-        get_current_identity_mock.return_value = identity
-        self.cache_mock.get_connection_profile.return_value = None
-
-        repo_instance = AsyncMock()
-        repo_instance.get_integration.return_value = self.integration
-        repo_cls_mock.return_value = repo_instance
-
-        decrypt_map = {
-            'USERNAME': 'user1',
-            'PASSWORD': 'pwd1',
-            'SECRET': 'client-secret-1',
-            'AWS_EXTERNAL_ID': 'ext-123',
-            'AWS_ROLE_ARN': 'arn:aws:iam::123:role/role1',
-            'SNOWFLAKE_PRIVATE_KEY': None,
-        }
-
-        def _decrypt(secret_type, secrets, client):
-            return decrypt_map[secret_type.name]
-
-        decrypt_secret_mock.side_effect = _decrypt
-
-        azure_client_instance = MagicMock()
-        azure_crypto_cls_mock.return_value = azure_client_instance
-
-        to_dto_auth_mock.side_effect = MissingAuth('not found')
-        resp = self.client.get(self._url())
-        print(resp)
-        self.assertEqual(resp.status_code, 424)
-        self.assertIn('Mapping error: not found', resp.text)
-
 
     @patch('integration_service.api.router.connection_profile_router.IntegrationRepository')
     @patch('integration_service.api.router.connection_profile_router.get_current_identity')

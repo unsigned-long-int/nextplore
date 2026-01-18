@@ -1,11 +1,10 @@
 import logging
 from uuid import UUID
 from fastapi import APIRouter,  HTTPException, status, Depends
-
+from svc_integration_contracts.models import FilteredCrawlRequest, CrawlResponse
 from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from integration_service.api.models.filtered_crawl_request import FilteredCrawlRequest
-from integration_service.api.models.crawl_response import CrawlResponse
+
 from integration_service.services.crawl.exceptions import CrawlIntegrationsFailed
 from integration_service.api.context import get_current_identity
 from integration_service.api.handlers import crawl_filtered_integration_metadata

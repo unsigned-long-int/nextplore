@@ -1,19 +1,21 @@
 import unittest
 from uuid import uuid4
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, patch
+from svc_integration_contracts.models import (
+    FilteredCrawlRequest,
+    CrawlResponse,
+    IntegrationStatsResponse,
+    IntegrationConnectionProfile,
+    IntegrationProfile,
+    Auth,
+    DB,
+    Cloud,
+    CertProfile,
+    CertState
+)
 
 from integration_service.cache import CacheService
-from integration_service.api.models.filtered_crawl_request import FilteredCrawlRequest
-from integration_service.api.models.crawl_response import CrawlResponse
-from integration_service.api.models.integration_stats_response import IntegrationStatsResponse
-from integration_service.api.models.integration_connection_profile import IntegrationConnectionProfile
-from integration_service.api.models.integration_profile import IntegrationProfile
-from integration_service.api.models.auth import Auth
-from integration_service.api.models.db import DB
-from integration_service.api.models.cloud import Cloud
-from integration_service.api.models.cert_profile import CertProfile
-from integration_service.api.models.cert_state import CertState
 from integration_service.api.context import UserIdentity
 
 
@@ -33,8 +35,8 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
     async def test_get_filtered_integration(self, get_cache_key_mock):
         request = FilteredCrawlRequest(
             integrations=[uuid4(), uuid4()],
-            schemas={uuid4(): ['schema1', 'schema2']},
-            tables={uuid4(): ['table1', 'table2']}
+            schemas={str(uuid4()): ['schema1', 'schema2']},
+            tables={str(uuid4()): ['table1', 'table2']}
         )
 
         expected_response = CrawlResponse(
@@ -69,8 +71,8 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
     async def test_set_filtered_integration(self, get_cache_key_mock):
         request = FilteredCrawlRequest(
             integrations=[uuid4(), uuid4()],
-            schemas={uuid4(): ['schema1', 'schema2']},
-            tables={uuid4(): ['table1', 'table2']}
+            schemas={str(uuid4()): ['schema1', 'schema2']},
+            tables={str(uuid4()): ['table1', 'table2']}
         )
 
         response = CrawlResponse(
@@ -159,9 +161,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
     async def test_get_connection_profile(self, get_string_cache_key_mock):
         expected_response = IntegrationConnectionProfile(
             id=self.integration_id,
-            auth=Auth.IAM,
-            cloud=Cloud.AWS,
-            db=DB.SQLSERVER,
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.sqlserver,
             connection_name='test-connection',
             database_name='testdb',
             host='localhost',
@@ -195,9 +197,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
     async def test_set_connection_profile(self, get_string_cache_key_mock):
         response = IntegrationConnectionProfile(
             id=self.integration_id,
-            auth=Auth.IAM,
-            cloud=Cloud.AWS,
-            db=DB.POSTGRESQL,
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.postgresql,
             connection_name='test-connection',
             database_name='testdb',
             host='localhost',
@@ -231,9 +233,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         expected_response = [
             IntegrationProfile(
                 id=uuid4(),
-                auth=Auth.IAM,
-                cloud=Cloud.GCP,
-                db=DB.POSTGRESQL,
+                auth=Auth.iam,
+                cloud=Cloud.gcp,
+                db=DB.postgresql,
                 connection_name='connection1',
                 database_name='db1',
                 host='localhost',
@@ -242,9 +244,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             ),
             IntegrationProfile(
                 id=uuid4(),
-                auth=Auth.PASSWORD_NATIVE,
-                cloud=Cloud.AZURE,
-                db=DB.MYSQL,
+                auth=Auth.password_native,
+                cloud=Cloud.azure,
+                db=DB.mysql,
                 connection_name='connection2',
                 database_name='db2',
                 host='localhost',
@@ -279,9 +281,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         response = [
             IntegrationProfile(
                 id=uuid4(),
-                auth=Auth.PASSWORD_PROXY,
-                cloud=Cloud.GCP,
-                db=DB.POSTGRESQL,
+                auth=Auth.password_native,
+                cloud=Cloud.gcp,
+                db=DB.postgresql,
                 connection_name='connection1',
                 database_name='db1',
                 host='localhost',
@@ -312,11 +314,11 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_get_cert_profiles(self, get_string_cache_key_mock):
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expected_response = [
             CertProfile(
                 id=uuid4(),
-                state=CertState.PENDING,
+                state=CertState.pending,
                 cert_kid='cert_kid',
                 cert_name='cert1',
                 public_cert_pem='-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',
@@ -329,7 +331,7 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             ),
             CertProfile(
                 id=uuid4(),
-                state=CertState.PENDING,
+                state=CertState.pending,
                 cert_kid='cert-kid',
                 cert_name='cert2',
                 public_cert_pem='-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',
@@ -365,11 +367,11 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_set_cert_profiles(self, get_string_cache_key_mock):
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         response = [
             CertProfile(
                 id=uuid4(),
-                state=CertState.PENDING,
+                state=CertState.pending,
                 cert_kid='cert-kid-active',
                 cert_name='active-cert',
                 public_cert_pem='-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',

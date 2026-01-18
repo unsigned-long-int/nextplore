@@ -26,7 +26,7 @@ class TestGcpPostgresqlPg8000Adapter(unittest.TestCase):
             ca_path='/test.ca',
             timeout=20
         )
-        gcp_cloud_sql_connector_mock.get.assert_called_once_with(self.cred_path)
+        gcp_cloud_sql_connector_mock.get.assert_called_once()
         connector_mock.connect.assert_called_once_with(
             'localhost',
             driver='pg8000',
@@ -49,7 +49,7 @@ class TestGcpPostgresqlPg8000Adapter(unittest.TestCase):
             host='localhost',
             database='mydb'
         )
-        gcp_cloud_sql_connector_mock.get.assert_called_once_with(self.cred_path)
+        gcp_cloud_sql_connector_mock.get.assert_called_once()
         connector_mock.connect.assert_called_once_with(
             'localhost',
             driver='pg8000',

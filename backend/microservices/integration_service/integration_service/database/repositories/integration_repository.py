@@ -5,6 +5,7 @@ from dataclasses import asdict
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+from svc_integration_contracts.models import CertState
 
 from integration_service.domain.models.integration import (
     IntegrationUpdate,
@@ -13,7 +14,7 @@ from integration_service.domain.models.integration import (
     Integration
 )
 from integration_service.domain.models.secret import IntegrationSecret, SecretType
-from integration_service.domain.models.cert import CertProfile, CertState
+from integration_service.domain.models.cert import CertProfile
 from integration_service.domain.mappers.integration import (
     orm_from_integration_create,
     integration_profile_from_orm,
@@ -29,7 +30,6 @@ from integration_service.database.exceptions import (
     IntegrationGetFailed,
     SecretsCreateFailed,
     SecretsGetFailed,
-    SecretsUpdateFailed,
     SecretsVersionGetFailed,
     CertCreateFailed,
     CertGetFailed
@@ -233,7 +233,7 @@ class IntegrationRepository:
                     select(CertORM)
                     .where(CertORM.organization_id == organization_id)
                     .where(CertORM.user_id == user_id)
-                    .where(CertORM.state == CertState.PENDING.value)
+                    .where(CertORM.state == CertState.pending.value)
                 )
                 certs = result.scalars().all()
                 return [cert_profile_from_orm(cert) for cert in certs]

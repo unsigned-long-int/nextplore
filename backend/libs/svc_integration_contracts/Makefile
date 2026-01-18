@@ -8,11 +8,15 @@ PATCH_SCRIPT := tools/apply_json_patches.py
 .PHONY: gen patch clean
 .DEFAULT_GOAL := gen
 
-patch:
+patch: $(SPEC_PATCHED)
 ifeq ($(wildcard $(PATCH_SCRIPT)),)
 	@echo "No patch script found, skipping patching..."
 	@cp $(SPEC_UPSTREAM) $(SPEC_PATCHED)
 else
+
+$(SPEC_PATCHED): $(SPEC_UPSTREAM) $(PATCH_FILES) tools/apply_json_patches.py
+	@mkdir -p $(dir $@)
+
 ifneq ($(strip $(PATCH_FILES)),)
 	@echo "Applying patches..."
 	python tools/apply_json_patches.py $< $(PATCH_FILES)

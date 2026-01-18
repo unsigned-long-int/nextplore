@@ -1,14 +1,13 @@
 from uuid import UUID
-
+from svc_integration_contracts.models import FilteredCrawlRequest, CrawlResponse
 from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from integration_service.api.models.filtered_crawl_request import FilteredCrawlRequest
-from integration_service.api.models.crawl_response import CrawlResponse
+from kafka_messaging.message_bus import get_kafka_message_bus
+from kafka_messaging.events.integration_service import IntegrationMetaCrawled, TableMeta, IntegrationCreated
+
 from integration_service.services.crawl.catalog_builder import build_integrations_registry_catalog
 from integration_service.services.crawl.filters.logic import AlwaysTrueSpec
 from integration_service.services.crawl.filters.factory import create_specs
-from kafka_messaging.message_bus import get_kafka_message_bus
-from kafka_messaging.events.integration_service import IntegrationMetaCrawled, IntegrationCreated
 
 
 async def crawl_initial_integration_metadata(
@@ -30,7 +29,12 @@ async def crawl_initial_integration_metadata(
         IntegrationMetaCrawled(
             user_id=event.user_id,
             organization_id=event.organization_id,
-            table_metas=integration_registry.table_metas
+            table_metas=[TableMeta(
+                integration_id=table_meta.get('integration_id'),
+                schema_name=table_meta.get('schema_name'),
+                table_name=table_meta.get('table_name'),
+                column_names=table_meta.get('column_names'),
+            ) for table_meta in integration_registry.table_metas]
         )
     )
 

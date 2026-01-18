@@ -1,7 +1,7 @@
 import logging
-import asyncio
 from uuid import UUID
 from fastapi import APIRouter, status, HTTPException, Depends
+from svc_integration_contracts.models import IntegrationUpdateRequest
 
 from integration_service.api.context import get_current_identity
 from integration_service.api.dependencies import get_backend_connector
@@ -10,7 +10,6 @@ from integration_service.database.exceptions import IntegrationUpdateFailed
 from integration_service.cache import CacheService, get_cache_service
 from integration_service.domain.mappers.integration import integration_update_from_dto
 from integration_service.domain.mappers.secret import secrets_from_dto
-from integration_service.api.models.integration_update_request import IntegrationUpdateRequest
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 
 

@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: svc_vector_contracts
+Version: 0.1.0
+Summary: Shared contracts of vector microservice
+Author: Oleynikov Nikolay
+License: Proprietary
+Requires-Python: >=3.13.2
+Requires-Dist: datamodel-code-generator>=0.53.0
+Requires-Dist: pydantic>=2.10.6

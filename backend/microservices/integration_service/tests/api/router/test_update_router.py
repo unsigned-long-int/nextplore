@@ -3,11 +3,10 @@ from uuid import uuid4
 from fastapi import FastAPI
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
-from pydantic import SecretStr
+from svc_integration_contracts.models import IntegrationUpdateRequest
 
 from integration_service.api.router.update_router import router
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.api.models.integration_update_request import IntegrationUpdateRequest
 from integration_service.cache import get_cache_service
 from integration_service.database.exceptions import IntegrationUpdateFailed
 

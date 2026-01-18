@@ -3,10 +3,10 @@ from uuid import uuid4
 from fastapi import FastAPI
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
+from svc_integration_contracts.models import CertCreateRequest
 
 from integration_service.api.router.create_certificate_router import router
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.api.models.cert_create_request import CertCreateRequest
 from integration_service.cache import get_cache_service
 from integration_service.database.exceptions import CertCreateFailed
 from nextplore_sdk.encryptor.exc.exceptions import AzureCertCreationFailed

@@ -2,16 +2,14 @@ import logging
 from uuid import UUID
 from typing import List
 from fastapi import APIRouter, HTTPException, status, Depends
+from svc_integration_contracts.models import CertProfile
+from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 
 from integration_service.api.context import get_current_identity
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.api.models.cert_profile import CertProfile
 from integration_service.database.repositories import IntegrationRepository
 from integration_service.database.exceptions import CertGetFailed
 from integration_service.cache import get_cache_service, CacheService
-from integration_service.domain.mappers.cert import to_dto_cert_state
-from integration_service.domain.exceptions import MissingCertState
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +52,7 @@ async def get_cert_profiles(
         response = [
             CertProfile(
                 id=profile.id,
-                state=to_dto_cert_state(profile.state.value),
+                state=profile.state,
                 cert_kid=profile.cert_kid,
                 cert_name=profile.cert_name,
                 public_cert_pem=profile.public_cert_pem,
@@ -81,15 +79,6 @@ async def get_cert_profiles(
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={'message': f'Database error: {str(e)}'}
-        )
-    except MissingCertState as e:
-        logger.error(
-            f'Get certificate profiles failed with mapping error: {str(e)}',
-            exc_info=True
-        )
-        raise HTTPException(
-            status_code=status.HTTP_424_FAILED_DEPENDENCY,
-            detail={'message': f'Mapping error: {str(e)}'}
         )
     except Exception as e:
         logger.error(

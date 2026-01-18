@@ -1,21 +1,21 @@
 import unittest
-from uuid import uuid4
 from fastapi import FastAPI
-from unittest.mock import AsyncMock, MagicMock, patch, ANY
+from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
+from svc_integration_contracts.models import (
+    IntegrationCreateRequest,
+    Auth,
+    DB,
+    Cloud
+)
 
 from nextplore_sdk.database.connection_maker.models.auth import Auth as DomainAuth
 from nextplore_sdk.database.connection_maker.models.db import DB as DomainDB
 from nextplore_sdk.database.connection_maker.models.cloud import Cloud as DomainCloud
 from integration_service.api.router.test_router import router
 from integration_service.api.dependencies import get_engine_manager
-from integration_service.api.models.integration_create_request import IntegrationCreateRequest
-from integration_service.api.models.auth import Auth
-from integration_service.api.models.db import DB
-from integration_service.api.models.cloud import Cloud
-
 
 class TestTestRouter(unittest.TestCase):
     def setUp(self):
@@ -31,9 +31,9 @@ class TestTestRouter(unittest.TestCase):
 
         self.postgres_request = IntegrationCreateRequest(
             connection_name='test-postgres',
-            cloud=Cloud.AWS,
-            auth=Auth.IAM,
-            db=DB.POSTGRESQL,
+            cloud=Cloud.aws,
+            auth=Auth.iam,
+            db=DB.postgresql,
             host='localhost',
             port=5432,
             database_name='testdb',
@@ -44,9 +44,9 @@ class TestTestRouter(unittest.TestCase):
 
         self.snowflake_request = IntegrationCreateRequest(
             connection_name='test-snowflake',
-            cloud=Cloud.SNOWFLAKE_MANAGED,
-            auth=Auth.CERT,
-            db=DB.SNOWFLAKE,
+            cloud=Cloud.snowflake_managed,
+            auth=Auth.cert,
+            db=DB.snowflake,
             host='account.snowflakecomputing.com',
             port=443,
             database_name='analytics',
@@ -62,9 +62,9 @@ class TestTestRouter(unittest.TestCase):
 
         self.aws_request = IntegrationCreateRequest(
             connection_name='test-aws',
-            cloud=Cloud.AWS,
-            auth=Auth.IAM,
-            db=DB.MYSQL,
+            cloud=Cloud.aws,
+            auth=Auth.iam,
+            db=DB.mysql,
             host='aws-db.rds.amazonaws.com',
             port=5432,
             database_name='awsdb',
@@ -89,8 +89,8 @@ class TestTestRouter(unittest.TestCase):
         to_domain_db_mock
     ):
         to_domain_cloud_mock.return_value = DomainCloud.AWS
-        to_domain_auth_mock.return_value = Auth.IAM
-        to_domain_db_mock.return_value = DB.POSTGRESQL
+        to_domain_auth_mock.return_value = DomainAuth.IAM
+        to_domain_db_mock.return_value = DomainDB.POSTGRESQL
 
         profile_instance = MagicMock()
         connection_profile_mock.return_value = profile_instance
@@ -104,10 +104,14 @@ class TestTestRouter(unittest.TestCase):
         engine_mock.connect.return_value = connection_mock
         self.engine_manager_mock.acquire_engine.return_value = engine_mock
 
-        response = self.client.post(
-            self._url(),
-            json=self.postgres_request.model_dump(mode='json')
-        )
+        payload = self.postgres_request.model_dump()
+        payload["aws_external_id"] = self.postgres_request.aws_external_id.get_secret_value() if self.postgres_request.aws_external_id else None
+        payload["aws_role_arn"] = self.postgres_request.aws_role_arn.get_secret_value() if self.postgres_request.aws_role_arn else None
+        payload["password"] = self.postgres_request.password.get_secret_value() if self.postgres_request.password else None
+        payload["client_secret"] = self.postgres_request.client_secret.get_secret_value() if self.postgres_request.client_secret else None
+        payload['username'] = self.postgres_request.username.get_secret_value() if self.postgres_request.username else None
+
+        response = self.client.post(self._url(), json=payload)
 
         self.assertEqual(204, response.status_code)
 
@@ -181,7 +185,7 @@ class TestTestRouter(unittest.TestCase):
         to_domain_db_mock
     ):
         to_domain_cloud_mock.return_value = DomainCloud.AWS
-        to_domain_auth_mock.return_value = Auth.IAM
+        to_domain_auth_mock.return_value = DomainAuth.IAM
         to_domain_db_mock.return_value = DomainDB.MYSQL
 
         profile_instance = MagicMock()
@@ -196,10 +200,13 @@ class TestTestRouter(unittest.TestCase):
         engine_mock.connect.return_value = connection_mock
         self.engine_manager_mock.acquire_engine.return_value = engine_mock
 
-        response = self.client.post(
-            self._url(),
-            json=self.aws_request.model_dump(mode='json')
-        )
+        payload = self.aws_request.model_dump()
+        payload['aws_external_id'] = self.aws_request.aws_external_id.get_secret_value()
+        payload['aws_role_arn'] = self.aws_request.aws_role_arn.get_secret_value()
+        payload['password'] = self.aws_request.password.get_secret_value() if self.aws_request.password else None
+        payload['client_secret'] = self.aws_request.client_secret.get_secret_value() if self.aws_request.client_secret else None
+
+        response = self.client.post(self._url(), json=payload)
 
         self.assertEqual(204, response.status_code)
 
@@ -328,10 +335,14 @@ class TestTestRouter(unittest.TestCase):
         engine_mock.connect.return_value = connection_mock
         self.engine_manager_mock.acquire_engine.return_value = engine_mock
 
-        response = self.client.post(
-            self._url(),
-            json=self.postgres_request.model_dump(mode='json')
-        )
+        payload = self.postgres_request.model_dump()
+        payload["aws_external_id"] = self.postgres_request.aws_external_id.get_secret_value() if self.postgres_request.aws_external_id else None
+        payload["aws_role_arn"] = self.postgres_request.aws_role_arn.get_secret_value() if self.postgres_request.aws_role_arn else None
+        payload["password"] = self.postgres_request.password.get_secret_value() if self.postgres_request.password else None
+        payload["client_secret"] = self.postgres_request.client_secret.get_secret_value() if self.postgres_request.client_secret else None
+        payload['username'] = self.postgres_request.username.get_secret_value() if self.postgres_request.username else None
+
+        response = self.client.post(self._url(), json=payload)
 
         self.assertEqual(204, response.status_code)
 
@@ -359,9 +370,9 @@ class TestTestRouter(unittest.TestCase):
 
         minimal_request = IntegrationCreateRequest(
             connection_name='test-minimal',
-            cloud=Cloud.GCP,
-            auth=Auth.PASSWORD_PROXY,
-            db=DB.SQLSERVER,
+            cloud=Cloud.gcp,
+            auth=Auth.password_proxy,
+            db=DB.sqlserver,
             host='localhost',
             port=5432,
             database_name='testdb',

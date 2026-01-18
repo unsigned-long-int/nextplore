@@ -1,9 +1,9 @@
 import logging
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, status, Depends
+from svc_integration_contracts.models import IntegrationStatsResponse
 
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from integration_service.api.models.integration_stats_response import IntegrationStatsResponse
 from integration_service.cache import CacheService, get_cache_service
 from integration_service.api.context import get_current_identity
 from integration_service.api.dependencies import get_backend_connector

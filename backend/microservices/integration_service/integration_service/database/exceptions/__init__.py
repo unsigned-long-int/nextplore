@@ -6,7 +6,6 @@ from .exceptions import (
     IntegrationGetFailed,
     SecretsCreateFailed,
     SecretsGetFailed,
-    SecretsUpdateFailed,
     SecretsVersionGetFailed,
     CertCreateFailed,
     CertGetFailed

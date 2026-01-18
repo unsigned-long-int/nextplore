@@ -3,10 +3,10 @@ from uuid import uuid4
 from fastapi import FastAPI
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
+from svc_integration_contracts.models import IntegrationStatsResponse
 
 from integration_service.api.router.stats_router import router
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.api.models.integration_stats_response import IntegrationStatsResponse
 from integration_service.cache import get_cache_service
 from integration_service.database.exceptions import IntegrationGetFailed
 

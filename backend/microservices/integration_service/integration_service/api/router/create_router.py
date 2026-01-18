@@ -1,6 +1,11 @@
 import logging
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, status, Depends
+from svc_integration_contracts.models import IntegrationCreateRequest
+from kafka_messaging.message_bus import get_kafka_message_bus
+from kafka_messaging.events.integration_service import IntegrationCreated
+from nextplore_sdk.encryptor.client.azure_crypto_client import AzureCryptoClient
+from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 
 from integration_service.api.context import get_current_identity
 from integration_service.api.dependencies import get_backend_connector
@@ -8,12 +13,7 @@ from integration_service.database.repositories import IntegrationRepository
 from integration_service.database.exceptions import IntegrationCreateFailed, SecretsCreateFailed
 from integration_service.domain.mappers.integration import integration_create_from_dto
 from integration_service.domain.mappers.secret import secrets_from_dto
-from integration_service.api.models.integration_create_request import IntegrationCreateRequest
 from integration_service.cache import CacheService, get_cache_service
-from kafka_messaging.message_bus import get_kafka_message_bus
-from kafka_messaging.events.integration_service import IntegrationCreated
-from nextplore_sdk.encryptor.client.azure_crypto_client import AzureCryptoClient
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 
 
 logger = logging.getLogger(__name__)

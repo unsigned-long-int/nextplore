@@ -2,8 +2,7 @@ from uuid import UUID
 from typing import Optional
 from dataclasses import dataclass, field
 from datetime import datetime
-
-from .cert_state import CertState
+from svc_integration_contracts.models import CertState
 
 
 @dataclass(frozen=True)

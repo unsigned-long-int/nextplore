@@ -1,0 +1,1 @@
+svc_embedding_contracts

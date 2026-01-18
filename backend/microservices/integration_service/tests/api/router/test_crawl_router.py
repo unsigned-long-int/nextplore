@@ -3,21 +3,18 @@ from uuid import uuid4
 from fastapi import FastAPI
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
-from pydantic import SecretStr
-
-from integration_service.api.models.filtered_crawl_request import FilteredCrawlRequest
+from svc_integration_contracts.models import (
+    FilteredCrawlRequest,
+    IntegrationProfile,
+    CrawlResponse,
+    Auth,
+    DB,
+    Cloud
+)
 from integration_service.services.crawl.exceptions import CrawlIntegrationsFailed
-from integration_service.domain.exceptions import MissingAuth
-from integration_service.domain.mappers.integration import to_dto_auth, to_dto_cloud, to_dto_db
-from integration_service.domain.models.integration import Integration, Auth, DB, Cloud
 from integration_service.cache import get_cache_service
 from integration_service.api.router.crawl_router import router
 from integration_service.api.dependencies import get_backend_connector, get_engine_manager
-from integration_service.api.models.integration_connection_profile import (
-    IntegrationConnectionProfile,
-)
-from integration_service.database.exceptions import IntegrationGetFailed, SecretsGetFailed
-from integration_service.api.models.crawl_response import CrawlResponse
 
 
 
@@ -38,8 +35,8 @@ class TestCrawlRouter(unittest.TestCase):
 
         self.request = FilteredCrawlRequest(
             integrations=[uuid4(), uuid4()],
-            schemas={uuid4(): ['schema1', 'schema2']},
-            tables={uuid4(): ['table1', 'table2']},
+            schemas={str(uuid4()): ['schema1', 'schema2']},
+            tables={str(uuid4()): ['table1', 'table2']},
         )
 
         self.response = CrawlResponse(

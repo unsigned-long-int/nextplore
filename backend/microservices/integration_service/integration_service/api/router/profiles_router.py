@@ -2,17 +2,14 @@ import logging
 from typing import List
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
-
+from svc_integration_contracts.models import IntegrationProfile
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
+
 from integration_service.database.exceptions import IntegrationGetFailed
 from integration_service.database.repositories import IntegrationRepository
 from integration_service.api.context import get_current_identity
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.api.models.integration_profile import IntegrationProfile
 from integration_service.cache import CacheService, get_cache_service
-from integration_service.domain.mappers.integration import to_dto_cloud, to_dto_db, to_dto_auth
-from integration_service.domain.exceptions import MissingCloud, MissingDB, MissingAuth
-
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +51,9 @@ async def get_profiles(
         response = [
             IntegrationProfile(
                 id=integration.id,
-                auth=to_dto_auth(integration.auth.value),
-                cloud=to_dto_cloud(integration.cloud.value),
-                db=to_dto_db(integration.db.value),
+                auth=integration.auth,
+                cloud=integration.cloud,
+                db=integration.db,
                 connection_name=integration.connection_name,
                 database_name=integration.database_name,
                 host=integration.host,
@@ -77,15 +74,6 @@ async def get_profiles(
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={'message': f'Database error: {str(e)}'}
-        )
-    except (MissingCloud, MissingDB, MissingAuth) as e:
-        logger.error(
-            f'Get integration profiles failed with mapping error: {str(e)}',
-            exc_info=True
-        )
-        raise HTTPException(
-            status_code=status.HTTP_424_FAILED_DEPENDENCY,
-            detail={'message': f'Mapping error: {str(e)}'}
         )
     except Exception as e:
         logger.error(

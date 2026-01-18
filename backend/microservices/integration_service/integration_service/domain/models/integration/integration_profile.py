@@ -1,10 +1,7 @@
 from uuid import UUID
 from typing import Optional
 from dataclasses import dataclass, field
-
-from .db import DB
-from .auth import Auth
-from .cloud import Cloud
+from svc_integration_contracts.models import DB, Auth, Cloud
 
 
 @dataclass(frozen=True)

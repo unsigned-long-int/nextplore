@@ -1,8 +1,8 @@
 import uuid
 from sqlalchemy import Column, Text, Boolean, TIMESTAMP, Integer, Enum, func
 from sqlalchemy.dialects.postgresql import UUID
+from svc_integration_contracts.models import DB, Auth, Cloud
 
-from integration_service.domain.models.integration import DB, Auth, Cloud
 from .base import Base
 
 

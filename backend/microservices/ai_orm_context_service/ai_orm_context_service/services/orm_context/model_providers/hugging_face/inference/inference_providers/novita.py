@@ -2,8 +2,8 @@ import json
 import os
 from openai import AsyncOpenAI
 from typing import Dict, Any, List
+from svc_ai_orm_context_contracts.models import ORMContextRequest
 
-from ai_orm_context_service.api.models.orm_context_request import ORMContextRequest
 from .base import InferenceProviderBase
 
 

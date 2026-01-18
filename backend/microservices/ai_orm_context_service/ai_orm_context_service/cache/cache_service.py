@@ -1,8 +1,10 @@
 from typing import List
+from svc_ai_orm_context_contracts.models import (
+    ModelInfo,
+    ORMContextRequest,
+    ORMContextResponse
+)
 
-from ai_orm_context_service.api.models.model_info import ModelInfo
-from ai_orm_context_service.api.models.orm_context_request import ORMContextRequest
-from ai_orm_context_service.api.models.orm_context_response import ORMContextResponse
 from ai_orm_context_service.api.context import UserIdentity
 from nextplore_sdk.cache.utils.key_factory import get_string_cache_key, get_cache_key
 from nextplore_sdk.cache.client.interface import Cache

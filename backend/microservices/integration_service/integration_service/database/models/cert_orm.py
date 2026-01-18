@@ -1,8 +1,8 @@
 import uuid
 from sqlalchemy import Column, ForeignKey, Text, CHAR, TIMESTAMP, func, Enum, text
 from sqlalchemy.dialects.postgresql import UUID
+from svc_integration_contracts.models import CertState
 
-from integration_service.domain.models.cert import CertState
 from .base import Base
 from .integration_orm import IntegrationORM
 

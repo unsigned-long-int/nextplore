@@ -1,14 +1,16 @@
 from typing import List
 from uuid import UUID
-
+from svc_integration_contracts.models import (
+    FilteredCrawlRequest,
+    CrawlResponse,
+    IntegrationStatsResponse,
+    IntegrationConnectionProfile,
+    IntegrationProfile,
+    CertProfile
+)
 from nextplore_sdk.cache.utils.key_factory import get_cache_key, get_string_cache_key
 from nextplore_sdk.cache.client.interface import Cache
-from integration_service.api.models.filtered_crawl_request import FilteredCrawlRequest
-from integration_service.api.models.crawl_response import CrawlResponse
-from integration_service.api.models.integration_stats_response import IntegrationStatsResponse
-from integration_service.api.models.integration_connection_profile import IntegrationConnectionProfile
-from integration_service.api.models.integration_profile import IntegrationProfile
-from integration_service.api.models.cert_profile import CertProfile
+
 from integration_service.api.context import UserIdentity
 
 

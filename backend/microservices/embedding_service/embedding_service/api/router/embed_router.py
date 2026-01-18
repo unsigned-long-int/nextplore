@@ -1,8 +1,7 @@
 import logging
 from fastapi import APIRouter, HTTPException, status, Depends
+from svc_embedding_contracts.models import QueryEmbeddingRequest, EmbeddingResponse
 
-from embedding_service.api.models.query_embedding_request import QueryEmbeddingRequest
-from embedding_service.api.models.embedding_response import EmbeddingResponse
 from embedding_service.cache import CacheService, get_cache_service
 from embedding_service.api.context import get_current_identity
 from embedding_service.services.embedding.embedder_factory import dispatch_embedder

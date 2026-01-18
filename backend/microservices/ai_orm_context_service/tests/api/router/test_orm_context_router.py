@@ -1,15 +1,15 @@
 import unittest
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from svc_ai_orm_context_contracts.models import (
+    ORMContextRequest,
+    ORMContextResponse,
+    Context
+)
 
 from ai_orm_context_service.api.router.orm_context_router import router
-from ai_orm_context_service.api.models.orm_context_response import ORMContextResponse
-from ai_orm_context_service.api.models.orm_context_request import ORMContextRequest, Context
-
-from ai_orm_context_service.api.models.model_info import ModelInfo
 from ai_orm_context_service.services.orm_context.exceptions import InferenceProviderMissing
 from ai_orm_context_service.services.orm_context.models_registry import get_models_registry
 from ai_orm_context_service.cache import get_cache_service

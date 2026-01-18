@@ -1,4 +1,3 @@
-from uuid import UUID
 from typing import Optional
 from dataclasses import dataclass
 

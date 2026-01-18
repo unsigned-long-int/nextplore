@@ -2,11 +2,10 @@ import unittest
 from unittest.mock import MagicMock, AsyncMock, patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from svc_embedding_contracts.models import EmbeddingResponse, QueryEmbeddingRequest
 
 from embedding_service.cache import get_cache_service
 from embedding_service.api.router.embed_router import router
-from embedding_service.api.models.embedding_response import EmbeddingResponse
-from embedding_service.api.models.query_embedding_request import QueryEmbeddingRequest
 from embedding_service.services.embedding.exceptions import MissingEmbedderEngine
 
 

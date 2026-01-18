@@ -1,5 +1,6 @@
 import logging
 from fastapi import APIRouter, Depends, status, HTTPException
+from svc_ai_orm_context_contracts.models import ORMContextResponse, ORMContextRequest
 
 from ai_orm_context_service.api.context import get_current_identity
 from ai_orm_context_service.services.orm_context.models_registry import get_models_registry, ModelsRegistry
@@ -7,8 +8,6 @@ from ai_orm_context_service.services.orm_context.provider_factory import dispatc
 from ai_orm_context_service.services.orm_context.ai_adapter import adapt_llm_response
 from ai_orm_context_service.services.orm_context.exceptions import InferenceProviderMissing, InvalidModelResponse
 from ai_orm_context_service.cache import CacheService, get_cache_service
-from ai_orm_context_service.api.models.orm_context_request import ORMContextRequest
-from ai_orm_context_service.api.models.orm_context_response import ORMContextResponse
 
 
 logger = logging.getLogger(__name__)

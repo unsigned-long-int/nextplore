@@ -1,8 +1,8 @@
 import unittest
 import uuid
 from unittest.mock import MagicMock, AsyncMock
+from svc_ai_orm_context_contracts.models import ORMContextRequest, Context
 
-from ai_orm_context_service.api.models.orm_context_request import ORMContextRequest, Context
 from ai_orm_context_service.services.orm_context.exceptions import InvalidModelResponse
 from ai_orm_context_service.services.orm_context.model_providers.hugging_face import HFProvider
 

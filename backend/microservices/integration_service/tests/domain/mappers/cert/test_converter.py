@@ -2,14 +2,14 @@ import unittest
 from uuid import uuid4
 from datetime import datetime
 from unittest.mock import MagicMock
+from svc_integration_contracts.models import CertCreateRequest, CertState
 
 from integration_service.domain.mappers.cert import (
     cert_create_from_dto,
     orm_from_cert,
     cert_profile_from_orm
 )
-from integration_service.api.models.cert_create_request import CertCreateRequest
-from integration_service.domain.models.cert import CertCreate, CertProfile, CertState
+from integration_service.domain.models.cert import CertCreate, CertProfile
 from integration_service.database.models import CertORM
 from nextplore_sdk.encryptor.models.cert import Cert
 
@@ -108,7 +108,7 @@ class TestCertMappers(unittest.TestCase):
     def test_cert_profile_from_orm_maps_all_fields(self):
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()
-        cert_orm.state = CertState.ACTIVE
+        cert_orm.state = CertState.active
         cert_orm.public_cert_pem = '-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----'
         cert_orm.thumbprint_sha256 = 'abc123def456'
         cert_orm.not_before = self.now
@@ -123,7 +123,7 @@ class TestCertMappers(unittest.TestCase):
 
         self.assertIsInstance(result, CertProfile)
         self.assertEqual(result.id, cert_orm.id)
-        self.assertEqual(result.state, CertState.ACTIVE)
+        self.assertEqual(result.state, CertState.active)
         self.assertEqual(result.public_cert_pem, cert_orm.public_cert_pem)
         self.assertEqual(result.thumbprint_sha256, cert_orm.thumbprint_sha256)
         self.assertEqual(result.not_before, self.now)
@@ -137,7 +137,7 @@ class TestCertMappers(unittest.TestCase):
     def test_cert_profile_from_orm_with_pending_state(self):
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()
-        cert_orm.state = CertState.PENDING
+        cert_orm.state = CertState.pending
         cert_orm.public_cert_pem = 'cert-pem'
         cert_orm.thumbprint_sha256 = 'thumbprint'
         cert_orm.not_before = self.now
@@ -150,7 +150,7 @@ class TestCertMappers(unittest.TestCase):
 
         result = cert_profile_from_orm(cert_orm)
 
-        self.assertEqual(result.state, CertState.PENDING)
+        self.assertEqual(result.state, CertState.pending)
         self.assertIsNone(result.assigned_at)
         self.assertIsNone(result.revoked_at)
 
@@ -159,7 +159,7 @@ class TestCertMappers(unittest.TestCase):
 
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()
-        cert_orm.state = CertState.REVOKED
+        cert_orm.state = CertState.revoked
         cert_orm.public_cert_pem = 'cert-pem'
         cert_orm.thumbprint_sha256 = 'thumbprint'
         cert_orm.not_before = self.now
@@ -172,13 +172,13 @@ class TestCertMappers(unittest.TestCase):
 
         result = cert_profile_from_orm(cert_orm)
 
-        self.assertEqual(result.state, CertState.REVOKED)
+        self.assertEqual(result.state, CertState.revoked)
         self.assertEqual(result.revoked_at, revoked_time)
 
     def test_cert_profile_from_orm_with_all_optional_fields_none(self):
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()
-        cert_orm.state = CertState.PENDING
+        cert_orm.state = CertState.pending
         cert_orm.public_cert_pem = 'cert-pem'
         cert_orm.thumbprint_sha256 = 'thumbprint'
         cert_orm.not_before = self.now
@@ -202,7 +202,7 @@ class TestCertMappers(unittest.TestCase):
 
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()
-        cert_orm.state = CertState.ACTIVE
+        cert_orm.state = CertState.active
         cert_orm.public_cert_pem = 'cert-pem'
         cert_orm.thumbprint_sha256 = 'thumbprint'
         cert_orm.not_before = not_before_time
@@ -282,7 +282,7 @@ class TestCertMappers(unittest.TestCase):
         self.assertEqual(len(result.thumbprint_sha256), 64)
 
     def test_cert_profile_from_orm_with_multiple_states(self):
-        states = [CertState.PENDING, CertState.ACTIVE, CertState.REVOKED]
+        states = [CertState.pending, CertState.active, CertState.revoked]
 
         for state in states:
             cert_orm = MagicMock(spec=CertORM)
@@ -295,8 +295,8 @@ class TestCertMappers(unittest.TestCase):
             cert_orm.cert_kid = 'cert-kid'
             cert_orm.cert_name = 'cert-name'
             cert_orm.created_at = self.now
-            cert_orm.assigned_at = self.now if state != CertState.PENDING else None
-            cert_orm.revoked_at = self.now if state == CertState.REVOKED else None
+            cert_orm.assigned_at = self.now if state != CertState.pending else None
+            cert_orm.revoked_at = self.now if state == CertState.revoked else None
 
             result = cert_profile_from_orm(cert_orm)
 

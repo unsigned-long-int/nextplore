@@ -2,15 +2,16 @@ import logging
 from fastapi import APIRouter, status, HTTPException, Depends
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-
-from integration_service.api.dependencies import get_engine_manager
-from integration_service.api.models.integration_create_request import IntegrationCreateRequest
-
+from svc_integration_contracts.models import IntegrationCreateRequest
 from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
+from nextplore_sdk.database.connection_maker.models.connection_profile import ConnectionProfile
 from nextplore_sdk.database.connection_maker.mappers.to_domain_cloud import to_domain_cloud
 from nextplore_sdk.database.connection_maker.mappers.to_domain_auth import to_domain_auth
 from nextplore_sdk.database.connection_maker.mappers.to_domain_db import to_domain_db
-from nextplore_sdk.database.connection_maker.models.connection_profile import ConnectionProfile
+
+
+from integration_service.api.dependencies import get_engine_manager
+
 
 
 logger = logging.getLogger(__name__)

@@ -1,21 +1,19 @@
 import unittest
 from uuid import uuid4
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.exc import SQLAlchemyError
+from svc_integration_contracts.models import Auth, DB, Cloud, CertState
 
 from integration_service.database.repositories import IntegrationRepository
 from integration_service.domain.models.integration import (
     IntegrationUpdate,
     IntegrationCreate,
     IntegrationProfile,
-    Integration,
-    Auth,
-    DB,
-    Cloud
+    Integration
 )
 from integration_service.domain.models.secret import IntegrationSecret, SecretType
-from integration_service.domain.models.cert import CertProfile, CertState
+from integration_service.domain.models.cert import CertProfile
 from integration_service.database.exceptions import (
     IntegrationDeleteFailed,
     IntegrationNotFound,
@@ -86,9 +84,9 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
         integration_orm_mock = MagicMock()
         expected_integration = Integration(
             id=self.integration_id,
-            auth=Auth.PASSWORD_PROXY,
-            cloud=Cloud.GCP,
-            db=DB.POSTGRESQL,
+            auth=Auth.password_proxy,
+            cloud=Cloud.gcp,
+            db=DB.postgresql,
             connection_name='test-connection',
             database_name='testdb',
             host='localhost',
@@ -148,9 +146,9 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
             organization_id=self.organization_id,
             user_id=self.user_id,
             kek_kid='kek_kid',
-            auth=Auth.IAM,
-            cloud=Cloud.GCP,
-            db=DB.POSTGRESQL,
+            auth=Auth.iam,
+            cloud=Cloud.gcp,
+            db=DB.postgresql,
             connection_name='test-connection',
             database_name='testdb',
             host='localhost',
@@ -187,9 +185,9 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
     @patch('integration_service.database.repositories.integration_repository.orm_from_integration_create')
     async def test_create_integration_returns_integration_id(self, orm_from_integration_create_mock):
         integration_create = IntegrationCreate(
-            auth=Auth.IAM,
-            cloud=Cloud.SNOWFLAKE_MANAGED,
-            db=DB.SNOWFLAKE,
+            auth=Auth.iam,
+            cloud=Cloud.snowflake_managed,
+            db=DB.snowflake,
             connection_name='test-connection',
             database_name='testdb',
             host='localhost',
@@ -214,9 +212,9 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
     @patch('integration_service.database.repositories.integration_repository.orm_from_integration_create')
     async def test_create_integration_raises_exception_on_database_error(self, orm_from_integration_create_mock):
         integration_create = IntegrationCreate(
-            auth=Auth.IAM,
-            cloud=Cloud.AWS,
-            db=DB.SQLSERVER,
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.sqlserver,
             connection_name='test-connection',
             database_name='testdb',
             host='localhost',
@@ -284,9 +282,9 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
 
         profile_1 = IntegrationProfile(
             id=uuid4(),
-            auth=Auth.IAM,
-            cloud=Cloud.AWS,
-            db=DB.MYSQL,
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.mysql,
             connection_name='connection1',
             database_name='db1',
             host='localhost',
@@ -295,9 +293,9 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
         )
         profile_2 = IntegrationProfile(
             id=uuid4(),
-            auth=Auth.PASSWORD_NATIVE,
-            cloud=Cloud.AZURE,
-            db=DB.SQLSERVER,
+            auth=Auth.password_native,
+            cloud=Cloud.azure,
+            db=DB.sqlserver,
             connection_name='connection2',
             database_name='db2',
             host='localhost',
@@ -532,7 +530,7 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
         now = datetime.utcnow()
         profile_1 = CertProfile(
             id=uuid4(),
-            state=CertState.PENDING,
+            state=CertState.pending,
             cert_kid='cert-kid-1',
             cert_name='cert1',
             public_cert_pem='-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',
@@ -543,7 +541,7 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
         )
         profile_2 = CertProfile(
             id=uuid4(),
-            state=CertState.PENDING,
+            state=CertState.pending,
             cert_kid='cert-kid-2',
             cert_name='cert2',
             public_cert_pem='-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',

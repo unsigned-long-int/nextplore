@@ -1,8 +1,7 @@
 from typing import Dict, Any
 from pydantic import ValidationError
+from svc_ai_orm_context_contracts.models import ORMContextRequest, ORMContextResponse
 
-from ai_orm_context_service.api.models.orm_context_response import ORMContextResponse
-from ai_orm_context_service.api.models.orm_context_request import ORMContextRequest
 from ai_orm_context_service.services.orm_context.model_providers.hugging_face.inference.inference_providers import InferenceProviderBase
 from ai_orm_context_service.services.orm_context.exceptions import InvalidModelResponse
 from ai_orm_context_service.domain.models.hf_model import HFModel

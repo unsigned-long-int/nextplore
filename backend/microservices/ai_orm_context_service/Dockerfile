@@ -4,7 +4,9 @@ RUN groupadd -r nextplore-group \
     && useradd -r -g nextplore-group -m ai-orm-context-service
 
 ARG NEXTPLORE_SDK
+ARG SVC_AI_ORM_CONTEXT_CONTRACTS
 COPY ${NEXTPLORE_SDK} /tmp/wheels/
+COPY ${SVC_AI_ORM_CONTEXT_CONTRACTS} /tmp/wheels/
 RUN pip install --upgrade /tmp/wheels/*.whl  \
     && rm -rf /tmp/wheels
 

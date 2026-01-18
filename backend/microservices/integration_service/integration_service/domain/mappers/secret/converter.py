@@ -1,13 +1,15 @@
 from uuid import UUID
 from typing import Dict, Any, List
 from pydantic import SecretStr
+from svc_integration_contracts.models import (
+    IntegrationUpdateRequest,
+    IntegrationCreateRequest
+)
 
 from integration_service.database.models import SecretORM
 from integration_service.services.encryption import encrypt_secret
 from nextplore_sdk.encryptor.client.crypto_client import CryptoClient
 from integration_service.domain.models.secret import IntegrationSecret, SecretType
-from integration_service.api.models.integration_update_request import IntegrationUpdateRequest
-from integration_service.api.models.integration_create_request import IntegrationCreateRequest
 
 
 def secrets_from_dto(

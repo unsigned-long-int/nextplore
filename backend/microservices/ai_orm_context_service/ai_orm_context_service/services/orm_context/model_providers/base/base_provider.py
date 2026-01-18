@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any
-
-from ai_orm_context_service.api.models.orm_context_request import ORMContextRequest
+from svc_ai_orm_context_contracts.models import ORMContextRequest
 
 
 class BaseProvider(ABC):

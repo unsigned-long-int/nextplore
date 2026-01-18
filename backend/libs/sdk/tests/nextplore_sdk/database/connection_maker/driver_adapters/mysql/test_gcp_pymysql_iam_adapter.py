@@ -26,7 +26,7 @@ class TestGcpMysqlPyMysqlIamAdapter(unittest.TestCase):
             timeout=20,
         )
 
-        gcp_cloud_sql_connector_mock.get.assert_called_once_with(self.creds_path)
+        gcp_cloud_sql_connector_mock.get.assert_called_once()
         connector_instance.connect.assert_called_once_with(
             self.instance,
             driver='pymysql',

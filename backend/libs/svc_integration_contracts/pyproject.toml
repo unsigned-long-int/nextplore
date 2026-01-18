@@ -10,8 +10,9 @@ requires-python = '>=3.13.2'
 license = {text = 'Proprietary'}
 authors = [{name = 'Oleynikov Nikolay'}]
 dependencies = [
-    'datamodel-code-generate>=0.53.0',
+    'datamodel-code-generator>=0.53.0',
     'pydantic>=2.10.6',
+    'jsonpatch>=1.33'
 ]
 
 [tool.setuptools]

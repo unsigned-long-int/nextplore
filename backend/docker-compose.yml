@@ -111,6 +111,7 @@ services:
       args:
         NEXTPLORE_SDK: libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
         KAFKA_MESSAGING: libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl
+        SVC_EMBEDDING_CONTRACTS: libs/.wheelhouse/svc_embedding_contracts-0.1.0-py3-none-any.whl
     container_name: embedding_service
     ports:
       - "${EMBEDDING_PORT:-8002}:8001"
@@ -137,6 +138,7 @@ services:
       args:
         NEXTPLORE_SDK: libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
         KAFKA_MESSAGING: libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl
+        SVC_VECTOR_CONTRACTS: libs/.wheelhouse/svc_vector_contracts-0.1.0-py3-none-any.whl
     container_name: vector_service
     ports:
       - "${VECTOR_PORT:-8003}:8001"
@@ -168,6 +170,7 @@ services:
       dockerfile: microservices/ai_orm_context_service/Dockerfile
       args:
         NEXTPLORE_SDK: libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
+        SVC_AI_ORM_CONTEXT_CONTRACTS: libs/.wheelhouse/svc_ai_orm_context_contracts-0.1.0-py3-none-any.whl
     container_name: ai_orm_context_service
     depends_on:
       - redis
@@ -191,6 +194,11 @@ services:
       args:
         NEXTPLORE_SDK: libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
         KAFKA_MESSAGING: libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl
+        SVC_AI_ORM_CONTEXT_CONTRACTS: libs/.wheelhouse/svc_ai_orm_context_contracts-0.1.0-py3-none-any.whl
+        SVC_EMBEDDING_CONTRACTS: libs/.wheelhouse/svc_embedding_contracts-0.1.0-py3-none-any.whl
+        SVC_INTEGRATION_CONTRACTS: libs/.wheelhouse/svc_integration_contracts-0.1.0-py3-none-any.whl
+        SVC_NEXTPLORE_ORCHESTRATOR_CONTRACTS: libs/.wheelhouse/svc_nextplore_orchestrator_contracts-0.1.0-py3-none-any.whl
+        SVC_VECTOR_CONTRACTS: libs/.wheelhouse/svc_vector_contracts-0.1.0-py3-none-any.whl
     container_name: orchestration_service
     depends_on:
       - kafka

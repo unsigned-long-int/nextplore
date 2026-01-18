@@ -1,12 +1,15 @@
 import unittest
 import uuid
 from unittest.mock import patch, AsyncMock
+from svc_ai_orm_context_contracts.models import (
+    ModelInfo,
+    ORMContextResponse,
+    ORMContextRequest,
+    Context
+)
 
 from ai_orm_context_service.cache import CacheService
 from ai_orm_context_service.api.context import UserIdentity
-from ai_orm_context_service.api.models.model_info import ModelInfo
-from ai_orm_context_service.api.models.orm_context_response import ORMContextResponse
-from ai_orm_context_service.api.models.orm_context_request import ORMContextRequest, Context
 
 
 class TestCacheService(unittest.IsolatedAsyncioTestCase):

@@ -1,7 +1,7 @@
 from uuid import UUID
-
+from svc_integration_contracts.models import CertCreateRequest
 from nextplore_sdk.encryptor.models.cert import Cert
-from integration_service.api.models.cert_create_request import CertCreateRequest
+
 from integration_service.domain.models.cert import CertCreate, CertProfile
 from integration_service.database.models import CertORM
 

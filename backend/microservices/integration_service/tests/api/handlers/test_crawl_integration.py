@@ -16,8 +16,10 @@ class TestCrawlIntegration(unittest.IsolatedAsyncioTestCase):
     @patch('integration_service.api.handlers.crawl_integration.IntegrationMetaCrawled')
     @patch('integration_service.api.handlers.crawl_integration.get_kafka_message_bus')
     @patch('integration_service.api.handlers.crawl_integration.build_integrations_registry_catalog', new_callable=AsyncMock)
+    @patch('integration_service.api.handlers.crawl_integration.TableMeta')
     async def test_builds_and_published_integration(
         self,
+        table_meta_mock,
         build_integrations_registry_catalog_mock,
         get_kafka_message_bus_mock,
         integration_meta_crawled_mock,
@@ -47,13 +49,23 @@ class TestCrawlIntegration(unittest.IsolatedAsyncioTestCase):
         integration_meta_crawled_mock.assert_called_once_with(
             user_id=self.event_mock.user_id,
             organization_id=self.event_mock.organization_id,
-            table_metas=integration_registry_mock.table_metas
+            table_metas=[table_meta_mock(
+                integration_id=table_meta.get('integration_id'),
+                schema_name=table_meta.get('schema_name'),
+                table_name=table_meta.get('table_name'),
+                column_names=table_meta.get('column_names'),
+            ) for table_meta in integration_registry_mock.table_metas]
         )
         kafka_message_bus_mock.publish.assert_awaited_once_with(
             integration_meta_crawled_mock(
                 user_id=self.event_mock.user_id,
                 organization_id=self.event_mock.organization_id,
-                table_metas=integration_registry_mock.table_metas
+                table_metas=[table_meta_mock(
+                    integration_id=table_meta.get('integration_id'),
+                    schema_name=table_meta.get('schema_name'),
+                    table_name=table_meta.get('table_name'),
+                    column_names=table_meta.get('column_names'),
+                ) for table_meta in integration_registry_mock.table_metas]
             )
         )
 

@@ -11,6 +11,7 @@ class TestAWSRoleCredentialsProvider(unittest.TestCase):
         self.profile = types.SimpleNamespace(
             region='eu-central-1',
             tenant_id='tenant123',
+            database='database123',
             aws_role_arn='arn:aws:iam::999999999999:role/TenantExecutionRole',
             aws_external_id='external-abc',
             host='postgres.cluster-xyz.eu-central-1.rds.amazonaws.com',
@@ -62,7 +63,7 @@ class TestAWSRoleCredentialsProvider(unittest.TestCase):
         base_session.client.assert_called_once_with('sts', region_name=self.profile.region)
         sts1.assume_role.assert_called_once_with(
             RoleArn='arn:aws:iam::123456789012:role/BootstrapRole',
-            RoleSessionName=f'tenant-{self.profile.tenant_id}-access',
+            RoleSessionName='nextplore-iam-auth-hop',
         )
 
         session_cls_mock.assert_called_with(
@@ -72,7 +73,7 @@ class TestAWSRoleCredentialsProvider(unittest.TestCase):
             region_name=self.profile.region,
         )
 
-        expected_name = f'nextplore-{self.profile.tenant_id}-r{fake_uuid.hex[:8]}'
+        expected_name = f'nextplore-{self.profile.database}'
         tenant_session.client.assert_called_once_with('sts', region_name=self.profile.region)
         sts2.assume_role.assert_called_once_with(
             RoleArn=self.profile.aws_role_arn,

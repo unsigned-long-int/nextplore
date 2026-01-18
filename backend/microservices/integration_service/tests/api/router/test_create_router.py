@@ -3,13 +3,15 @@ from uuid import uuid4
 from fastapi import FastAPI
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
+from svc_integration_contracts.models import (
+    IntegrationCreateRequest,
+    Auth,
+    DB,
+    Cloud
+)
 
 from integration_service.api.router.create_router import router
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.api.models.integration_create_request import IntegrationCreateRequest
-from integration_service.api.models.auth import Auth
-from integration_service.api.models.db import DB
-from integration_service.api.models.cloud import Cloud
 from integration_service.cache import get_cache_service
 from integration_service.database.exceptions import IntegrationCreateFailed, SecretsCreateFailed
 
@@ -30,9 +32,9 @@ class TestCreateRouter(unittest.TestCase):
         }
 
         self.request = IntegrationCreateRequest(
-            auth=Auth.IAM,
-            cloud=Cloud.AWS,
-            db=DB.POSTGRESQL,
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.postgresql,
             connection_name='test-connection',
             host='localhost',
             database_name='test-database',
@@ -329,9 +331,9 @@ class TestCreateRouter(unittest.TestCase):
 
         custom_kek_kid = 'custom-kek-12345'
         request_with_custom_kek = IntegrationCreateRequest(
-            auth=Auth.IAM,
-            cloud=Cloud.AWS,
-            db=DB.POSTGRESQL,
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.postgresql,
             connection_name='test-connection',
             host='localhost',
             database_name='test-database',

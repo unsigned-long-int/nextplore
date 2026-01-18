@@ -1,7 +1,6 @@
 from nextplore_sdk.cache.utils.key_factory import get_cache_key
 from nextplore_sdk.cache.client.interface import Cache
-from embedding_service.api.models.embedding_response import EmbeddingResponse
-from embedding_service.api.models.query_embedding_request import QueryEmbeddingRequest
+from svc_embedding_contracts.models import EmbeddingResponse, QueryEmbeddingRequest
 from embedding_service.api.context import UserIdentity
 
 

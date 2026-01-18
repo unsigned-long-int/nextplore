@@ -1,17 +1,17 @@
 import logging
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, status, Depends
+from svc_integration_contracts.models import CertCreateRequest
+from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.encryptor.cert.cert_generator import CertGenerator
+from nextplore_sdk.encryptor.exc.exceptions import AzureCertCreationFailed
 
 from integration_service.api.context import get_current_identity
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.api.models.cert_create_request import CertCreateRequest
 from integration_service.database.repositories import IntegrationRepository
 from integration_service.database.exceptions import CertCreateFailed
 from integration_service.domain.mappers.cert import cert_create_from_dto
 from integration_service.cache import CacheService, get_cache_service
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from nextplore_sdk.encryptor.cert.cert_generator import CertGenerator
-from nextplore_sdk.encryptor.exc.exceptions import AzureCertCreationFailed
 
 logger = logging.getLogger(__name__)
 

@@ -26,10 +26,6 @@ class SecretsGetFailed(Exception):
     pass
 
 
-class SecretsUpdateFailed(Exception):
-    pass
-
-
 class SecretsVersionGetFailed(Exception):
     pass
 

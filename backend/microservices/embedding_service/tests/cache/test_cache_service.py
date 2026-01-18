@@ -1,11 +1,10 @@
 import unittest
 import uuid
 from unittest.mock import patch, AsyncMock
+from svc_embedding_contracts.models import EmbeddingResponse, QueryEmbeddingRequest
 
 from embedding_service.cache import CacheService
 from embedding_service.api.context import UserIdentity
-from embedding_service.api.models.embedding_response import EmbeddingResponse
-from embedding_service.api.models.query_embedding_request import QueryEmbeddingRequest
 
 
 class TestCacheService(unittest.IsolatedAsyncioTestCase):

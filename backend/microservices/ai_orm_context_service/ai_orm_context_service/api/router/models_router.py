@@ -2,7 +2,7 @@ import logging
 from typing import List
 from fastapi import APIRouter, Depends, status, HTTPException
 
-from ai_orm_context_service.api.models.model_info import ModelInfo
+from svc_ai_orm_context_contracts.models import ModelInfo
 from ai_orm_context_service.cache import CacheService, get_cache_service
 from ai_orm_context_service.services.orm_context.models_registry import ModelsRegistry, get_models_registry
 

@@ -13,6 +13,14 @@ build-libs:
 	@cd libs/messaging/ && python -m build -w -o ../.wheelhouse/
 	@cd libs/svc_integration_contracts/ && python -m build -w -o ../.wheelhouse/
 	@echo "Building svc_integration_contracts..."
+	@cd libs/svc_ai_orm_context_contracts/ && python -m build -w -o ../.wheelhouse/
+	@echo "Building svc_ai_orm_context_contracts..."
+	@cd libs/svc_embedding_contracts/ && python -m build -w -o ../.wheelhouse/
+	@echo "Building svc_embedding_contracts..."
+	@cd libs/svc_nextplore_orchestrator_contracts/ && python -m build -w -o ../.wheelhouse/
+	@echo "Building svc_nextplore_orchestrator_contracts..."
+	@cd libs/svc_vector_contracts/ && python -m build -w -o ../.wheelhouse/
+	@echo "Building svc_vector_contracts..."
 	@echo "Libraries built successfully in libs/.wheelhouse/"
 
 check-libs:
@@ -21,17 +29,38 @@ check-libs:
 		(echo "nextplore_sdk wheel not found. Run 'make build-libs' first" && exit 1)
 	@test -f libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl || \
 		(echo "kafka_messaging wheel not found. Run 'make build-libs' first" && exit 1)
+	@test -f libs/.wheelhouse/svc_ai_orm_context_contracts-0.1.0-py3-none-any.whl || \
+		(echo "svc_ai_orm_context_contracts wheel not found. Run 'make build-libs' first" && exit 1)
+	@test -f libs/.wheelhouse/svc_embedding_contracts-0.1.0-py3-none-any.whl || \
+		(echo "svc_embedding_contracts wheel not found. Run 'make build-libs' first" && exit 1)
+	@test -f libs/.wheelhouse/svc_integration_contracts-0.1.0-py3-none-any.whl || \
+		(echo "svc_integration_contracts wheel not found. Run 'make build-libs' first" && exit 1)
+	@test -f libs/.wheelhouse/svc_nextplore_orchestrator_contracts-0.1.0-py3-none-any.whl || \
+		(echo "svc_nextplore_orchestrator_contracts wheel not found. Run 'make build-libs' first" && exit 1)
+	@test -f libs/.wheelhouse/svc_vector_contracts-0.1.0-py3-none-any.whl || \
+		(echo "svc_vector_contracts wheel not found. Run 'make build-libs' first" && exit 1)
 	@echo "All required libraries are built"
 
 run-tests:
 	@PYTHONPATH="$(SDK_PATH)" python3 -m unittest discover "microservices/ai_orm_context_service"
 	@PYTHONPATH="$(SDK_PATH):$(MSG_PATH)" python3 -m unittest discover "microservices/embedding_service"
 	@PYTHONPATH="$(SDK_PATH):$(MSG_PATH)" python3 -m unittest discover "microservices/integration_service"
+	@PYTHONPATH="$(SDK_PATH):$(MSG_PATH)" python3 -m unittest discover "libs/messaging"
+	@PYTHONPATH="$(SDK_PATH):$(MSG_PATH)" python3 -m unittest discover "libs/sdk"
 
 clean-libs:
 	@echo "Cleaning wheels..."
 	@rm -rf libs/.wheelhouse/*.whl
 	@echo "Wheel files removed"
+
+install-libs: check-libs
+	@pip install libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
+	@pip install libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl
+	@pip install libs/.wheelhouse/svc_ai_orm_context_contracts-0.1.0-py3-none-any.whl
+	@pip install libs/.wheelhouse/svc_embedding_contracts-0.1.0-py3-none-any.whl
+	@pip install libs/.wheelhouse/svc_integration_contracts-0.1.0-py3-none-any.whl
+	@pip install libs/.wheelhouse/svc_nextplore_orchestrator_contracts-0.1.0-py3-none-any.whl
+	@pip install libs/.wheelhouse/svc_vector_contracts-0.1.0-py3-none-any.whl
 
 infra: check-libs
 	docker compose up -d redis zookeeper kafka

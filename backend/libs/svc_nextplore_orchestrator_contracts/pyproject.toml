@@ -1,0 +1,24 @@
+[build-system]
+requires = ['setuptools>=40.8.0', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'svc_nextplore_orchestrator_contracts'
+version = '0.1.0'
+description = 'Shared contracts of nextplore orchestrator microservice'
+requires-python = '>=3.13.2'
+license = {text = 'Proprietary'}
+authors = [{name = 'Oleynikov Nikolay'}]
+dependencies = [
+    'datamodel-code-generator>=0.53.0',
+    'pydantic>=2.10.6',
+]
+
+[tool.setuptools]
+package-dir = { '' = 'src' }
+
+[tool.setuptools.packages.find]
+where = ['src']
+
+[tool.setuptools.exclude-package-data]
+mypackage = ['tests*', '*.pyc', '__pycache__']
