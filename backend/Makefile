@@ -73,6 +73,15 @@ install-libs: check-libs
 	@pip install libs/.wheelhouse/svc_nextplore_orchestrator_contracts-0.1.0-py3-none-any.whl
 	@pip install libs/.wheelhouse/svc_vector_contracts-0.1.0-py3-none-any.whl
 
+uninstall-libs: check-libs
+	@pip uninstall nextplore_sdk
+	@pip uninstall kafka_messaging
+	@pip uninstall svc_ai_orm_context_contracts
+	@pip uninstall svc_embedding_contracts
+	@pip uninstall svc_integration_contracts
+	@pip uninstall svc_nextplore_orchestrator_contracts
+	@pip uninstall svc_vector_contracts
+
 infra: check-libs
 	docker compose up -d redis zookeeper kafka
 

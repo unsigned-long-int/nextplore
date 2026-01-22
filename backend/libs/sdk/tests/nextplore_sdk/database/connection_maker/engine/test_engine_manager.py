@@ -110,7 +110,7 @@ class EngineManagerTests(unittest.IsolatedAsyncioTestCase):
         self.current_time += 0.1
         await manager.acquire_engine(p2)
 
-        await manager.shutdown()
+        manager.shutdown()
 
         e1.dispose.assert_called_once()
         e2.dispose.assert_called_once()
