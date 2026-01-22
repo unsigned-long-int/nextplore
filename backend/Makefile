@@ -41,12 +41,23 @@ check-libs:
 		(echo "svc_vector_contracts wheel not found. Run 'make build-libs' first" && exit 1)
 	@echo "All required libraries are built"
 
-run-tests:
-	@PYTHONPATH="$(SDK_PATH)" python3 -m unittest discover "microservices/ai_orm_context_service"
-	@PYTHONPATH="$(SDK_PATH):$(MSG_PATH)" python3 -m unittest discover "microservices/embedding_service"
-	@PYTHONPATH="$(SDK_PATH):$(MSG_PATH)" python3 -m unittest discover "microservices/integration_service"
-	@PYTHONPATH="$(SDK_PATH):$(MSG_PATH)" python3 -m unittest discover "libs/messaging"
-	@PYTHONPATH="$(SDK_PATH):$(MSG_PATH)" python3 -m unittest discover "libs/sdk"
+run-tests: install-libs
+	@echo "Running tests for ai_orm_context_service..."
+	@cd microservices/ai_orm_context_service && python3 -m unittest discover -s . -p "test_*.py" -v || exit 1
+	@echo ""
+	@echo "Running tests for embedding_service..."
+	@cd microservices/embedding_service && python3 -m unittest discover -s . -p "test_*.py" -v || exit 1
+	@echo ""
+	@echo "Running tests for integration_service..."
+	@cd microservices/integration_service && python3 -m unittest discover -s . -p "test_*.py" -v || exit 1
+	@echo ""
+	@echo "Running tests for messaging library..."
+	@cd libs/messaging && python3 -m unittest discover -s . -p "test_*.py" -v || exit 1
+	@echo ""
+	@echo "Running tests for sdk library..."
+	@cd libs/sdk && python3 -m unittest discover -s . -p "test_*.py" -v || exit 1
+	@echo ""
+	@echo "All tests passed!"
 
 clean-libs:
 	@echo "Cleaning wheels..."
