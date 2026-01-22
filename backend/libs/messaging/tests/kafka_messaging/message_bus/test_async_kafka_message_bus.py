@@ -158,7 +158,9 @@ class TestAsyncKafkaMessageBus(unittest.IsolatedAsyncioTestCase):
 
             class Evt:
                 event_name = 'orders.created'
-            async def handler(_):
+
+            def handler(_):
+                # empty mockup for test
                 pass
 
             await self.bus.subscribe(Evt, handler)

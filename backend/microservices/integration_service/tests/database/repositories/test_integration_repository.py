@@ -1,6 +1,6 @@
 import unittest
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.exc import SQLAlchemyError
 from svc_integration_contracts.models import Auth, DB, Cloud, CertState
@@ -476,8 +476,8 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
             cert_name='test-cert',
             public_cert_pem='-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',
             thumbprint_sha256='thumbprint123',
-            not_before=datetime.utcnow(),
-            not_after=datetime.utcnow()
+            not_before=datetime.now(timezone.utc),
+            not_after=datetime.now(timezone.utc)
         )
 
         cert_orm = MagicMock()
@@ -504,8 +504,8 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
             cert_name='test-cert',
             public_cert_pem='-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',
             thumbprint_sha256='thumbprint123',
-            not_before=datetime.utcnow(),
-            not_after=datetime.utcnow()
+            not_before=datetime.now(timezone.utc),
+            not_after=datetime.now(timezone.utc)
         )
 
         cert_orm = MagicMock()
@@ -527,7 +527,7 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
         cert_orm_1 = MagicMock()
         cert_orm_2 = MagicMock()
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         profile_1 = CertProfile(
             id=uuid4(),
             state=CertState.pending,

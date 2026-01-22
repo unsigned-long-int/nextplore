@@ -21,6 +21,7 @@ class MysqlPyMysqlAdapter(DriverAdapter):
         **kwargs: Any
     ):
         ctx = ssl.create_default_context(cafile=ca_path) if ca_path else ssl.create_default_context()
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
         return pymysql.connect(
             host=host, 
             port=port, 

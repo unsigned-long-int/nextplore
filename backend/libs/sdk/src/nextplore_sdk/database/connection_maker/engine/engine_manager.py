@@ -52,7 +52,7 @@ class EngineManager:
             engine, _ = self._engines.pop(key)
             engine.dispose()
 
-    async def shutdown(self) -> None:
+    def shutdown(self) -> None:
         with self._lock:
             items = list(self._engines.values())
             self._engines.clear()

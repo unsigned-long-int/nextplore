@@ -29,5 +29,4 @@ class TestOpenAIEmbedder(unittest.IsolatedAsyncioTestCase):
         self.client_mock.embeddings.create.side_effect = RuntimeError('boom')
         with self.assertRaises(EmbeddingFailed) as ctx:
             res = await self.embedder.generate_embedding('What is the strongest marvel character?')
-            self.assertIsNone(res)
-            self.assertIn('boom', str(ctx.exception))
+        self.assertIn('boom', str(ctx.exception))

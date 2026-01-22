@@ -1,7 +1,7 @@
 import unittest
 from contextvars import copy_context
 
-from integration_service.api import set_current_identity, get_current_identity, UserIdentity
+from vector_service.api.context import set_current_identity, get_current_identity, UserIdentity
 
 
 class TestIdentityContext(unittest.TestCase):

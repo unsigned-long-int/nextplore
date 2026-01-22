@@ -40,10 +40,11 @@ class TestInvokeEngine(unittest.TestCase):
                 creator=creator_mock,
                 max_retries=3
             )
-            self.assertIsInstance(ctx.exception.__cause__, OperationalError)
-            create_engine_mock.assert_any_call('dialect', creator=creator_mock)
-            self.assertEqual(sleep_mock.call_count, 4)
-            self.assertEqual(create_engine_mock.call_count, 3)
+
+        self.assertIsInstance(ctx.exception.__cause__, OperationalError)
+        create_engine_mock.assert_any_call('dialect', creator=creator_mock)
+        self.assertEqual(sleep_mock.call_count, 3)
+        self.assertEqual(create_engine_mock.call_count, 4)
 
     @patch('nextplore_sdk.database.connection_maker.engine.engine_invoke.time.sleep')
     @patch('nextplore_sdk.database.connection_maker.engine.engine_invoke.create_engine')
@@ -84,4 +85,4 @@ class TestInvokeEngine(unittest.TestCase):
                 backoff_factor=3,
             )
             sleep_mock.assert_not_called()
-            self.assertIn('Unexpected connection failure.', str(ctx.exception))
+        self.assertIn('Unexpected connection failure.', str(ctx.exception))

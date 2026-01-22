@@ -32,4 +32,4 @@ class TestSnowflakeJwtAuthStrategy(unittest.TestCase):
         driver_adapter_mock = MagicMock()
         with self.assertRaises(KeyError) as context:
             self.strategy.make_creator(driver_adapter_mock)
-            self.assertIn('Creds provider is not given', str(context.exception))
+        self.assertIn('Credentials provider not found', str(context.exception))

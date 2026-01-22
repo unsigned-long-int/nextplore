@@ -23,6 +23,7 @@ class OpenAIEmbedder(EmbedderBase):
             )
             return response.data[0].embedding
         except Exception as e:
-            logger.error(f'Embedding generation failed: {e}', exc_info=True)
-            raise EmbeddingFailed from e
+            msg = f'Failed to generate embedding: {e}'
+            logger.error(msg, exc_info=True)
+            raise EmbeddingFailed(msg) from e
        

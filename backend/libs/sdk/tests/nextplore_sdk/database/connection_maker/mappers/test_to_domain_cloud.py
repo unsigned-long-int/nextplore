@@ -25,4 +25,4 @@ class TestToDomainAuth(unittest.TestCase):
     def test_raises_missing_if_not_found(self):
         with self.assertRaises(MissingCloud) as ctx:
             _ = to_domain_cloud('non-existing')
-            self.assertIn('Cloud not found in map: non-existing', str(ctx.exception))
+        self.assertIn('Cloud not found in map: non-existing', str(ctx.exception))

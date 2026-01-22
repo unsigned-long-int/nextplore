@@ -25,4 +25,4 @@ class TestToDomainAuth(unittest.TestCase):
     def test_raises_missing_if_not_found(self):
         with self.assertRaises(MissingDB) as ctx:
             _ = to_domain_db('non-existing')
-            self.assertIn('DB not found in map: non-existing', str(ctx.exception))
+        self.assertIn('DB not found in map: non-existing', str(ctx.exception))

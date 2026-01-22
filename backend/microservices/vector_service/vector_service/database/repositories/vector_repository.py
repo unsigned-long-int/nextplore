@@ -29,7 +29,7 @@ class VectorRepository:
     async def get_profiles(self, organization_id: UUID, user_id: UUID, integration_id: UUID) -> List[VectorProfile]:
         try:
             if not integration_id:
-                logger.warning(f'No integration id provided. ', extra={'org_id': organization_id, 'user_id': user_id})
+                logger.warning('No integration id provided.', extra={'org_id': organization_id, 'user_id': user_id})
                 return []
             
             async with self._db.session_scope(organization_id, user_id) as scoped_session:
@@ -47,7 +47,7 @@ class VectorRepository:
     async def get_vectors(self, organization_id: UUID, user_id: UUID, vector_ids: List[UUID]) -> List[Row]:
         try:
             if not vector_ids:
-                logger.warning(f'No vectors requested. ', extra={'org_id': organization_id, 'user_id': user_id})
+                logger.warning('No vectors requested. ', extra={'org_id': organization_id, 'user_id': user_id})
                 return []
             
             async with self._db.session_scope(organization_id, user_id) as scoped_session:

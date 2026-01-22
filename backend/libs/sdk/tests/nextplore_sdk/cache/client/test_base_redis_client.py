@@ -34,7 +34,7 @@ class TestBaseCache(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.redis_client, base_cache.redis)
         self.assertEqual(f'{namespace}:{version}:', base_cache.prefix)
 
-    async def test_build_key_from_mixed_parts(self):
+    def test_build_key_from_mixed_parts(self):
         version = 'test-version'
         namespace = 'test-namespace'
         base_cache = BaseCache(

@@ -60,7 +60,8 @@ class TestSnowflakeAdapter(unittest.TestCase):
                 database='mydb',
                 private_key='myprivatekey',
             )
-            self.assertIn('private_key and warehouse must be provided', str(ctx.exception))
+
+        self.assertIn('private_key and warehouse must be provided', str(ctx.exception))
         snowflake_mock.connect.assert_not_called()
 
     @patch('nextplore_sdk.database.connection_maker.driver_adapters.snowflake.snowflake_jwt_adapter.snowflake.connector')
@@ -72,5 +73,6 @@ class TestSnowflakeAdapter(unittest.TestCase):
                 database='mydb',
                 warehouse='mywarehouse',
             )
-            self.assertIn('private_key and warehouse must be provided', str(ctx.exception))
+
+        self.assertIn('private_key and warehouse must be provided', str(ctx.exception))
         snowflake_mock.connect.assert_not_called()

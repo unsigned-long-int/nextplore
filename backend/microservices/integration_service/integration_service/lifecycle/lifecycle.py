@@ -50,4 +50,4 @@ async def lifespan(app: FastAPI):
 
     await kafka_message_bus.stop()
     await backend_connector.dispose()
-    await engine_manager.shutdown()
+    engine_manager.shutdown()

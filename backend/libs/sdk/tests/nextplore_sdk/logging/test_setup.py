@@ -47,6 +47,7 @@ class TestSetupLogger(unittest.TestCase):
     def test_handler_without_formatter_attribute_is_ignored(self):
         class NoFormatterHandler(logging.Handler):
             def emit(self, record):
+                # mocking handler emit
                 pass
 
         h = NoFormatterHandler()

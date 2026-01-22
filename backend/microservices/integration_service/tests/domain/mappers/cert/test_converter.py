@@ -1,6 +1,6 @@
 import unittest
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
 from svc_integration_contracts.models import CertCreateRequest, CertState
 
@@ -18,7 +18,7 @@ class TestCertMappers(unittest.TestCase):
     def setUp(self):
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.now = datetime.utcnow()
+        self.now = datetime.now(timezone.utc)
 
     def test_cert_create_from_dto_maps_all_fields(self):
         cert_create_request = CertCreateRequest(
@@ -155,7 +155,7 @@ class TestCertMappers(unittest.TestCase):
         self.assertIsNone(result.revoked_at)
 
     def test_cert_profile_from_orm_with_revoked_state(self):
-        revoked_time = datetime.utcnow()
+        revoked_time = datetime.now(timezone.utc)
 
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()

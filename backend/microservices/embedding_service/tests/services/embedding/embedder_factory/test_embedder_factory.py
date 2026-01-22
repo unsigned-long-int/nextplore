@@ -24,5 +24,4 @@ class TestEmbedderFactory(unittest.TestCase):
         with self.assertRaises(MissingEmbedderEngine) as ctx:
             embedder = dispatch_embedder('open_ai')
 
-            self.assertIsNone(embedder)
-            self.assertIn('open_ai: not found', str(ctx.exception))
+        self.assertIn('open_ai: not found', str(ctx.exception))

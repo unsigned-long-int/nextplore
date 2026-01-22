@@ -114,7 +114,7 @@ class IntegrationClient(BaseServiceClient):
         payload: IntegrationCreateRequest
     ) -> None:
         try:
-            url = f'/v1/integration/test'
+            url = '/v1/integration/test'
             response = await self.post(url, payload)
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
