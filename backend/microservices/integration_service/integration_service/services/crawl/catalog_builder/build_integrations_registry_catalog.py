@@ -3,8 +3,12 @@ import asyncio
 import time
 from typing import List
 from uuid import UUID
-from sqlalchemy.inspection import inspect
 from sqlalchemy.exc import OperationalError
+from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
+from nextplore_sdk.database.connection_maker.models.connection_profile import ConnectionProfile
+from nextplore_sdk.database.connection_maker.exc.exceptions import ConnectionFailed
+from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
+from nextplore_sdk.encryptor.client.azure_crypto_client import AzureCryptoClient
 
 from integration_service.services.crawl.catalogs import (
     IntegrationRegistryCatalog,
@@ -16,11 +20,7 @@ from integration_service.services.crawl.filters.logic import Specification
 from integration_service.domain.models.secret import SecretType
 from integration_service.services.encryption import decrypt_secret
 from integration_service.database.repositories import IntegrationRepository
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from nextplore_sdk.database.connection_maker.models.connection_profile import ConnectionProfile
-from nextplore_sdk.database.connection_maker.exc.exceptions import ConnectionFailed
-from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
-from nextplore_sdk.encryptor.client.azure_crypto_client import AzureCryptoClient
+
 
 logger = logging.getLogger(__name__)
 
