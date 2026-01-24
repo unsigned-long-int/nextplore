@@ -23,7 +23,7 @@ class IntegrationORM(Base):
             validate_strings=True
         ),
         nullable=False
-    ),
+    )
     cloud = Column(
         Enum(
         Cloud,
