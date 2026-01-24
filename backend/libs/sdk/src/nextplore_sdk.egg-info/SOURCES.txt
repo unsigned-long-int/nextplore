@@ -76,6 +76,7 @@ src/nextplore_sdk/encryptor/cert/__init__.py
 src/nextplore_sdk/encryptor/cert/cert_generator.py
 src/nextplore_sdk/encryptor/cert/get_cert_client.py
 src/nextplore_sdk/encryptor/client/__init__.py
+src/nextplore_sdk/encryptor/client/aad_serializer.py
 src/nextplore_sdk/encryptor/client/azure_crypto_client.py
 src/nextplore_sdk/encryptor/client/crypto_client.py
 src/nextplore_sdk/encryptor/client/encrypted_secret.py

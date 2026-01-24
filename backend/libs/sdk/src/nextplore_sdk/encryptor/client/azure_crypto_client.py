@@ -1,5 +1,4 @@
 import os
-import json
 
 from uuid import UUID
 from typing import Dict
@@ -7,6 +6,7 @@ from azure.identity import DefaultAzureCredential
 from azure.keyvault.keys.crypto import CryptographyClient, KeyWrapAlgorithm
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
+from .aad_serializer import serialize_aad
 from .crypto_client import CryptoClient
 from .encrypted_secret import EncryptedSecret
 
@@ -20,7 +20,7 @@ class AzureCryptoClient(CryptoClient):
         nonce = os.urandom(12)
         aesgcm = AESGCM(self.dek)
 
-        aad_bytes = json.dumps(aad, separators=(',', ':')).encode()
+        aad_bytes = serialize_aad(aad)
         cipher_bytes = aesgcm.encrypt(
             nonce,
             plaintext.encode(),
@@ -52,7 +52,7 @@ class AzureCryptoClient(CryptoClient):
         dek = unwrapped_res.key
         aesgcm = AESGCM(dek)
 
-        aad_bytes = json.dumps(aad, separators=(',', ':')).encode()
+        aad_bytes = serialize_aad(aad)
         plaintext = aesgcm.decrypt(
             nonce=nonce,
             data=ciphertext + tag,
