@@ -10,3 +10,7 @@ backend/shared/*.egg-info
 .vscode
 build
 .wheelhouse
+.coverage*
+htmlcov
+__pycache__
+coverage*

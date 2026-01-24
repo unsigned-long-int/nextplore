@@ -2,3 +2,7 @@ dist
 Dockerfile
 .dockerignore
 .git
+.coverage*
+htmlcov
+__pycache__
+coverage*

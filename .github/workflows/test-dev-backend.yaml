@@ -48,8 +48,8 @@ jobs:
       - name: Install libraries
         run: make install-libs
 
-      - name: Run tests
-        run: make run-tests
+      - name: Run tests with coverage
+        run: make run-tests-cov
 
       - name: Upload test results
         if: always()
@@ -57,5 +57,5 @@ jobs:
         with:
           name: test-results
           path: |
-            **/test-results/
+            **/htmlcov/
             **/.coverage
