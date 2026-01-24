@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class SecretType(Enum):
+class SecretType(str, Enum):
     USERNAME = 'username'
     PASSWORD = 'password'
     SECRET = 'secret'

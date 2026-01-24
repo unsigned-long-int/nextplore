@@ -1,8 +1,9 @@
 import unittest
-from uuid import uuid4
+from uuid import uuid4, UUID
 from fastapi import FastAPI
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 from svc_integration_contracts.models import (
     IntegrationCreateRequest,
     Auth,
@@ -11,326 +12,30 @@ from svc_integration_contracts.models import (
 )
 
 from integration_service.api.router.create_router import router
-from integration_service.api.dependencies import get_backend_connector
-from integration_service.cache import get_cache_service
-from integration_service.database.exceptions import IntegrationCreateFailed, SecretsCreateFailed
+from integration_service.services.integration import get_integration_service
+from integration_service.database.exceptions import (
+    IntegrationCreateFailed,
+    SecretsCreateFailed
+)
 
 
-class TestCreateRouter(unittest.TestCase):
+class TestCreateIntegrationRouter(unittest.TestCase):
+
     def setUp(self):
         self.app = FastAPI()
         self.app.include_router(router)
         self.client = TestClient(self.app)
 
-        self.cache_mock = AsyncMock()
-        self.cache_mock.cache = AsyncMock()
-        self.database_backend_connector_mock = AsyncMock()
+        self.mock_integration_service = AsyncMock()
 
         self.app.dependency_overrides = {
-            get_cache_service: lambda: self.cache_mock,
-            get_backend_connector: lambda: self.database_backend_connector_mock,
+            get_integration_service: lambda: self.mock_integration_service
         }
 
-        self.request = IntegrationCreateRequest(
-            auth=Auth.iam,
-            cloud=Cloud.aws,
-            db=DB.postgresql,
-            connection_name='test-connection',
-            host='localhost',
-            database_name='test-database',
-            port=5432
-        )
+        self.organization_id = uuid4()
+        self.user_id = uuid4()
 
-    def _url(self, org_id, user_id) -> str:
-        return (
-            f'/v1/integration/organizations/{org_id}/'
-            f'users/{user_id}/integrations'
-        )
-
-    @patch('integration_service.api.router.create_router.get_kafka_message_bus')
-    @patch('integration_service.api.router.create_router.AzureCryptoClient')
-    @patch('integration_service.api.router.create_router.secrets_from_dto')
-    @patch('integration_service.api.router.create_router.integration_create_from_dto')
-    @patch('integration_service.api.router.create_router.IntegrationRepository')
-    @patch('integration_service.api.router.create_router.get_current_identity')
-    def test_creates_integration_successfully(
-        self,
-        get_current_identity_mock,
-        integration_repo_mock,
-        integration_create_from_dto_mock,
-        secrets_from_dto_mock,
-        azure_crypto_client_mock,
-        get_kafka_message_bus_mock
-    ):
-        user_identity_mock = MagicMock()
-        user_identity_mock.user_id = uuid4()
-        user_identity_mock.organization_id = uuid4()
-        get_current_identity_mock.return_value = user_identity_mock
-
-        integration_id = uuid4()
-        integration_create_mock = MagicMock()
-        integration_create_from_dto_mock.return_value = integration_create_mock
-
-        repo_instance = AsyncMock()
-        repo_instance.create_integration.return_value = integration_id
-        integration_repo_mock.return_value = repo_instance
-
-        secrets_mock = MagicMock()
-        secrets_from_dto_mock.return_value = secrets_mock
-
-        crypto_client_mock = MagicMock()
-        azure_crypto_client_mock.return_value = crypto_client_mock
-
-        kafka_bus_mock = AsyncMock()
-        get_kafka_message_bus_mock.return_value = kafka_bus_mock
-
-        response = self.client.post(
-            self._url(user_identity_mock.organization_id, user_identity_mock.user_id),
-            json=self.request.model_dump(mode='json')
-        )
-
-        self.assertEqual(204, response.status_code)
-
-        integration_create_from_dto_mock.assert_called_once_with(self.request)
-        repo_instance.create_integration.assert_awaited_once_with(
-            organization_id=user_identity_mock.organization_id,
-            user_id=user_identity_mock.user_id,
-            integration_create=integration_create_mock
-        )
-
-        azure_crypto_client_mock.assert_called_once_with(self.request.kek_kid)
-
-        secrets_from_dto_mock.assert_called_once_with(
-            organization_id=user_identity_mock.organization_id,
-            user_id=user_identity_mock.user_id,
-            integration_id=integration_id,
-            payload=self.request,
-            crypto_client=crypto_client_mock
-        )
-        repo_instance.create_secrets.assert_awaited_once_with(
-            organization_id=user_identity_mock.organization_id,
-            user_id=user_identity_mock.user_id,
-            secrets=secrets_mock
-        )
-
-        kafka_bus_mock.publish.assert_awaited_once()
-        published_event = kafka_bus_mock.publish.call_args[0][0]
-        self.assertEqual(published_event.user_id, user_identity_mock.user_id)
-        self.assertEqual(published_event.organization_id, user_identity_mock.organization_id)
-        self.assertEqual(published_event.integration_id, integration_id)
-
-        self.cache_mock.cache.delete_by_prefix.assert_awaited_once_with(
-            user_identity_mock.organization_id,
-            user_identity_mock.user_id
-        )
-
-    @patch('integration_service.api.router.create_router.get_current_identity')
-    def test_returns_forbidden_when_org_id_mismatch(self, get_current_identity_mock):
-        user_identity_mock = MagicMock()
-        user_identity_mock.user_id = uuid4()
-        user_identity_mock.organization_id = uuid4()
-        get_current_identity_mock.return_value = user_identity_mock
-
-        different_org_id = uuid4()
-
-        response = self.client.post(
-            self._url(different_org_id, user_identity_mock.user_id),
-            json=self.request.model_dump(mode='json')
-        )
-
-        self.assertEqual(403, response.status_code)
-        self.assertEqual('Forbidden', response.json()['detail']['message'])
-
-    @patch('integration_service.api.router.create_router.get_current_identity')
-    def test_returns_forbidden_when_user_id_mismatch(self, get_current_identity_mock):
-        user_identity_mock = MagicMock()
-        user_identity_mock.user_id = uuid4()
-        user_identity_mock.organization_id = uuid4()
-        get_current_identity_mock.return_value = user_identity_mock
-
-        different_user_id = uuid4()
-
-        response = self.client.post(
-            self._url(user_identity_mock.organization_id, different_user_id),
-            json=self.request.model_dump(mode='json')
-        )
-
-        self.assertEqual(403, response.status_code)
-        self.assertEqual('Forbidden', response.json()['detail']['message'])
-
-    @patch('integration_service.api.router.create_router.integration_create_from_dto')
-    @patch('integration_service.api.router.create_router.IntegrationRepository')
-    @patch('integration_service.api.router.create_router.get_current_identity')
-    def test_raises_exception_when_integration_create_failed(
-        self,
-        get_current_identity_mock,
-        integration_repo_mock,
-        integration_create_from_dto_mock
-    ):
-        user_identity_mock = MagicMock()
-        user_identity_mock.user_id = uuid4()
-        user_identity_mock.organization_id = uuid4()
-        get_current_identity_mock.return_value = user_identity_mock
-
-        integration_create_mock = MagicMock()
-        integration_create_from_dto_mock.return_value = integration_create_mock
-
-        repo_instance = AsyncMock()
-        repo_instance.create_integration.side_effect = IntegrationCreateFailed('Database connection error')
-        integration_repo_mock.return_value = repo_instance
-
-        response = self.client.post(
-            self._url(user_identity_mock.organization_id, user_identity_mock.user_id),
-            json=self.request.model_dump(mode='json')
-        )
-
-        self.assertEqual(424, response.status_code)
-        self.assertIn('Database error: Database connection error', response.json()['detail']['message'])
-        self.cache_mock.cache.delete_by_prefix.assert_not_awaited()
-
-    @patch('integration_service.api.router.create_router.get_kafka_message_bus')
-    @patch('integration_service.api.router.create_router.AzureCryptoClient')
-    @patch('integration_service.api.router.create_router.secrets_from_dto')
-    @patch('integration_service.api.router.create_router.integration_create_from_dto')
-    @patch('integration_service.api.router.create_router.IntegrationRepository')
-    @patch('integration_service.api.router.create_router.get_current_identity')
-    def test_raises_exception_when_secrets_create_failed(
-        self,
-        get_current_identity_mock,
-        integration_repo_mock,
-        integration_create_from_dto_mock,
-        secrets_from_dto_mock,
-        azure_crypto_client_mock,
-        get_kafka_message_bus_mock
-    ):
-        user_identity_mock = MagicMock()
-        user_identity_mock.user_id = uuid4()
-        user_identity_mock.organization_id = uuid4()
-        get_current_identity_mock.return_value = user_identity_mock
-
-        integration_id = uuid4()
-        integration_create_mock = MagicMock()
-        integration_create_from_dto_mock.return_value = integration_create_mock
-
-        repo_instance = AsyncMock()
-        repo_instance.create_integration.return_value = integration_id
-        repo_instance.create_secrets.side_effect = SecretsCreateFailed('Secret encryption failed')
-        integration_repo_mock.return_value = repo_instance
-
-        secrets_mock = MagicMock()
-        secrets_from_dto_mock.return_value = secrets_mock
-
-        crypto_client_mock = MagicMock()
-        azure_crypto_client_mock.return_value = crypto_client_mock
-
-        response = self.client.post(
-            self._url(user_identity_mock.organization_id, user_identity_mock.user_id),
-            json=self.request.model_dump(mode='json')
-        )
-
-        self.assertEqual(424, response.status_code)
-        self.assertIn('Database error: Secret encryption failed', response.json()['detail']['message'])
-        self.cache_mock.cache.delete_by_prefix.assert_not_awaited()
-
-    @patch('integration_service.api.router.create_router.integration_create_from_dto')
-    @patch('integration_service.api.router.create_router.IntegrationRepository')
-    @patch('integration_service.api.router.create_router.get_current_identity')
-    def test_raises_exception_when_generic_error(
-        self,
-        get_current_identity_mock,
-        integration_repo_mock,
-        integration_create_from_dto_mock
-    ):
-        user_identity_mock = MagicMock()
-        user_identity_mock.user_id = uuid4()
-        user_identity_mock.organization_id = uuid4()
-        get_current_identity_mock.return_value = user_identity_mock
-
-        integration_create_mock = MagicMock()
-        integration_create_from_dto_mock.return_value = integration_create_mock
-
-        repo_instance = AsyncMock()
-        repo_instance.create_integration.side_effect = RuntimeError('Unexpected error')
-        integration_repo_mock.return_value = repo_instance
-
-        response = self.client.post(
-            self._url(user_identity_mock.organization_id, user_identity_mock.user_id),
-            json=self.request.model_dump(mode='json')
-        )
-
-        self.assertEqual(500, response.status_code)
-        self.assertIn('Unexpected error: Unexpected error', response.json()['detail']['message'])
-        self.cache_mock.cache.delete_by_prefix.assert_not_awaited()
-
-    @patch('integration_service.api.router.create_router.get_kafka_message_bus')
-    @patch('integration_service.api.router.create_router.AzureCryptoClient')
-    @patch('integration_service.api.router.create_router.secrets_from_dto')
-    @patch('integration_service.api.router.create_router.integration_create_from_dto')
-    @patch('integration_service.api.router.create_router.IntegrationRepository')
-    @patch('integration_service.api.router.create_router.get_current_identity')
-    def test_does_not_publish_kafka_event_when_secrets_fail(
-        self,
-        get_current_identity_mock,
-        integration_repo_mock,
-        integration_create_from_dto_mock,
-        secrets_from_dto_mock,
-        azure_crypto_client_mock,
-        get_kafka_message_bus_mock
-    ):
-        user_identity_mock = MagicMock()
-        user_identity_mock.user_id = uuid4()
-        user_identity_mock.organization_id = uuid4()
-        get_current_identity_mock.return_value = user_identity_mock
-
-        integration_id = uuid4()
-        integration_create_mock = MagicMock()
-        integration_create_from_dto_mock.return_value = integration_create_mock
-
-        repo_instance = AsyncMock()
-        repo_instance.create_integration.return_value = integration_id
-        repo_instance.create_secrets.side_effect = SecretsCreateFailed('Secret encryption failed')
-        integration_repo_mock.return_value = repo_instance
-
-        secrets_mock = MagicMock()
-        secrets_from_dto_mock.return_value = secrets_mock
-
-        crypto_client_mock = MagicMock()
-        azure_crypto_client_mock.return_value = crypto_client_mock
-
-        kafka_bus_mock = AsyncMock()
-        get_kafka_message_bus_mock.return_value = kafka_bus_mock
-
-        response = self.client.post(
-            self._url(user_identity_mock.organization_id, user_identity_mock.user_id),
-            json=self.request.model_dump(mode='json')
-        )
-
-        self.assertEqual(424, response.status_code)
-
-        kafka_bus_mock.publish.assert_not_awaited()
-
-    @patch('integration_service.api.router.create_router.get_kafka_message_bus')
-    @patch('integration_service.api.router.create_router.AzureCryptoClient')
-    @patch('integration_service.api.router.create_router.secrets_from_dto')
-    @patch('integration_service.api.router.create_router.integration_create_from_dto')
-    @patch('integration_service.api.router.create_router.IntegrationRepository')
-    @patch('integration_service.api.router.create_router.get_current_identity')
-    def test_uses_correct_kek_kid_for_crypto_client(
-            self,
-            get_current_identity_mock,
-            integration_repo_mock,
-            integration_create_from_dto_mock,
-            secrets_from_dto_mock,
-            azure_crypto_client_mock,
-            get_kafka_message_bus_mock
-    ):
-        user_identity_mock = MagicMock()
-        user_identity_mock.user_id = uuid4()
-        user_identity_mock.organization_id = uuid4()
-        get_current_identity_mock.return_value = user_identity_mock
-
-        custom_kek_kid = 'custom-kek-12345'
-        request_with_custom_kek = IntegrationCreateRequest(
+        self.request_payload = IntegrationCreateRequest(
             auth=Auth.iam,
             cloud=Cloud.aws,
             db=DB.postgresql,
@@ -338,31 +43,466 @@ class TestCreateRouter(unittest.TestCase):
             host='localhost',
             database_name='test-database',
             port=5432,
+            kek_kid='test-kek-kid'
+        )
+
+    def tearDown(self):
+        self.app.dependency_overrides = {}
+
+    def _url(self, org_id, user_id) -> str:
+        return (
+            f'/v1/integration/organizations/{org_id}/'
+            f'users/{user_id}/integrations'
+        )
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_create_integration_success(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 204)
+        self.mock_integration_service.create_integration.assert_awaited_once_with(
+            user_identity=user_identity,
+            payload=self.request_payload
+        )
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_returns_forbidden_when_organization_id_mismatch(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = uuid4()
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()['detail']['message'], 'Forbidden')
+        self.mock_integration_service.create_integration.assert_not_awaited()
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_returns_forbidden_when_user_id_mismatch(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = uuid4()
+        mock_get_identity.return_value = user_identity
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()['detail']['message'], 'Forbidden')
+        self.mock_integration_service.create_integration.assert_not_awaited()
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_returns_forbidden_when_both_ids_mismatch(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = uuid4()
+        user_identity.user_id = uuid4()
+        mock_get_identity.return_value = user_identity
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()['detail']['message'], 'Forbidden')
+        self.mock_integration_service.create_integration.assert_not_awaited()
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_returns_424_when_integration_create_failed(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        error_message = 'Database connection error'
+        self.mock_integration_service.create_integration.side_effect = (
+            IntegrationCreateFailed(error_message)
+        )
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 424)
+        self.assertIn('Database error:', response.json()['detail']['message'])
+        self.assertIn(error_message, response.json()['detail']['message'])
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_returns_424_when_secrets_create_failed(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        error_message = 'Secret encryption failed'
+        self.mock_integration_service.create_integration.side_effect = (
+            SecretsCreateFailed(error_message)
+        )
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 424)
+        self.assertIn('Database error:', response.json()['detail']['message'])
+        self.assertIn(error_message, response.json()['detail']['message'])
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_returns_500_when_unexpected_error(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        error_message = 'Unexpected runtime error'
+        self.mock_integration_service.create_integration.side_effect = (
+            RuntimeError(error_message)
+        )
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertIn('Unexpected error while creating integration:', response.json()['detail']['message'])
+        self.assertIn(error_message, response.json()['detail']['message'])
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    @patch('integration_service.api.router.create_router.logger')
+    def test_logs_forbidden_request(self, mock_logger, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = uuid4()
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 403)
+        mock_logger.error.assert_called_once()
+        log_message = mock_logger.error.call_args[0][0]
+        self.assertIn('Forbidden request', log_message)
+
+        extra_data = mock_logger.error.call_args[1]['extra']
+        self.assertEqual(extra_data['org_id'], self.organization_id)
+        self.assertEqual(extra_data['user_id'], self.user_id)
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    @patch('integration_service.api.router.create_router.logger')
+    def test_logs_integration_create_failed_error(self, mock_logger, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        error_message = 'Database connection error'
+        self.mock_integration_service.create_integration.side_effect = (
+            IntegrationCreateFailed(error_message)
+        )
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 424)
+        mock_logger.error.assert_called_once()
+        log_message = mock_logger.error.call_args[0][0]
+        self.assertIn('Create integration failed with DB error', log_message)
+        self.assertIn(error_message, log_message)
+        self.assertEqual(mock_logger.error.call_args[1]['exc_info'], True)
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    @patch('integration_service.api.router.create_router.logger')
+    def test_logs_unexpected_error(self, mock_logger, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        error_message = 'Unexpected error'
+        self.mock_integration_service.create_integration.side_effect = (
+            ValueError(error_message)
+        )
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 500)
+        mock_logger.error.assert_called_once()
+        log_message = mock_logger.error.call_args[0][0]
+        self.assertIn('Unexpected create integration error', log_message)
+        self.assertIn(error_message, log_message)
+        self.assertEqual(mock_logger.error.call_args[1]['exc_info'], True)
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_service_called_with_correct_parameters(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 204)
+
+        call_args = self.mock_integration_service.create_integration.call_args
+        self.assertEqual(call_args[1]['user_identity'], user_identity)
+
+        payload_arg = call_args[1]['payload']
+        self.assertIsInstance(payload_arg, IntegrationCreateRequest)
+        self.assertEqual(payload_arg.connection_name, 'test-connection')
+        self.assertEqual(payload_arg.host, 'localhost')
+        self.assertEqual(payload_arg.database_name, 'test-database')
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_handles_different_auth_types(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        oauth2_payload = IntegrationCreateRequest(
+            auth=Auth.iam,
+            cloud=Cloud.azure,
+            db=DB.postgresql,
+            connection_name='oauth2-connection',
+            host='localhost',
+            database_name='testdb',
+            port=5432,
+            kek_kid='test-kek-kid',
+            client_secret=SecretStr('secret123')
+        )
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=oauth2_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 204)
+
+        call_args = self.mock_integration_service.create_integration.call_args
+        payload_arg = call_args[1]['payload']
+        self.assertEqual(payload_arg.auth, Auth.iam)
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_handles_different_cloud_providers(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        azure_payload = IntegrationCreateRequest(
+            auth=Auth.iam,
+            cloud=Cloud.azure,
+            db=DB.sqlserver,
+            connection_name='azure-connection',
+            host='localhost',
+            database_name='testdb',
+            port=1433,
+            kek_kid='test-kek-kid'
+        )
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=azure_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 204)
+
+        call_args = self.mock_integration_service.create_integration.call_args
+        payload_arg = call_args[1]['payload']
+        self.assertEqual(payload_arg.cloud, Cloud.azure)
+        self.assertEqual(payload_arg.db, DB.sqlserver)
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_returns_empty_body_on_success(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.content, b'')
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_service_not_called_when_forbidden(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = uuid4()
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.mock_integration_service.create_integration.assert_not_awaited()
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_handles_custom_kek_kid(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        custom_kek_kid = 'https://vault.azure.net/keys/custom-key/version123'
+        custom_payload = IntegrationCreateRequest(
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.postgresql,
+            connection_name='test-connection',
+            host='localhost',
+            database_name='testdb',
+            port=5432,
             kek_kid=custom_kek_kid
         )
 
-        integration_id = uuid4()
-        integration_create_mock = MagicMock()
-        integration_create_from_dto_mock.return_value = integration_create_mock
-
-        repo_instance = AsyncMock()
-        repo_instance.create_integration.return_value = integration_id
-        integration_repo_mock.return_value = repo_instance
-
-        secrets_mock = MagicMock()
-        secrets_from_dto_mock.return_value = secrets_mock
-
-        crypto_client_mock = MagicMock()
-        azure_crypto_client_mock.return_value = crypto_client_mock
-
-        kafka_bus_mock = AsyncMock()
-        get_kafka_message_bus_mock.return_value = kafka_bus_mock
-
         response = self.client.post(
-            self._url(user_identity_mock.organization_id, user_identity_mock.user_id),
-            json=request_with_custom_kek.model_dump(mode='json')
+            self._url(self.organization_id, self.user_id),
+            json=custom_payload.model_dump(mode='json')
         )
 
-        self.assertEqual(204, response.status_code)
+        self.assertEqual(response.status_code, 204)
 
-        azure_crypto_client_mock.assert_called_once_with(custom_kek_kid)
+        call_args = self.mock_integration_service.create_integration.call_args
+        payload_arg = call_args[1]['payload']
+        self.assertEqual(payload_arg.kek_kid, custom_kek_kid)
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_error_response_format_for_database_errors(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        error_message = 'Connection timeout'
+        self.mock_integration_service.create_integration.side_effect = (
+            IntegrationCreateFailed(error_message)
+        )
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 424)
+        response_json = response.json()
+        self.assertIn('detail', response_json)
+        self.assertIn('message', response_json['detail'])
+        self.assertEqual(
+            response_json['detail']['message'],
+            f'Database error: {error_message}'
+        )
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_error_response_format_for_unexpected_errors(self, mock_get_identity):
+        user_identity = MagicMock()
+        user_identity.organization_id = self.organization_id
+        user_identity.user_id = self.user_id
+        mock_get_identity.return_value = user_identity
+
+        error_message = 'Memory allocation failed'
+        self.mock_integration_service.create_integration.side_effect = (
+            MemoryError(error_message)
+        )
+
+        response = self.client.post(
+            self._url(self.organization_id, self.user_id),
+            json=self.request_payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 500)
+        response_json = response.json()
+        self.assertIn('detail', response_json)
+        self.assertIn('message', response_json['detail'])
+        self.assertEqual(
+            response_json['detail']['message'],
+            f'Unexpected error while creating integration: {error_message}'
+        )
+
+
+class TestCreateIntegrationRouterEdgeCases(unittest.TestCase):
+
+    def setUp(self):
+        self.app = FastAPI()
+        self.app.include_router(router)
+        self.client = TestClient(self.app)
+
+        self.mock_integration_service = AsyncMock()
+        self.app.dependency_overrides = {
+            get_integration_service: lambda: self.mock_integration_service
+        }
+
+    def tearDown(self):
+        self.app.dependency_overrides = {}
+
+    def _url(self, org_id, user_id) -> str:
+        return (
+            f'/v1/integration/organizations/{org_id}/'
+            f'users/{user_id}/integrations'
+        )
+
+    @patch('integration_service.api.router.create_router.get_current_identity')
+    def test_handles_zero_uuid(self, mock_get_identity):
+        zero_uuid = UUID('00000000-0000-0000-0000-000000000000')
+        user_identity = MagicMock()
+        user_identity.organization_id = zero_uuid
+        user_identity.user_id = zero_uuid
+        mock_get_identity.return_value = user_identity
+
+        payload = IntegrationCreateRequest(
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.postgresql,
+            connection_name='test',
+            host='localhost',
+            database_name='testdb',
+            port=5432,
+            kek_kid='test-kek'
+        )
+
+        response = self.client.post(
+            self._url(zero_uuid, zero_uuid),
+            json=payload.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, 204)
+
+    def test_invalid_json_returns_422(self):
+        response = self.client.post(
+            self._url(uuid4(), uuid4()),
+            json={'invalid': 'data'}
+        )
+
+        self.assertEqual(response.status_code, 422)

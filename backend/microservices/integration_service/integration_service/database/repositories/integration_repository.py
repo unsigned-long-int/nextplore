@@ -93,7 +93,7 @@ class IntegrationRepository:
             msg = f'Get integration by ID failed with database error: {str(e)}'
             logger.error(msg, exc_info=True)
             raise IntegrationGetFailed(msg) from e
-        
+
     async def create_integration(
             self,
             organization_id: UUID,
@@ -150,7 +150,7 @@ class IntegrationRepository:
             msg = f'Get integration profiles failed with database error: {str(e)}'
             logger.error(msg, exc_info=True)
             raise IntegrationGetFailed from e
-        
+
     async def create_secrets(
             self,
             organization_id: UUID,

@@ -79,6 +79,7 @@ src/nextplore_sdk/encryptor/client/__init__.py
 src/nextplore_sdk/encryptor/client/aad_serializer.py
 src/nextplore_sdk/encryptor/client/azure_crypto_client.py
 src/nextplore_sdk/encryptor/client/crypto_client.py
+src/nextplore_sdk/encryptor/client/crypto_client_factory.py
 src/nextplore_sdk/encryptor/client/encrypted_secret.py
 src/nextplore_sdk/encryptor/exc/__init__.py
 src/nextplore_sdk/encryptor/exc/exceptions.py

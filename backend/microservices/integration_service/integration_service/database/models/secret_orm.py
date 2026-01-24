@@ -30,7 +30,6 @@ class SecretORM(Base):
     nonce = Column(BYTEA, nullable=False)
     tag = Column(BYTEA, nullable=False)
     wrapped_dek = Column(BYTEA, nullable=False)
-    kek_kid = Column(Text, nullable=False)
     enc_alg = Column(Text, nullable=False, default='AES-256-GCM')
     wrap_alg = Column(Text, nullable=False, default='RSA-OAEP-256')
     encoding = Column(Text, nullable=False, default='utf8')

@@ -13,6 +13,7 @@ from .encrypted_secret import EncryptedSecret
 
 class AzureCryptoClient(CryptoClient):
     def __init__(self, kek_kid: str) -> None:
+        super().__init__(kek_kid)
         self.crypto_client = CryptographyClient(kek_kid, credential=DefaultAzureCredential())
         self.dek = os.urandom(32)
     
@@ -59,4 +60,3 @@ class AzureCryptoClient(CryptoClient):
             associated_data=aad_bytes
         )
         return plaintext.decode()
-    

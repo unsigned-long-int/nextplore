@@ -10,8 +10,10 @@ from nextplore_sdk.database.connection_maker.engine.engine_manager import Engine
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 from kafka_messaging.message_bus import get_kafka_message_bus
 from kafka_messaging.events.integration_service import IntegrationCreated
+
 from integration_service.cache import CacheService
 from integration_service.api.handlers import crawl_initial_integration_metadata
+from integration_service.database.repositories import IntegrationRepository
 from _version import version, app_name
 
 DATABASE_URL = (
@@ -29,6 +31,7 @@ async def lifespan(app: FastAPI):
     backend_connector = DatabaseBackendConnector(DATABASE_URL)
     backend_connector.init()
     app.state.backend_connector = backend_connector
+    app.state.repo = IntegrationRepository(backend_connector)
 
     cache = BaseCache(namespace='integration_service', version='v1')
     app.state.cache_service = CacheService(cache)

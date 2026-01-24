@@ -6,6 +6,9 @@ from .encrypted_secret import EncryptedSecret
 
 
 class CryptoClient(ABC):
+    def __init__(self, kek_kid: str) -> None:
+        self.kek_kid = kek_kid
+        
     @abstractmethod
     def encrypt_secret(self, plaintext: str, aad: Dict[str, str | UUID]) -> EncryptedSecret: ...
 
