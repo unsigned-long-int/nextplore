@@ -9,7 +9,7 @@ on:
       - dev
 
 jobs:
-  test:
+  test-dev:
     runs-on: ubuntu-latest
     defaults:
       run:

@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/unsigned-long-int/nextplore?style=flat-square" alt="Stars"> <img src="https://img.shields.io/github/forks/unsigned-long-int/nextplore?style=flat-square" alt="Forks"> <img src="https://img.shields.io/github/last-commit/unsigned-long-int/nextplore?style=flat-square" alt="Last Commit"> <img src="https://img.shields.io/github/languages/top/unsigned-long-int/nextplore?style=flat-square" alt="Top Language">
+  <img src="https://img.shields.io/github/stars/unsigned-long-int/nextplore?style=flat-square" alt="Stars"> <img src="https://img.shields.io/github/forks/unsigned-long-int/nextplore?style=flat-square" alt="Forks"> <img src="https://img.shields.io/github/last-commit/unsigned-long-int/nextplore?style=flat-square" alt="Last Commit"> <img src="https://img.shields.io/github/languages/top/unsigned-long-int/nextplore?style=flat-square" alt="Top Language"><img src="https://github.com/unsigned-long-int/nextplore/actions/workflows/test-dev-backend.yaml/badge.svg" alt="Tests">
 </p>
 
 ---
