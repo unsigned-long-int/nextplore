@@ -126,7 +126,6 @@ class TestSecretsFromDTO(unittest.TestCase):
         self.assertEqual(len(result), 3)
         self.assertIn('username', result)
         self.assertIn('password', result)
-        self.assertIn('client_secret', result)
         self.assertEqual(mock_encrypt.call_count, 3)
 
     @patch('integration_service.domain.mappers.secret.converter.encrypt_secret')

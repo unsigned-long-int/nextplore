@@ -64,7 +64,7 @@ class TestIntegrationService(unittest.IsolatedAsyncioTestCase):
 
         self.mock_integration_create = MagicMock(spec=IntegrationCreate)
         self.mock_secrets = {
-            SecretType.SECRET: MagicMock(spec=IntegrationSecret)
+            SecretType.CLIENT_SECRET: MagicMock(spec=IntegrationSecret)
         }
 
     @patch('integration_service.services.integration.integration_service.integration_create_from_dto')
@@ -95,6 +95,7 @@ class TestIntegrationService(unittest.IsolatedAsyncioTestCase):
 
         mock_secrets_from_dto.assert_called_once_with(
             organization_id=self.organization_id,
+            integration_id=self.integration_id,
             user_id=self.user_id,
             payload=self.payload,
             crypto_client=self.mock_crypto_client
@@ -458,6 +459,7 @@ class TestIntegrationService(unittest.IsolatedAsyncioTestCase):
 
         mock_secrets_from_dto.assert_called_once_with(
             organization_id=self.organization_id,
+            integration_id=self.integration_id,
             user_id=self.user_id,
             payload=self.payload,
             crypto_client=self.mock_crypto_client
@@ -513,7 +515,7 @@ class TestIntegrationService(unittest.IsolatedAsyncioTestCase):
     ):
         mock_integration_from_dto.return_value = self.mock_integration_create
         multiple_secrets = {
-            SecretType.SECRET: MagicMock(spec=IntegrationSecret),
+            SecretType.CLIENT_SECRET: MagicMock(spec=IntegrationSecret),
             SecretType.PASSWORD: MagicMock(spec=IntegrationSecret),
         }
         mock_secrets_from_dto.return_value = multiple_secrets
@@ -527,7 +529,7 @@ class TestIntegrationService(unittest.IsolatedAsyncioTestCase):
         self.mock_repo.create_secrets.assert_called_once()
         secrets_arg = self.mock_repo.create_secrets.call_args[1]['secrets']
         self.assertEqual(len(secrets_arg), 2)
-        self.assertIn(SecretType.SECRET, secrets_arg)
+        self.assertIn(SecretType.CLIENT_SECRET, secrets_arg)
         self.assertIn(SecretType.PASSWORD, secrets_arg)
 
 

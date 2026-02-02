@@ -22,7 +22,8 @@ class SecretORM(Base):
             schema='integration',
             native_enum=True,
             create_type=False,
-            validate_strings=True
+            validate_strings=True,
+            values_callable=lambda enum_cls: [e.value for e in enum_cls]
         ),
         nullable=False
     )

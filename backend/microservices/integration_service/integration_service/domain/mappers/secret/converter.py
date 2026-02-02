@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 from typing import Dict, Any, List
 from pydantic import SecretStr
@@ -12,6 +13,8 @@ from nextplore_sdk.encryptor.client.crypto_client import CryptoClient
 from integration_service.domain.models.secret import IntegrationSecret, SecretType
 
 
+logger = logging.getLogger(__name__)
+
 def secrets_from_dto(
     organization_id: UUID,
     user_id: UUID,
@@ -25,6 +28,11 @@ def secrets_from_dto(
     for name, val in payload.model_dump().items():
         if not isinstance(val, SecretStr):
             continue
+        try:
+            secret_type = SecretType(name)
+        except ValueError:
+            logger.warning(f'Field {name} is a SecretStr but not a valid SecretType')
+            continue
 
         encrypted_secret = encrypt_secret(
             organization_id=organization_id,
@@ -34,7 +42,7 @@ def secrets_from_dto(
             crypto_client=crypto_client,
             **kwargs
         )
-        secrets.update({name: encrypted_secret})
+        secrets[secret_type] = encrypted_secret
     return secrets
 
 

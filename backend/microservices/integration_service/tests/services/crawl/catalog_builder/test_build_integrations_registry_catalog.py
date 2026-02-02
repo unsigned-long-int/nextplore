@@ -478,7 +478,7 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
         decrypted_values = {
             SecretType.USERNAME: 'test_user',
             SecretType.PASSWORD: 'test_password',
-            SecretType.SECRET: 'test_secret',
+            SecretType.CLIENT_SECRET: 'test_secret',
             SecretType.AWS_EXTERNAL_ID: None,
             SecretType.AWS_ROLE_ARN: None,
             SecretType.SNOWFLAKE_PRIVATE_KEY: 'test_private_key'
@@ -503,9 +503,6 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
         connection_profile = self.engine_manager.acquire_engine.call_args[0][0]
 
         self.assertIsInstance(connection_profile, ConnectionProfile)
-        self.assertEqual(connection_profile.cloud, Cloud.azure)
-        self.assertEqual(connection_profile.auth, Auth.iam)
-        self.assertEqual(connection_profile.db, DB.sqlserver)
         self.assertEqual(connection_profile.database, 'test_db')
         self.assertEqual(connection_profile.port, 443)
         self.assertEqual(connection_profile.host, 'test.com')

@@ -128,7 +128,7 @@ class TestConnectionProfileRouter(unittest.TestCase):
         decrypt_map = {
             'USERNAME': 'user1',
             'PASSWORD': 'pwd1',
-            'SECRET': 'client-secret-1',
+            'CLIENT_SECRET': 'client-secret-1',
             'AWS_EXTERNAL_ID': 'ext-123',
             'AWS_ROLE_ARN': 'arn:aws:iam::123:role/role1',
             'SNOWFLAKE_PRIVATE_KEY': None,
@@ -169,7 +169,7 @@ class TestConnectionProfileRouter(unittest.TestCase):
             warehouse=self.integration.warehouse,
             username=decrypt_map['USERNAME'],
             password=decrypt_map['PASSWORD'],
-            client_secret=decrypt_map['SECRET'],
+            client_secret=decrypt_map['CLIENT_SECRET'],
             aws_external_id=decrypt_map['AWS_EXTERNAL_ID'],
             aws_role_arn=decrypt_map['AWS_ROLE_ARN'],
             snowflake_private_key=decrypt_map['SNOWFLAKE_PRIVATE_KEY'],

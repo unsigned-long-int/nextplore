@@ -50,6 +50,7 @@ class IntegrationService:
             crypto_client = self._crypto_client_factory(payload.kek_kid)
             secrets = secrets_from_dto(
                 organization_id=user_identity.organization_id,
+                integration_id=integration_id,
                 user_id=user_identity.user_id,
                 payload=payload,
                 crypto_client=crypto_client

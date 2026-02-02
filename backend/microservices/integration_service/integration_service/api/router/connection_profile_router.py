@@ -78,7 +78,7 @@ async def get_connection_profile(
             warehouse=integration.warehouse,
             username=decrypt_secret(SecretType.USERNAME, secrets, crypto_client),
             password=decrypt_secret(SecretType.PASSWORD, secrets, crypto_client),
-            client_secret=decrypt_secret(SecretType.SECRET, secrets, crypto_client),
+            client_secret=decrypt_secret(SecretType.CLIENT_SECRET, secrets, crypto_client),
             aws_external_id=decrypt_secret(SecretType.AWS_EXTERNAL_ID, secrets, crypto_client),
             aws_role_arn=decrypt_secret(SecretType.AWS_ROLE_ARN, secrets, crypto_client),
             snowflake_private_key=decrypt_secret(SecretType.SNOWFLAKE_PRIVATE_KEY, secrets, crypto_client),

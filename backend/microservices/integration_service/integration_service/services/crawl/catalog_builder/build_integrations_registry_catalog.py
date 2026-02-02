@@ -8,7 +8,11 @@ from nextplore_sdk.database.backend.database_backend_connector import DatabaseBa
 from nextplore_sdk.database.connection_maker.models.connection_profile import ConnectionProfile
 from nextplore_sdk.database.connection_maker.exc.exceptions import ConnectionFailed
 from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
+from nextplore_sdk.database.connection_maker.mappers.to_domain_db import to_domain_db
+from nextplore_sdk.database.connection_maker.mappers.to_domain_auth import to_domain_auth
+from nextplore_sdk.database.connection_maker.mappers.to_domain_cloud import to_domain_cloud
 from nextplore_sdk.encryptor.client.azure_crypto_client import AzureCryptoClient
+
 
 from integration_service.services.crawl.catalogs import (
     IntegrationRegistryCatalog,
@@ -60,16 +64,16 @@ async def build_integrations_registry_catalog(
             crypto_client = AzureCryptoClient(integration.kek_kid)
 
             connection_profile = ConnectionProfile(
-                cloud=integration.cloud,
-                auth=integration.auth,
-                db=integration.db,
+                cloud=to_domain_cloud(integration.cloud.value),
+                auth=to_domain_auth(integration.auth.value),
+                db=to_domain_db(integration.db.value),
                 database=integration.database_name,
                 port=integration.port,
                 host=integration.host,
                 warehouse=integration.warehouse,
                 username=decrypt_secret(SecretType.USERNAME, secrets, crypto_client),
                 password=decrypt_secret(SecretType.PASSWORD, secrets, crypto_client),
-                client_secret=decrypt_secret(SecretType.SECRET, secrets, crypto_client),
+                client_secret=decrypt_secret(SecretType.CLIENT_SECRET, secrets, crypto_client),
                 aws_external_id=decrypt_secret(SecretType.AWS_EXTERNAL_ID, secrets, crypto_client),
                 aws_role_arn=decrypt_secret(SecretType.AWS_ROLE_ARN, secrets, crypto_client),
                 azure_cert_kid=integration.azure_cert_kid,

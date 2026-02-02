@@ -10,6 +10,5 @@ class IntegrationIdSpec(Specification):
         self.allowed = integration_ids
 
     def is_satisfied_by(self, candidate: IntegrationCatalog) -> bool:
-        print(candidate.id)
         return candidate.id in self.allowed
     
