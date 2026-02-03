@@ -52,7 +52,7 @@ jobs:
         run: make run-tests-cov
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.NEXTPLORE_SONARQUBE_SECRET }}
