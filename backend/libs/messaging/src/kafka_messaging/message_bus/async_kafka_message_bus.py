@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Callable, Type, Awaitable
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 
-from kafka_messaging.codec import Codec, AvroCodec
+from kafka_messaging.codec import Codec, AvroCodec, to_avro_values
 from kafka_messaging.schema_dispatcher import dispatch_schema
 from kafka_messaging.schema_registry_client import ConfluentSchemaRegistryClient
 from kafka_messaging.events.base import BaseEvent
@@ -78,7 +78,7 @@ class AsyncKafkaMessageBus:
         org_id = data.get('organization_id')
         key = (str(org_id).encode('utf-8') if org_id else None)
         dlq_payload = {
-            'original_event': data,
+            'original_event': to_avro_values(data),
             'error': str(e),
             'original_topic': record.topic,
             'partition': record.partition,
