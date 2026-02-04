@@ -90,11 +90,11 @@ run-tests-cov: install-libs install-test-deps
 	@mv $(INTEGRATION_SERVICE)/.coverage .coverage.integration 2>/dev/null || true
 	@echo ""
 	@echo "Testing messaging library..."
-	@cd $(MESSAGING_LIB) && $(PYTHON) -m coverage run --source=. --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
+	@cd $(MESSAGING_LIB) && PYTHONPATH=src $(PYTHON) -m coverage run --source=$$(pwd)/src --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s tests -p "$(TEST_PATTERN)" -t . -v || exit 1
 	@mv $(MESSAGING_LIB)/.coverage .coverage.messaging 2>/dev/null || true
 	@echo ""
 	@echo "Testing sdk library..."
-	@cd $(SDK_LIB) && $(PYTHON) -m coverage run --source=. --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
+	@cd $(SDK_LIB) && PYTHONPATH=src $(PYTHON) -m coverage run --source=$$(pwd)/src --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s tests -p "$(TEST_PATTERN)" -t . -v || exit 1
 	@mv $(SDK_LIB)/.coverage .coverage.sdk 2>/dev/null || true
 	@echo ""
 	@echo "Combining coverage data..."
