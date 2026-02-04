@@ -30,18 +30,21 @@ RUN apt-get update \
     gcc \
     libpq-dev \
     unixodbc-dev \
-    && curl -fsSLo /tmp/packages-microsoft-prod.deb \
+    && curl -fsSL --proto '=https' --tlsv1.2 \
     https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
+    -o /tmp/packages-microsoft-prod.deb \
     && dpkg -i /tmp/packages-microsoft-prod.deb \
     && rm /tmp/packages-microsoft-prod.deb \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
     msodbcsql18 \
-    && curl -fsSLo /usr/local/share/ca-certificates/aws-rds-global.crt \
-      https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
+    && curl -fsSL --proto '=https' --tlsv1.2 \
+    https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
+    -o /usr/local/share/ca-certificates/aws-rds-global.crt \
     && chmod 0644 /usr/local/share/ca-certificates/aws-rds-global.crt \
-    && curl -fsSLo /usr/local/share/ca-certificates/gcp-global.crt \
-      https://storage.googleapis.com/cloudsql-ca-bundles/global.pem \
+    && curl -fsSL --proto '=https' --tlsv1.2 \
+    https://storage.googleapis.com/cloudsql-ca-bundles/global.pem \
+    -o /usr/local/share/ca-certificates/gcp-global.crt \
     && chmod 0644 /usr/local/share/ca-certificates/gcp-global.crt \
     && update-ca-certificates \
     && apt-get clean \
