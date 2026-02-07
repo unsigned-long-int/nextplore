@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from vector_service.api.models.vector_profile_response import VectorProfileResponse
+from svc_vector_contracts.models import VectorProfileResponse
 from vector_service.api.context import get_current_identity
 from vector_service.api.dependencies import get_backend_connector
 from vector_service.cache import CacheService, get_cache_service

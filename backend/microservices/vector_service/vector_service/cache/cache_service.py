@@ -1,15 +1,18 @@
 from typing import List
 from uuid import UUID
 
-from vector_service.api.context import UserIdentity
-from vector_service.api.models.vector_profile_response import VectorProfileResponse
-from vector_service.api.models.vector_stats_response import VectorStatsResponse
-from vector_service.api.models.vector_meta_request import VectorMetaRequest
-from vector_service.api.models.vector_meta_response import VectorMetaResponse
-from vector_service.api.models.qdrant_vector_response import QDrantVectorResponse
-from vector_service.api.models.qdrant_vector_request import QDrantVectorRequest
+from svc_vector_contracts.models import (
+    VectorProfileResponse,
+    VectorStatsResponse,
+    VectorMetaRequest,
+    VectorMetaResponse,
+    QDrantVectorRequest,
+    QDrantVectorResponse
+)
 from nextplore_sdk.cache.utils.key_factory import get_cache_key, get_string_cache_key
 from nextplore_sdk.cache.client.interface import Cache
+
+from vector_service.api.context import UserIdentity
 
 
 class CacheService:

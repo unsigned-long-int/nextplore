@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from vector_service.api.models.vector_stats_response import VectorStatsResponse
+from svc_vector_contracts.models import VectorStatsResponse
 from vector_service.api.context import get_current_identity
 from vector_service.api.dependencies import get_backend_connector
 from vector_service.database.repositories import VectorRepository

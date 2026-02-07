@@ -2,8 +2,7 @@ import logging
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from vector_service.api.models.qdrant_vector_request import QDrantVectorRequest
-from vector_service.api.models.qdrant_vector_response import QDrantVectorResponse
+from svc_vector_contracts.models import QDrantVectorRequest, QDrantVectorResponse
 from vector_service.api.context import get_current_identity
 from vector_service.api.dependencies import get_vector_store_service
 from vector_service.services.vector_store_service.exceptions import SearchVectorDBFailed
