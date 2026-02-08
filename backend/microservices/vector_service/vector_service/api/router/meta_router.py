@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/v1/vector', tags=['VectorMeta'])
 
 
-@router.get(
+@router.post(
     '/organizations/{organization_id}/users/{user_id}/integrations/vectors/meta',
     response_model=List[VectorMetaResponse]
 )
@@ -29,26 +29,26 @@ async def get_meta(
     backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
     cache_service: CacheService = Depends(get_cache_service)
 ) -> List[VectorMetaResponse]:
-    try:
-        user_identity = get_current_identity()
-        
-        if organization_id != user_identity.organization_id or user_id != user_identity.user_id:
-            logger.error(
-                'Forbidden request',
-                extra={'org_id': organization_id, 'user_id': user_id}
-            )
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={'message': 'Forbidden'}
-            )
+    user_identity = get_current_identity()
 
+    if organization_id != user_identity.organization_id or user_id != user_identity.user_id:
+        logger.error(
+            'Forbidden request',
+            extra={'org_id': organization_id, 'user_id': user_id}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={'message': 'Forbidden'}
+        )
+
+    try:
         cached = await cache_service.get_vector_metas(
             user_identity=user_identity,
             request=payload
         )
         if cached:
             return cached
-        
+
         vector_repo = VectorRepository(backend_connector)
 
         vector_metas = await vector_repo.get_vectors(
@@ -72,7 +72,7 @@ async def get_meta(
         return response
     except VectorGetFailed as e:
         logger.error(
-            f'Get vector metas failed with DB error: {e}.', 
+            f'Get vector metas failed with DB error: {e}.',
             exc_info=True
         )
         raise HTTPException(

@@ -23,18 +23,18 @@ async def get_stats(
     backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
     cache_service: CacheService = Depends(get_cache_service)
 ) -> VectorStatsResponse:
+    user_identity = get_current_identity()
+    if organization_id != user_identity.organization_id or user_id != user_identity.user_id:
+        logger.error(
+            'Forbidden request',
+            extra={'org_id': organization_id, 'user_id': user_id}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={'message': 'Forbidden'}
+        )
+
     try:
-        user_identity = get_current_identity()
-        if organization_id != user_identity.organization_id or user_id != user_identity.user_id:
-            logger.error(
-                'Forbidden request',
-                extra={'org_id': organization_id, 'user_id': user_id}
-            )
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={'message': 'Forbidden'}
-            )
-        
         cached = await cache_service.get_stats(
             user_identity=user_identity
         )

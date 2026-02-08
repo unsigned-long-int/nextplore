@@ -30,7 +30,7 @@ class VectorClient(BaseServiceClient):
     ) -> List[VectorMetaResponse]:
         try:
             url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/integrations/vectors/meta'
-            response = await self.get(url, payload.model_dump())
+            response = await self.post(url, payload.model_dump())
             response.raise_for_status()
             return [VectorMetaResponse(**item) for item in response.json()]
         except httpx.HTTPStatusError as e:
