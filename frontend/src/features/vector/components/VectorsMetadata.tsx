@@ -86,6 +86,10 @@ export const VectorsMetadata: React.FC<VectorMetaProps> = ({ integration_id }) =
     const [search, setSearch] = useState<string>('');
     const [sortBy, setSortBy] = useState<keyof VectorProfileResponse | null>(null);
     const [reverseSortDirection, setReverseSortDirection] = useState<boolean>(false);
+    const displayData = useMemo(
+        () => sortData(data ?? [], {sortBy, reversed: reverseSortDirection, search}),
+        [data, sortBy, reverseSortDirection, search]
+    )
 
 
     if (isPending) return <LoadingOverlay loadingText='Getting integrations data...' />;
@@ -93,10 +97,6 @@ export const VectorsMetadata: React.FC<VectorMetaProps> = ({ integration_id }) =
     if (!data || data.length === 0) return <Text>No vectors data available.</Text>;
 
 
-    const displayData = useMemo(
-        () => sortData(data, {sortBy, reversed: reverseSortDirection, search}),
-        [data, sortBy, reverseSortDirection, search]
-    )
 
     const setSorting = (field: keyof VectorProfileResponse) => {
         const reversed = field === sortBy ? !reverseSortDirection : false;
