@@ -1359,7 +1359,9 @@
                 "type": "null"
               }
             ],
-            "title": "Connection Name"
+            "title": "Connection Name",
+            "nullable": true,
+            "default": null
           },
           "host": {
             "anyOf": [
@@ -1370,7 +1372,9 @@
                 "type": "null"
               }
             ],
-            "title": "Host"
+            "title": "Host",
+            "nullable": true,
+            "default": null
           },
           "port": {
             "anyOf": [
@@ -1381,7 +1385,9 @@
                 "type": "null"
               }
             ],
-            "title": "Port"
+            "title": "Port",
+            "nullable": true,
+            "default": null
           },
           "database_name": {
             "anyOf": [
@@ -1392,7 +1398,9 @@
                 "type": "null"
               }
             ],
-            "title": "Database Name"
+            "title": "Database Name",
+            "nullable": true,
+            "default": null
           },
           "autosync_on": {
             "anyOf": [
@@ -1403,17 +1411,12 @@
                 "type": "null"
               }
             ],
-            "title": "Autosync On"
+            "title": "Autosync On",
+            "nullable": true,
+            "default": null
           }
         },
         "type": "object",
-        "required": [
-          "connection_name",
-          "host",
-          "port",
-          "database_name",
-          "autosync_on"
-        ],
         "title": "IntegrationUpdateRequest"
       },
       "ValidationError": {
