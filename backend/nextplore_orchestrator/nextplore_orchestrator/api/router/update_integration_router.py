@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from nextplore_orchestrator.clients.integration import IntegrationUpdateRemoteError
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
 from nextplore_orchestrator.api.dependencies.microservices import get_integration_client
-from nextplore_orchestrator.clients.integration.models.integration_update_request import IntegrationUpdateRequest
+from svc_integration_contracts.models import IntegrationUpdateRequest
 
 
 logger = logging.getLogger(__name__)
