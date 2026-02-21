@@ -1,0 +1,56 @@
+[
+  {
+    "op": "add",
+    "path": "/components/schemas/IntegrationUpdateRequest/properties/connection_name/nullable",
+    "value": true
+  },
+  {
+    "op": "add",
+    "path": "/components/schemas/IntegrationUpdateRequest/properties/host/nullable",
+    "value": true
+  },
+  {
+    "op": "add",
+    "path": "/components/schemas/IntegrationUpdateRequest/properties/port/nullable",
+    "value": true
+  },
+  {
+    "op": "add",
+    "path": "/components/schemas/IntegrationUpdateRequest/properties/database_name/nullable",
+    "value": true
+  },
+  {
+    "op": "add",
+    "path": "/components/schemas/IntegrationUpdateRequest/properties/autosync_on/nullable",
+    "value": true
+  },
+  {
+    "op": "add",
+    "path": "/components/schemas/IntegrationUpdateRequest/properties/connection_name/default",
+    "value": null
+  },
+  {
+    "op": "add",
+    "path": "/components/schemas/IntegrationUpdateRequest/properties/host/default",
+    "value": null
+  },
+  {
+    "op": "add",
+    "path": "/components/schemas/IntegrationUpdateRequest/properties/port/default",
+    "value": null
+  },
+  {
+    "op": "add",
+    "path": "/components/schemas/IntegrationUpdateRequest/properties/database_name/default",
+    "value": null
+  },
+  {
+    "op": "add",
+    "path": "/components/schemas/IntegrationUpdateRequest/properties/autosync_on/default",
+    "value": null
+  },
+  {
+    "op": "remove",
+    "path": "/components/schemas/IntegrationUpdateRequest/required"
+  }
+]
