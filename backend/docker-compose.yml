@@ -70,12 +70,14 @@ services:
             connections:
               docker-kafka:
                 properties:
-                  bootstrap.servers: "kafka:29092"
+                  bootstrap.servers: "kafka:9092"
                 schema-registry:
                   url: "http://schema-registry:8081"
       profiles: [akhq, all]
       depends_on:
         - kafka
+      networks:
+        - app-network
 
   integration_service:
     build:
