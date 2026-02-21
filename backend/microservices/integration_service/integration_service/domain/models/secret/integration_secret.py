@@ -17,7 +17,6 @@ class IntegrationSecret:
     enc_alg: Optional[str] = field(default='AES-256-GCM')
     wrap_alg: Optional[str] = field(default='RSA-OAEP-256')
     encoding: Optional[str] = field(default='utf8')
-    version: Optional[int] = field(default=1)
 
     def reveal(self, crypto_client: CryptoClient) -> str:
         return crypto_client.decrypt_secret(

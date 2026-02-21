@@ -5,6 +5,7 @@ from pydantic import SecretStr
 
 from svc_integration_contracts.models import (
     IntegrationCreateRequest,
+    IntegrationUpdateRequest,
     Auth,
     DB,
     Cloud
@@ -16,15 +17,17 @@ from integration_service.cache import CacheService
 from integration_service.database.exceptions import (
     IntegrationCreateFailed,
     SecretsCreateFailed,
-    IntegrationDeleteFailed
+    IntegrationDeleteFailed,
+    IntegrationUpdateFailed,
+    KekKidGetFailed
 )
 from integration_service.database.repositories import IntegrationRepository
-from integration_service.domain.models.integration import IntegrationCreate
+from integration_service.domain.models.integration import IntegrationCreate, IntegrationUpdate
 from integration_service.domain.models.secret import IntegrationSecret, SecretType
 from integration_service.services.integration import IntegrationService
 
 
-class TestIntegrationService(unittest.IsolatedAsyncioTestCase):
+class TestIntegrationServiceCreate(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         self.mock_repo = AsyncMock(spec=IntegrationRepository)
@@ -531,6 +534,321 @@ class TestIntegrationService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(secrets_arg), 2)
         self.assertIn(SecretType.CLIENT_SECRET, secrets_arg)
         self.assertIn(SecretType.PASSWORD, secrets_arg)
+
+
+class TestIntegrationServiceUpdate(unittest.IsolatedAsyncioTestCase):
+
+    def setUp(self):
+        self.mock_repo = AsyncMock(spec=IntegrationRepository)
+        self.mock_bus = AsyncMock()
+        self.mock_cache_service = MagicMock(spec=CacheService)
+        self.mock_cache_service.cache = AsyncMock()
+        self.mock_crypto_client = MagicMock()
+        self.mock_crypto_client_factory = MagicMock(return_value=self.mock_crypto_client)
+
+        self.service = IntegrationService(
+            repo=self.mock_repo,
+            bus=self.mock_bus,
+            cache_service=self.mock_cache_service,
+            crypto_client_factory=self.mock_crypto_client_factory
+        )
+
+        self.organization_id = uuid4()
+        self.user_id = uuid4()
+        self.integration_id = uuid4()
+        self.kek_kid = 'https://vault.azure.net/keys/test-key/version'
+
+        self.user_identity = UserIdentity(
+            organization_id=self.organization_id,
+            user_id=self.user_id
+        )
+
+        self.update_payload = IntegrationUpdateRequest(
+            connection_name='updated-connection',
+            host='updated.database.windows.net',
+            port=5433,
+            database_name='updated_db',
+            autosync_on=True,
+            client_secret=SecretStr('new-secret')
+        )
+
+        self.mock_integration_update = MagicMock(spec=IntegrationUpdate)
+        self.mock_secrets = {
+            SecretType.CLIENT_SECRET: MagicMock(spec=IntegrationSecret)
+        }
+
+    @patch('integration_service.services.integration.integration_service.integration_update_from_dto')
+    @patch('integration_service.services.integration.integration_service.secrets_from_dto')
+    async def test_update_integration_success(
+            self,
+            mock_secrets_from_dto,
+            mock_integration_update_from_dto
+    ):
+        mock_integration_update_from_dto.return_value = self.mock_integration_update
+        mock_secrets_from_dto.return_value = self.mock_secrets
+        self.mock_repo.get_kek_kid.return_value = self.kek_kid
+
+        await self.service.update_integration(
+            user_identity=self.user_identity,
+            integration_id=self.integration_id,
+            payload=self.update_payload
+        )
+
+        mock_integration_update_from_dto.assert_called_once_with(self.update_payload)
+
+        self.mock_repo.get_kek_kid.assert_called_once_with(
+            integration_id=self.integration_id,
+            organization_id=self.organization_id,
+            user_id=self.user_id
+        )
+
+        self.mock_crypto_client_factory.assert_called_once_with(self.kek_kid)
+
+        mock_secrets_from_dto.assert_called_once_with(
+            organization_id=self.organization_id,
+            user_id=self.user_id,
+            integration_id=self.integration_id,
+            crypto_client=self.mock_crypto_client,
+            payload=self.update_payload
+        )
+
+        self.mock_repo.update_integration.assert_called_once_with(
+            integration_id=self.integration_id,
+            user_id=self.user_id,
+            organization_id=self.organization_id,
+            integration_update=self.mock_integration_update,
+            secrets=self.mock_secrets
+        )
+
+        self.mock_cache_service.cache.delete_by_prefix.assert_called_once_with(
+            self.organization_id,
+            self.user_id
+        )
+
+    @patch('integration_service.services.integration.integration_service.integration_update_from_dto')
+    @patch('integration_service.services.integration.integration_service.secrets_from_dto')
+    async def test_update_integration_calls_in_correct_order(
+            self,
+            mock_secrets_from_dto,
+            mock_integration_update_from_dto
+    ):
+        mock_integration_update_from_dto.return_value = self.mock_integration_update
+        mock_secrets_from_dto.return_value = self.mock_secrets
+        self.mock_repo.get_kek_kid.return_value = self.kek_kid
+
+        call_order = []
+
+        async def track_get_kek_kid(*args, **kwargs):
+            call_order.append('get_kek_kid')
+            return self.kek_kid
+
+        async def track_update_integration(*args, **kwargs):
+            call_order.append('update_integration')
+
+        async def track_cache_delete(*args, **kwargs):
+            call_order.append('cache_delete')
+
+        self.mock_repo.get_kek_kid.side_effect = track_get_kek_kid
+        self.mock_repo.update_integration.side_effect = track_update_integration
+        self.mock_cache_service.cache.delete_by_prefix.side_effect = track_cache_delete
+
+        await self.service.update_integration(
+            user_identity=self.user_identity,
+            integration_id=self.integration_id,
+            payload=self.update_payload
+        )
+
+        expected_order = ['get_kek_kid', 'update_integration', 'cache_delete']
+        self.assertEqual(call_order, expected_order)
+
+    @patch('integration_service.services.integration.integration_service.integration_update_from_dto')
+    async def test_update_integration_raises_kek_kid_get_failed(
+            self,
+            mock_integration_update_from_dto
+    ):
+        mock_integration_update_from_dto.return_value = self.mock_integration_update
+        self.mock_repo.get_kek_kid.side_effect = KekKidGetFailed('KEK KID not found')
+
+        with self.assertRaises(KekKidGetFailed):
+            await self.service.update_integration(
+                user_identity=self.user_identity,
+                integration_id=self.integration_id,
+                payload=self.update_payload
+            )
+
+        self.mock_repo.update_integration.assert_not_called()
+        self.mock_cache_service.cache.delete_by_prefix.assert_not_called()
+
+    @patch('integration_service.services.integration.integration_service.integration_update_from_dto')
+    @patch('integration_service.services.integration.integration_service.secrets_from_dto')
+    async def test_update_integration_raises_integration_update_failed(
+            self,
+            mock_secrets_from_dto,
+            mock_integration_update_from_dto
+    ):
+        mock_integration_update_from_dto.return_value = self.mock_integration_update
+        mock_secrets_from_dto.return_value = self.mock_secrets
+        self.mock_repo.get_kek_kid.return_value = self.kek_kid
+        self.mock_repo.update_integration.side_effect = IntegrationUpdateFailed(
+            'Update failed'
+        )
+
+        with self.assertRaises(IntegrationUpdateFailed):
+            await self.service.update_integration(
+                user_identity=self.user_identity,
+                integration_id=self.integration_id,
+                payload=self.update_payload
+            )
+
+        self.mock_cache_service.cache.delete_by_prefix.assert_not_called()
+
+    @patch('integration_service.services.integration.integration_service.integration_update_from_dto')
+    @patch('integration_service.services.integration.integration_service.secrets_from_dto')
+    async def test_update_integration_raises_unexpected_error(
+            self,
+            mock_secrets_from_dto,
+            mock_integration_update_from_dto
+    ):
+        mock_integration_update_from_dto.return_value = self.mock_integration_update
+        mock_secrets_from_dto.return_value = self.mock_secrets
+        self.mock_repo.get_kek_kid.return_value = self.kek_kid
+        self.mock_repo.update_integration.side_effect = RuntimeError('Unexpected error')
+
+        with self.assertRaises(RuntimeError):
+            await self.service.update_integration(
+                user_identity=self.user_identity,
+                integration_id=self.integration_id,
+                payload=self.update_payload
+            )
+
+        self.mock_cache_service.cache.delete_by_prefix.assert_not_called()
+
+    @patch('integration_service.services.integration.integration_service.integration_update_from_dto')
+    @patch('integration_service.services.integration.integration_service.secrets_from_dto')
+    @patch('integration_service.services.integration.integration_service.logger')
+    async def test_update_integration_logs_database_error(
+            self,
+            mock_logger,
+            mock_secrets_from_dto,
+            mock_integration_update_from_dto
+    ):
+        mock_integration_update_from_dto.return_value = self.mock_integration_update
+        mock_secrets_from_dto.return_value = self.mock_secrets
+        self.mock_repo.get_kek_kid.return_value = self.kek_kid
+        error = IntegrationUpdateFailed('Database error')
+        self.mock_repo.update_integration.side_effect = error
+
+        with self.assertRaises(IntegrationUpdateFailed):
+            await self.service.update_integration(
+                user_identity=self.user_identity,
+                integration_id=self.integration_id,
+                payload=self.update_payload
+            )
+
+        mock_logger.error.assert_called()
+        log_call = mock_logger.error.call_args
+        self.assertIn('Update integration failed', log_call[0][0])
+        self.assertEqual(log_call[1]['exc_info'], True)
+
+        extra_data = log_call[1]['extra']
+        self.assertEqual(extra_data['org_id'], self.organization_id)
+        self.assertEqual(extra_data['user_id'], self.user_id)
+        self.assertEqual(extra_data['integration_id'], str(self.integration_id))
+        self.assertEqual(extra_data['error_type'], 'IntegrationUpdateFailed')
+
+    @patch('integration_service.services.integration.integration_service.integration_update_from_dto')
+    @patch('integration_service.services.integration.integration_service.logger')
+    async def test_update_integration_logs_kek_kid_error(
+            self,
+            mock_logger,
+            mock_integration_update_from_dto
+    ):
+        mock_integration_update_from_dto.return_value = self.mock_integration_update
+        error = KekKidGetFailed('KEK KID not found')
+        self.mock_repo.get_kek_kid.side_effect = error
+
+        with self.assertRaises(KekKidGetFailed):
+            await self.service.update_integration(
+                user_identity=self.user_identity,
+                integration_id=self.integration_id,
+                payload=self.update_payload
+            )
+
+        mock_logger.error.assert_called()
+        log_call = mock_logger.error.call_args
+        self.assertIn('Update integration failed', log_call[0][0])
+
+        extra_data = log_call[1]['extra']
+        self.assertEqual(extra_data['error_type'], 'KekKidGetFailed')
+
+    @patch('integration_service.services.integration.integration_service.integration_update_from_dto')
+    @patch('integration_service.services.integration.integration_service.secrets_from_dto')
+    @patch('integration_service.services.integration.integration_service.logger')
+    async def test_update_integration_logs_unexpected_error(
+            self,
+            mock_logger,
+            mock_secrets_from_dto,
+            mock_integration_update_from_dto
+    ):
+        mock_integration_update_from_dto.return_value = self.mock_integration_update
+        mock_secrets_from_dto.return_value = self.mock_secrets
+        self.mock_repo.get_kek_kid.return_value = self.kek_kid
+        error = ValueError('Unexpected error')
+        self.mock_repo.update_integration.side_effect = error
+
+        with self.assertRaises(ValueError):
+            await self.service.update_integration(
+                user_identity=self.user_identity,
+                integration_id=self.integration_id,
+                payload=self.update_payload
+            )
+
+        mock_logger.error.assert_called()
+        log_call = mock_logger.error.call_args
+        self.assertIn('Unexpected error', log_call[0][0])
+
+        extra_data = log_call[1]['extra']
+        self.assertEqual(extra_data['error_type'], 'ValueError')
+
+    @patch('integration_service.services.integration.integration_service.integration_update_from_dto')
+    @patch('integration_service.services.integration.integration_service.secrets_from_dto')
+    async def test_update_integration_uses_retrieved_kek_kid(
+            self,
+            mock_secrets_from_dto,
+            mock_integration_update_from_dto
+    ):
+        mock_integration_update_from_dto.return_value = self.mock_integration_update
+        mock_secrets_from_dto.return_value = self.mock_secrets
+        custom_kek_kid = 'https://custom.vault.com/keys/custom/v2'
+        self.mock_repo.get_kek_kid.return_value = custom_kek_kid
+
+        await self.service.update_integration(
+            user_identity=self.user_identity,
+            integration_id=self.integration_id,
+            payload=self.update_payload
+        )
+
+        self.mock_crypto_client_factory.assert_called_once_with(custom_kek_kid)
+
+    @patch('integration_service.services.integration.integration_service.integration_update_from_dto')
+    @patch('integration_service.services.integration.integration_service.secrets_from_dto')
+    async def test_update_integration_cache_invalidated_only_on_success(
+            self,
+            mock_secrets_from_dto,
+            mock_integration_update_from_dto
+    ):
+        mock_integration_update_from_dto.return_value = self.mock_integration_update
+        mock_secrets_from_dto.return_value = self.mock_secrets
+        self.mock_repo.get_kek_kid.return_value = self.kek_kid
+
+        await self.service.update_integration(
+            user_identity=self.user_identity,
+            integration_id=self.integration_id,
+            payload=self.update_payload
+        )
+
+        self.mock_cache_service.cache.delete_by_prefix.assert_called_once()
+        self.mock_repo.update_integration.assert_called_once()
 
 
 class TestIntegrationServiceEdgeCases(unittest.IsolatedAsyncioTestCase):

@@ -4,14 +4,8 @@ from fastapi import APIRouter, status, HTTPException, Depends
 from svc_integration_contracts.models import IntegrationUpdateRequest
 
 from integration_service.api.context import get_current_identity
-from integration_service.api.dependencies import get_backend_connector
-from integration_service.database.repositories import IntegrationRepository
-from integration_service.database.exceptions import IntegrationUpdateFailed
-from integration_service.cache import CacheService, get_cache_service
-from integration_service.domain.mappers.integration import integration_update_from_dto
-from integration_service.domain.mappers.secret import secrets_from_dto
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-
+from integration_service.database.exceptions import IntegrationUpdateFailed, KekKidGetFailed
+from integration_service.services.integration import IntegrationService, get_integration_service
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +21,7 @@ async def update_integration(
     user_id: UUID,
     integration_id: UUID,
     payload: IntegrationUpdateRequest,
-    backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
-    cache_service: CacheService = Depends(get_cache_service)
+    integration_service: IntegrationService = Depends(get_integration_service)
 ) -> None:
     user_identity = get_current_identity()
     if user_identity.user_id != user_id or user_identity.organization_id != organization_id:
@@ -40,52 +33,28 @@ async def update_integration(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={'message': 'Forbidden'}
         )
-    
-    integration_repo = IntegrationRepository(backend_connector)
+
     try:
-        integration_update = integration_update_from_dto(payload)
-        secret_version = await integration_repo.get_latest_version(
+        await integration_service.update_integration(
+            user_identity=user_identity,
             integration_id=integration_id,
-            user_id=user_identity.user_id,
-            organization_id=user_identity.organization_id
+            payload=payload
         )
-        secrets = secrets_from_dto(
-            organization_id=user_identity.organization_id,
-            user_id=user_identity.user_id,
-            integration_id=integration_id,
-            integration_request=payload,
-            version=secret_version + 1
-        )
-
-        await integration_repo.update_integration(
-            integration_id=integration_id,
-            user_id=user_identity.user_id,
-            organization_id=user_identity.organization_id,
-            integration_update=integration_update,
-            secrets=secrets
-        )
-
-        await cache_service.cache.delete_by_prefix(
-            user_identity.organization_id,
-            user_identity.user_id
-        )
-    except IntegrationUpdateFailed as e:
+    except (IntegrationUpdateFailed, KekKidGetFailed) as e:
         logger.error(
-            f'Update integration failed with DB error {e}', 
+            f'Update integration failed with DB error: {str(e)}',
             exc_info=True
         )
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={'message': f'Database error: {str(e)}'}
         )
-
     except Exception as e:
         logger.error(
-            f'Unexpected update integration error: {e}',
+            f'Unexpected update integration error: {str(e)}',
             exc_info=True
         )
-
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={'message': f'Unexpected error: {str(e)}'}
+            detail={'message': f'Unexpected error while updating integration: {str(e)}'}
         )

@@ -2,7 +2,7 @@ import logging
 from typing import List, Dict
 from uuid import UUID
 from dataclasses import asdict
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, update, delete, func, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from svc_integration_contracts.models import CertState
@@ -30,7 +30,7 @@ from integration_service.database.exceptions import (
     IntegrationGetFailed,
     SecretsCreateFailed,
     SecretsGetFailed,
-    SecretsVersionGetFailed,
+    KekKidGetFailed,
     CertCreateFailed,
     CertGetFailed
 )
@@ -187,20 +187,20 @@ class IntegrationRepository:
             msg = f'Get secrets failed with database error: {str(e)}'
             logger.error(msg, exc_info=True)
             raise SecretsGetFailed(msg) from e
-        
-    async def get_latest_version(self, integration_id: UUID, user_id: UUID, organization_id: UUID) -> int:
+
+    async def get_kek_kid(self, integration_id: UUID, user_id: UUID, organization_id: UUID) -> str:
         try:
             async with self._db.session_scope(organization_id, user_id) as scoped_session:
                 result = await scoped_session.execute(
-                    select(func.coalesce(func.max(SecretORM.version), 1))
-                    .where(SecretORM.integration_id == integration_id)
+                    select(IntegrationORM.kek_kid)
+                    .where(IntegrationORM.id == integration_id)
                 )
-                current_version = result.scalar_one()
-                return current_version
+                kek_kid = result.scalar_one()
+                return kek_kid
         except SQLAlchemyError as e:
-            msg = f'Get latest version of secret failed with database error: {str(e)}'
+            msg = f'Get kek_kid failed with database error: {str(e)}'
             logger.error(msg, exc_info=True)
-            raise SecretsVersionGetFailed(msg) from e
+            raise KekKidGetFailed(msg) from e
 
     async def create_cert(
         self,
@@ -252,6 +252,7 @@ class IntegrationRepository:
     ) -> None:
         try:
             async with self._db.session_scope(organization_id, user_id) as active_session:
+                await self._lock_integration(active_session, integration_id)
                 await self._update_integration(
                     active_session,
                     integration_id,
@@ -259,12 +260,31 @@ class IntegrationRepository:
                     organization_id,
                     integration_update
                 )
-                await self._update_secrets(active_session, secrets)
+                latest_version = await self._get_latest_secrets_version(active_session, integration_id)
+                new_version = latest_version + 1
+                await self._insert_secrets(active_session, secrets, new_version)
+                await active_session.flush()
         except SQLAlchemyError as e:
             msg = f'Update integration failed with database error: {str(e)}'
             logger.error(msg, exc_info=True)
             raise IntegrationUpdateFailed(msg) from e
 
+    async def _get_latest_secrets_version(self, active_session: AsyncSession, integration_id: UUID) -> int:
+        result = await active_session.execute(
+            select(func.coalesce(func.max(SecretORM.version), 0))
+            .where(SecretORM.integration_id == integration_id)
+        )
+        current_version = result.scalar_one()
+        return current_version
+
+    async def _lock_integration(self, active_session: AsyncSession, integration_id: UUID) -> None:
+        u = integration_id.int
+        key1 = (u >> 64) & 0xFFFFFFFF
+        key2 = u & 0xFFFFFFFF
+        await active_session.execute(
+            text('SELECT pg_advisory_xact_lock(:k1::int, :k2::int)'),
+            {'k1': key1, 'k2': key2},
+        )
 
     async def _update_integration(
         self,
@@ -289,7 +309,12 @@ class IntegrationRepository:
             msg = f'Integration update failed: No integration found for ID {integration_id}'
             raise IntegrationUpdateFailed(msg)
 
-    async def _update_secrets(self, active_session: AsyncSession, secrets: Dict[SecretType, IntegrationSecret]) -> None:
-        secrets_orm = orm_from_secrets(secrets)
+
+    async def _insert_secrets(
+        self,
+        active_session: AsyncSession,
+        secrets: Dict[SecretType, IntegrationSecret],
+        version: int
+    ) -> None:
+        secrets_orm = orm_from_secrets(secrets, version)
         active_session.add_all(secrets_orm)
-        await active_session.flush()

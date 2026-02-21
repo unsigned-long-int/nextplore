@@ -47,7 +47,6 @@ class TestSecretsFromDTO(unittest.TestCase):
             enc_alg='AES-256-GCM',
             wrap_alg='RSA-OAEP',
             encoding='base64',
-            version=1
         )
 
     @patch('integration_service.domain.mappers.secret.converter.encrypt_secret')
@@ -293,7 +292,6 @@ class TestSecretsFromORM(unittest.TestCase):
             enc_alg='AES-256-GCM',
             wrap_alg='RSA-OAEP',
             encoding='base64',
-            version=1
         )
 
         result = secrets_from_orm([secret_orm])
@@ -330,7 +328,6 @@ class TestSecretsFromORM(unittest.TestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=1
             ),
             SecretORM(
                 id=uuid4(),
@@ -345,7 +342,6 @@ class TestSecretsFromORM(unittest.TestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=1
             ),
             SecretORM(
                 id=uuid4(),
@@ -360,7 +356,6 @@ class TestSecretsFromORM(unittest.TestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=1
             )
         ]
 
@@ -395,7 +390,6 @@ class TestSecretsFromORM(unittest.TestCase):
             enc_alg='AES-256-GCM',
             wrap_alg='RSA-OAEP',
             encoding='base64',
-            version=1
         )
 
         result = secrets_from_orm([secret_orm])
@@ -426,7 +420,6 @@ class TestORMFromSecrets(unittest.TestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=1
             )
         }
 
@@ -448,7 +441,6 @@ class TestORMFromSecrets(unittest.TestCase):
         self.assertEqual(secret_orm.enc_alg, 'AES-256-GCM')
         self.assertEqual(secret_orm.wrap_alg, 'RSA-OAEP')
         self.assertEqual(secret_orm.encoding, 'base64')
-        self.assertEqual(secret_orm.version, 1)
 
     def test_converts_multiple_secrets_to_orm(self):
         secrets = {
@@ -463,7 +455,6 @@ class TestORMFromSecrets(unittest.TestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=1
             ),
             'api_key': IntegrationSecret(
                 organization_id=self.organization_id,
@@ -476,7 +467,6 @@ class TestORMFromSecrets(unittest.TestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=2
             ),
             'client_secret': IntegrationSecret(
                 organization_id=self.organization_id,
@@ -489,7 +479,6 @@ class TestORMFromSecrets(unittest.TestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=1
             )
         }
 
@@ -512,27 +501,6 @@ class TestORMFromSecrets(unittest.TestCase):
         self.assertEqual(result, [])
         self.assertEqual(len(result), 0)
 
-    def test_preserves_version(self):
-        secrets = {
-            'password': IntegrationSecret(
-                organization_id=self.organization_id,
-                user_id=self.user_id,
-                integration_id=self.integration_id,
-                ciphertext=b'encrypted',
-                nonce=b'nonce',
-                tag=b'tag',
-                wrapped_dek=b'key',
-                enc_alg='AES-256-GCM',
-                wrap_alg='RSA-OAEP',
-                encoding='base64',
-                version=5
-            )
-        }
-
-        result = orm_from_secrets(secrets)
-
-        self.assertEqual(result[0].version, 5)
-
 
 class TestSecretConversionRoundTrip(unittest.TestCase):
 
@@ -554,7 +522,6 @@ class TestSecretConversionRoundTrip(unittest.TestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=3
             ),
             'api_key': IntegrationSecret(
                 organization_id=self.organization_id,
@@ -567,7 +534,6 @@ class TestSecretConversionRoundTrip(unittest.TestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=1
             )
         }
 

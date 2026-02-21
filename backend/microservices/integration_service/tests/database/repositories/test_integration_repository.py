@@ -22,7 +22,7 @@ from integration_service.database.exceptions import (
     IntegrationGetFailed,
     SecretsCreateFailed,
     SecretsGetFailed,
-    SecretsVersionGetFailed,
+    KekKidGetFailed,
     CertCreateFailed,
     CertGetFailed
 )
@@ -431,43 +431,33 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
                 integration_id=self.integration_id
             )
 
-    async def test_get_latest_version_returns_version(self):
-        expected_version = 5
+    async def test_get_kek_kid_returns_kek_kid(self):
+        expected_kek_kid = 'kek-kid-12345'
 
         result_mock = MagicMock()
-        result_mock.scalar_one.return_value = expected_version
+        result_mock.scalar_one.return_value = expected_kek_kid
         self.session_mock.execute.return_value = result_mock
 
-        result = await self.repository.get_latest_version(
+        result = await self.repository.get_kek_kid(
             integration_id=self.integration_id,
             user_id=self.user_id,
             organization_id=self.organization_id
         )
 
-        self.assertEqual(result, expected_version)
+        self.assertEqual(result, expected_kek_kid)
+        self.session_mock.execute.assert_awaited_once()
 
-    async def test_get_latest_version_returns_one_when_no_secrets(self):
-        result_mock = MagicMock()
-        result_mock.scalar_one.return_value = 1
-        self.session_mock.execute.return_value = result_mock
-
-        result = await self.repository.get_latest_version(
-            integration_id=self.integration_id,
-            user_id=self.user_id,
-            organization_id=self.organization_id
-        )
-
-        self.assertEqual(result, 1)
-
-    async def test_get_latest_version_raises_exception_on_database_error(self):
+    async def test_get_kek_kid_raises_exception_on_database_error(self):
         self.session_mock.execute.side_effect = SQLAlchemyError('Database error')
 
-        with self.assertRaises(SecretsVersionGetFailed):
-            await self.repository.get_latest_version(
+        with self.assertRaises(KekKidGetFailed) as context:
+            await self.repository.get_kek_kid(
                 integration_id=self.integration_id,
                 user_id=self.user_id,
                 organization_id=self.organization_id
             )
+
+        self.assertIn('Get kek_kid failed', str(context.exception))
 
     @patch('integration_service.database.repositories.integration_repository.orm_from_cert')
     async def test_create_cert_succeeds(self, orm_from_cert_mock):
@@ -615,9 +605,19 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
         secrets_orm = [MagicMock()]
         orm_from_secrets_mock.return_value = secrets_orm
 
+        lock_result_mock = MagicMock()
+
+        version_result_mock = MagicMock()
+        version_result_mock.scalar_one.return_value = 5
+
         update_result_mock = MagicMock()
         update_result_mock.rowcount = 1
-        self.session_mock.execute.return_value = update_result_mock
+
+        self.session_mock.execute.side_effect = [
+            lock_result_mock,
+            update_result_mock,
+            version_result_mock
+        ]
 
         await self.repository.update_integration(
             integration_id=self.integration_id,
@@ -627,7 +627,9 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
             secrets=secrets
         )
 
-        self.session_mock.execute.assert_awaited()
+        self.assertEqual(self.session_mock.execute.await_count, 3)
+
+        orm_from_secrets_mock.assert_called_once_with(secrets, 6)
         self.session_mock.add_all.assert_called_once_with(secrets_orm)
         self.session_mock.flush.assert_awaited_once()
 
@@ -642,9 +644,15 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
 
         secrets = {}
 
+        lock_result_mock = MagicMock()
+
         update_result_mock = MagicMock()
         update_result_mock.rowcount = 0
-        self.session_mock.execute.return_value = update_result_mock
+
+        self.session_mock.execute.side_effect = [
+            lock_result_mock,
+            update_result_mock
+        ]
 
         with self.assertRaises(IntegrationUpdateFailed) as context:
             await self.repository.update_integration(
@@ -682,7 +690,43 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
         self.assertIn('Update integration failed', str(context.exception))
 
     @patch('integration_service.database.repositories.integration_repository.orm_from_secrets')
-    async def test_update_integration_updates_both_integration_and_secrets(self, orm_from_secrets_mock):
+    async def test_update_integration_acquires_advisory_lock(self, orm_from_secrets_mock):
+        integration_update = IntegrationUpdate(
+            connection_name='updated-connection',
+            port=5433,
+            host='updated-host',
+            autosync_on=True,
+            database_name='updated-database'
+        )
+
+        secrets = {}
+        orm_from_secrets_mock.return_value = []
+
+        lock_result_mock = MagicMock()
+        version_result_mock = MagicMock()
+        version_result_mock.scalar_one.return_value = 0
+        update_result_mock = MagicMock()
+        update_result_mock.rowcount = 1
+
+        self.session_mock.execute.side_effect = [
+            lock_result_mock,
+            update_result_mock,
+            version_result_mock
+        ]
+
+        await self.repository.update_integration(
+            integration_id=self.integration_id,
+            user_id=self.user_id,
+            organization_id=self.organization_id,
+            integration_update=integration_update,
+            secrets=secrets
+        )
+
+        first_call = self.session_mock.execute.await_args_list[0]
+        self.assertIsNotNone(first_call)
+
+    @patch('integration_service.database.repositories.integration_repository.orm_from_secrets')
+    async def test_update_integration_increments_version_correctly(self, orm_from_secrets_mock):
         integration_update = IntegrationUpdate(
             connection_name='updated-connection',
             port=5433,
@@ -706,9 +750,19 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
         secrets_orm = [MagicMock()]
         orm_from_secrets_mock.return_value = secrets_orm
 
+        current_version = 10
+
+        lock_result_mock = MagicMock()
+        version_result_mock = MagicMock()
+        version_result_mock.scalar_one.return_value = current_version
         update_result_mock = MagicMock()
         update_result_mock.rowcount = 1
-        self.session_mock.execute.return_value = update_result_mock
+
+        self.session_mock.execute.side_effect = [
+            lock_result_mock,
+            update_result_mock,
+            version_result_mock
+        ]
 
         await self.repository.update_integration(
             integration_id=self.integration_id,
@@ -718,9 +772,7 @@ class TestIntegrationRepository(unittest.IsolatedAsyncioTestCase):
             secrets=secrets
         )
 
-        self.session_mock.execute.assert_awaited_once()
-        self.session_mock.add_all.assert_called_once_with(secrets_orm)
-        self.session_mock.flush.assert_awaited_once()
+        orm_from_secrets_mock.assert_called_once_with(secrets, current_version + 1)
 
     async def test_backend_connector_session_scope_called_correctly(self):
         result_mock = MagicMock()

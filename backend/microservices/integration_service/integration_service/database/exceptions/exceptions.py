@@ -26,7 +26,7 @@ class SecretsGetFailed(Exception):
     pass
 
 
-class SecretsVersionGetFailed(Exception):
+class KekKidGetFailed(Exception):
     pass
 
 

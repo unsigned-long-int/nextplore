@@ -68,7 +68,6 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=1
             ),
             SecretType.PASSWORD: IntegrationSecret(
                 organization_id=self.organization_id,
@@ -81,7 +80,6 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
                 enc_alg='AES-256-GCM',
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
-                version=1
             )
         }
 

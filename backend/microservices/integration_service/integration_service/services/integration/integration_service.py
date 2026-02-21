@@ -1,7 +1,7 @@
 import logging
 from uuid import UUID
 from typing import Callable
-from svc_integration_contracts.models import IntegrationCreateRequest
+from svc_integration_contracts.models import IntegrationCreateRequest, IntegrationUpdateRequest
 from kafka_messaging.message_bus.async_kafka_message_bus import AsyncKafkaMessageBus
 from kafka_messaging.events.integration_service import IntegrationCreated
 from nextplore_sdk.encryptor.client.crypto_client import CryptoClient
@@ -11,10 +11,12 @@ from integration_service.cache import CacheService
 from integration_service.database.exceptions import (
     IntegrationCreateFailed,
     SecretsCreateFailed,
-    IntegrationDeleteFailed
+    IntegrationDeleteFailed,
+    IntegrationUpdateFailed,
+    KekKidGetFailed
 )
 from integration_service.database.repositories import IntegrationRepository
-from integration_service.domain.mappers.integration import integration_create_from_dto
+from integration_service.domain.mappers.integration import integration_create_from_dto, integration_update_from_dto
 from integration_service.domain.mappers.secret import secrets_from_dto
 
 
@@ -37,7 +39,7 @@ class IntegrationService:
         self,
         user_identity: UserIdentity,
         payload: IntegrationCreateRequest
-    ):
+    ) -> None:
         integration_id = None
         try:
             integration_create = integration_create_from_dto(payload)
@@ -104,6 +106,62 @@ class IntegrationService:
             await self._compensate_delete_integration(
                 user_identity=user_identity,
                 integration_id=integration_id
+            )
+            raise
+
+    async def update_integration(
+        self,
+        user_identity: UserIdentity,
+        integration_id: UUID,
+        payload: IntegrationUpdateRequest
+    ) -> None:
+        try:
+            integration_update = integration_update_from_dto(payload)
+            kek_kid = await self._repo.get_kek_kid(
+                integration_id=integration_id,
+                organization_id=user_identity.organization_id,
+                user_id=user_identity.user_id
+            )
+            secrets = secrets_from_dto(
+                organization_id=user_identity.organization_id,
+                user_id=user_identity.user_id,
+                integration_id=integration_id,
+                crypto_client=self._crypto_client_factory(kek_kid),
+                payload=payload
+            )
+            await self._repo.update_integration(
+                integration_id=integration_id,
+                user_id=user_identity.user_id,
+                organization_id=user_identity.organization_id,
+                integration_update=integration_update,
+                secrets=secrets
+            )
+            await self._cache_service.cache.delete_by_prefix(
+                user_identity.organization_id,
+                user_identity.user_id,
+            )
+        except (IntegrationUpdateFailed, KekKidGetFailed) as e:
+            logger.error(
+                'Update integration failed due to database dependency.',
+                extra={
+                    'org_id': user_identity.organization_id,
+                    'user_id': user_identity.user_id,
+                    'integration_id': str(integration_id) if integration_id else None,
+                    'error_type': type(e).__name__
+                },
+                exc_info=True
+            )
+            raise
+        except Exception as e:
+            logger.error(
+                'Unexpected error during update_integration.',
+                extra={
+                    'org_id': str(user_identity.organization_id),
+                    'user_id': str(user_identity.user_id),
+                    'integration_id': str(integration_id) if integration_id else None,
+                    'error_type': type(e).__name__,
+                },
+                exc_info=True,
             )
             raise
 

@@ -64,7 +64,7 @@ def secrets_from_orm(secrets_orm: List[SecretORM]) -> Dict[SecretType, Integrati
     }
 
 
-def orm_from_secrets(secrets: Dict[SecretType, IntegrationSecret]) -> List[SecretORM]:
+def orm_from_secrets(secrets: Dict[SecretType, IntegrationSecret], version: int = 1) -> List[SecretORM]:
     return [
         SecretORM(
             organization_id=secret.organization_id,
@@ -78,7 +78,7 @@ def orm_from_secrets(secrets: Dict[SecretType, IntegrationSecret]) -> List[Secre
             enc_alg=secret.enc_alg,
             wrap_alg=secret.wrap_alg,
             encoding=secret.encoding,
-            version=secret.version
+            version=version
         )
         for secret_type, secret in secrets.items()
     ]
