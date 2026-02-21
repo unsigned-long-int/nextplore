@@ -37,7 +37,7 @@ class VectorRepository:
                     select(VectorORM)
                     .where(VectorORM.integration_id == integration_id)
                 )
-                vectors = result.all()
+                vectors = result.scalars().all()
                 return [orm_to_domain_vector_profile(vector) for vector in vectors]
         except SQLAlchemyError as e:
             msg = f'Get vector profiles failed with database error: {str(e)}'
@@ -60,7 +60,7 @@ class VectorRepository:
                         )
                     .where(VectorORM.qdrant_vector_id.in_(vector_ids))
                 )
-                vectors = result.all()
+                vectors = result.scalars().all()
                 return vectors
         except SQLAlchemyError as e:
             msg = f'Get vectors failed with database error: {str(e)}'
