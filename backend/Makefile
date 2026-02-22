@@ -236,7 +236,7 @@ stats:
 
 clean:
 	docker compose --profile all down -v
-	docker system prune -a
+	docker system prune -a --volumes
 
 integration:
 	docker compose up integration_service
