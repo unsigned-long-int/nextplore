@@ -1,7 +1,6 @@
 import logging
 from typing import List, Dict
 from uuid import UUID
-from dataclasses import asdict
 from sqlalchemy import select, update, delete, func, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -279,11 +278,10 @@ class IntegrationRepository:
 
     async def _lock_integration(self, active_session: AsyncSession, integration_id: UUID) -> None:
         u = integration_id.int
-        key1 = (u >> 64) & 0xFFFFFFFF
-        key2 = u & 0xFFFFFFFF
+        key = u & 0x7FFFFFFFFFFFFFFF
         await active_session.execute(
-            text('SELECT pg_advisory_xact_lock(:k1::int, :k2::int)'),
-            {'k1': key1, 'k2': key2},
+            text('SELECT pg_advisory_xact_lock(CAST(:k AS bigint))'),
+            {'k': key},
         )
 
     async def _update_integration(
@@ -294,7 +292,6 @@ class IntegrationRepository:
         organization_id: UUID,
         integration_update: IntegrationUpdate
     ) -> None:
-        update_args = asdict(integration_update)
         stmt = (
             update(IntegrationORM)
             .where(
@@ -302,7 +299,7 @@ class IntegrationRepository:
                 IntegrationORM.user_id == user_id,
                 IntegrationORM.organization_id == organization_id
             )
-            .values(**update_args)
+            .values(**integration_update.update_args)
         )
         result = await active_session.execute(stmt)
         if result.rowcount == 0:
