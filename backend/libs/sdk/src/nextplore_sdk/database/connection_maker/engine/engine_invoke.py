@@ -34,12 +34,12 @@ def invoke_engine(
             logger.warning(f'Connection attempt {attempt + 1} failed.')
             attempt += 1
             if attempt > max_retries:
-                logger.error(f'Connection failed after {max_retries} retries.')
+                logger.error(f'Connection failed after {max_retries} retries.', exc_info=True)
                 raise ConnectionFailed('Connection failed after retries.') from e
 
             delay = base_delay * (backoff_factor ** (attempt - 1))
             logger.info(f'Retrying in {delay:.2f} seconds...')
             time.sleep(delay)
         except Exception as e:
-            logger.error('Unexpected error during test connection.')
+            logger.error('Unexpected error during test connection.', exc_info=True)
             raise ConnectionFailed('Unexpected connection failure.') from e

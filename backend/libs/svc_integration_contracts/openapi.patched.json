@@ -906,8 +906,7 @@
           "username": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "password"
+                "type": "string"
               },
               {
                 "type": "null"
@@ -918,8 +917,7 @@
           "password": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "password"
+                "type": "string"
               },
               {
                 "type": "null"
@@ -930,8 +928,7 @@
           "client_secret": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "password"
+                "type": "string"
               },
               {
                 "type": "null"
@@ -942,8 +939,7 @@
           "aws_external_id": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "password"
+                "type": "string"
               },
               {
                 "type": "null"
@@ -954,8 +950,7 @@
           "aws_role_arn": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "password"
+                "type": "string"
               },
               {
                 "type": "null"
@@ -966,8 +961,7 @@
           "snowflake_private_key": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "password"
+                "type": "string"
               },
               {
                 "type": "null"
