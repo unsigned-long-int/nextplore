@@ -75,7 +75,8 @@ async def ai_query(
     except Exception as e:
         logger.error(
             'AI Query failed (unexpected)',
-            extra={'org_id': str(org_id), 'user_id': str(user_id)}
+            extra={'org_id': str(org_id), 'user_id': str(user_id)},
+            exc_info=True
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

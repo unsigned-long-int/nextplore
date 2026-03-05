@@ -104,16 +104,12 @@ class AIQueryProcessor:
             database=connection_profile.database_name,
             port=connection_profile.port,
             warehouse=connection_profile.warehouse,
-            username=connection_profile.username.get_secret_value() if connection_profile.username else None,
-            password=connection_profile.password.get_secret_value() if connection_profile.password else None,
-            client_secret=(connection_profile.client_secret.get_secret_value()
-                           if connection_profile.client_secret else None),
-            aws_external_id=(connection_profile.aws_external_id.get_secret_value()
-                             if connection_profile.aws_external_id else None),
-            aws_role_arn=(connection_profile.aws_role_arn.get_secret_value()
-                          if connection_profile.aws_role_arn else None),
-            snowflake_private_key=(connection_profile.snowflake_private_key.get_secret_value()
-                                   if connection_profile.snowflake_private_key else None),
+            username=connection_profile.username,
+            password=connection_profile.password,
+            client_secret=connection_profile.client_secret,
+            aws_external_id=connection_profile.aws_external_id,
+            aws_role_arn=connection_profile.aws_role_arn,
+            snowflake_private_key=connection_profile.snowflake_private_key,
             azure_cert_kid=connection_profile.azure_cert_kid,
             tenant_id=connection_profile.tenant_id,
             client_id=connection_profile.client_id,

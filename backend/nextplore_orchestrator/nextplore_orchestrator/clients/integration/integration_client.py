@@ -4,15 +4,17 @@ from uuid import UUID
 from json import JSONDecodeError
 
 from nextplore_orchestrator.clients.base import BaseServiceClient
-from nextplore_orchestrator.clients.integration.models.integration_create_request import IntegrationCreateRequest
-from nextplore_orchestrator.clients.integration.models.integration_update_request import IntegrationUpdateRequest
-from nextplore_orchestrator.clients.integration.models.integration_profile import IntegrationProfile
-from nextplore_orchestrator.clients.integration.models.filtered_crawl_request import FilteredCrawlRequest
-from nextplore_orchestrator.clients.integration.models.crawl_response import CrawlResponse
-from nextplore_orchestrator.clients.integration.models.integration_stats_response import IntegrationStatsResponse
-from nextplore_orchestrator.clients.integration.models.integration_connection_profile import IntegrationConnectionProfile
-from nextplore_orchestrator.clients.integration.models.cert_profile import CertProfile
-from nextplore_orchestrator.clients.integration.models.cert_create_request import CertCreateRequest
+from svc_integration_contracts.models import (
+    IntegrationCreateRequest,
+    IntegrationUpdateRequest,
+    IntegrationProfile,
+    FilteredCrawlRequest,
+    CrawlResponse,
+    IntegrationStatsResponse,
+    IntegrationConnectionProfile,
+    CertProfile,
+    CertCreateRequest
+)
 from .exceptions import (
     IntegrationCrawlRemoteError,
     IntegrationCreateRemoteError,

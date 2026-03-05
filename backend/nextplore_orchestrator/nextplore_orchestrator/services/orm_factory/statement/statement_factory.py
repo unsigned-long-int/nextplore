@@ -48,8 +48,13 @@ def apply_filter(statement_request: StatementRequest, stmt: Select) -> Select:
         field = getattr(statement_request.orm_model, cond['filter_column'])
         op = cond['operator']
         value = cond['value']
+
         if op not in OPERATOR_DISPATCHER:
             raise ValueError(f'Unsupported operator: {op}')
+
+        if op == 'in' and isinstance(value, str):
+            value = [v.strip() for v in value.split(',')]
+
         stmt = OPERATOR_DISPATCHER[op](stmt, field, value)
     return stmt
 

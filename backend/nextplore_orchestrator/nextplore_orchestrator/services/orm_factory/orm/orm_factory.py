@@ -58,6 +58,9 @@ class ORMFactory:
             elapsed,
             self.integration_id
         )
+        if not any(col.get('primary_key') for col in reflected_columns):
+            reflected_columns[0]['primary_key'] = True
+
         for column in reflected_columns:
             column_attrs[column['name']] = Column(
                 column['type'],
