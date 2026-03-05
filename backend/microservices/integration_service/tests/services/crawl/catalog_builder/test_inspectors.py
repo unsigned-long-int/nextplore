@@ -24,6 +24,7 @@ class TestInspectTables(unittest.TestCase):
 
         self.mock_table_spec = MagicMock()
         self.mock_table_spec.is_satisfied_by = MagicMock(return_value=True)
+        self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
 
         self.mock_columns = [
             {'name': 'id', 'type': 'INTEGER'},
@@ -34,7 +35,20 @@ class TestInspectTables(unittest.TestCase):
         self.mock_indexes = [{'name': 'idx_name', 'column_names': ['name']}]
         self.mock_table_comment = {'text': 'Test table'}
 
-    def test_returns_empty_tuple_when_no_tables(self):
+    def _make_permission_spec_mock(self, accessible_tables=None):
+        mock_spec = MagicMock()
+        if accessible_tables is None:
+            mock_spec.is_satisfied_by = MagicMock(return_value=True)
+        else:
+            mock_spec.is_satisfied_by = MagicMock(
+                side_effect=lambda c: c.name in accessible_tables
+            )
+        return mock_spec
+
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_returns_empty_tuple_when_no_tables(self, mock_perm_spec_cls):
+        mock_perm_spec_cls.return_value = self._make_permission_spec_mock()
+        self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
         self.mock_inspector.get_table_names.return_value = []
 
         result = inspect_tables(
@@ -45,10 +59,12 @@ class TestInspectTables(unittest.TestCase):
         )
 
         self.assertEqual(result, ())
-        self.assertEqual(len(result), 0)
         self.mock_inspector.get_table_names.assert_called_once()
 
-    def test_gets_table_names_with_quoted_schema(self):
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_gets_table_names_with_quoted_schema(self, mock_perm_spec_cls):
+        mock_perm_spec_cls.return_value = self._make_permission_spec_mock()
+        self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
         self.mock_inspector.get_table_names.return_value = []
 
         inspect_tables(
@@ -60,11 +76,46 @@ class TestInspectTables(unittest.TestCase):
 
         call_args = self.mock_inspector.get_table_names.call_args
         schema_arg = call_args[1]['schema']
-
         self.assertIsInstance(schema_arg, quoted_name)
         self.assertEqual(str(schema_arg), self.schema_name)
 
-    def test_returns_tables_satisfying_spec(self):
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_permission_spec_initialized_with_crawler_and_schema(self, mock_perm_spec_cls):
+        mock_perm_spec_cls.return_value = self._make_permission_spec_mock()
+        self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
+        self.mock_inspector.get_table_names.return_value = []
+
+        inspect_tables(
+            crawler=self.mock_inspector,
+            integration_id=self.integration_id,
+            schema_name=self.schema_name,
+            table_spec=self.mock_table_spec
+        )
+
+        mock_perm_spec_cls.assert_called_once_with(self.mock_inspector, self.schema_name)
+
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_effective_spec_is_combination_of_table_and_permission_spec(self, mock_perm_spec_cls):
+        perm_spec = self._make_permission_spec_mock()
+        mock_perm_spec_cls.return_value = perm_spec
+        combined_spec = MagicMock()
+        combined_spec.is_satisfied_by = MagicMock(return_value=True)
+        self.mock_table_spec.__and__ = MagicMock(return_value=combined_spec)
+        self.mock_inspector.get_table_names.return_value = []
+
+        inspect_tables(
+            crawler=self.mock_inspector,
+            integration_id=self.integration_id,
+            schema_name=self.schema_name,
+            table_spec=self.mock_table_spec
+        )
+
+        self.mock_table_spec.__and__.assert_called_once_with(perm_spec)
+
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_returns_tables_satisfying_both_specs(self, mock_perm_spec_cls):
+        mock_perm_spec_cls.return_value = self._make_permission_spec_mock()
+        self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
         self.mock_inspector.get_table_names.return_value = ['table1', 'table2']
         self.mock_inspector.get_columns.return_value = self.mock_columns
         self.mock_inspector.get_pk_constraint.return_value = self.mock_pk_constraint
@@ -84,14 +135,15 @@ class TestInspectTables(unittest.TestCase):
         self.assertEqual(result[0].name, 'table1')
         self.assertEqual(result[1].name, 'table2')
 
-    def test_skips_tables_not_satisfying_spec(self):
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_skips_tables_without_permission(self, mock_perm_spec_cls):
+        combined_spec = MagicMock()
+        combined_spec.is_satisfied_by = MagicMock(
+            side_effect=lambda c: c.name in ['table1', 'table3']
+        )
+        mock_perm_spec_cls.return_value = self._make_permission_spec_mock()
+        self.mock_table_spec.__and__ = MagicMock(return_value=combined_spec)
         self.mock_inspector.get_table_names.return_value = ['table1', 'table2', 'table3']
-
-        def is_satisfied_side_effect(candidate):
-            return candidate.name in ['table1', 'table3']
-
-        self.mock_table_spec.is_satisfied_by.side_effect = is_satisfied_side_effect
-
         self.mock_inspector.get_columns.return_value = self.mock_columns
         self.mock_inspector.get_pk_constraint.return_value = self.mock_pk_constraint
         self.mock_inspector.get_foreign_keys.return_value = self.mock_foreign_keys
@@ -109,7 +161,10 @@ class TestInspectTables(unittest.TestCase):
         self.assertEqual(result[0].name, 'table1')
         self.assertEqual(result[1].name, 'table3')
 
-    def test_includes_all_table_metadata(self):
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_includes_all_table_metadata(self, mock_perm_spec_cls):
+        mock_perm_spec_cls.return_value = self._make_permission_spec_mock()
+        self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
         self.mock_inspector.get_table_names.return_value = ['users']
         self.mock_inspector.get_columns.return_value = self.mock_columns
         self.mock_inspector.get_pk_constraint.return_value = self.mock_pk_constraint
@@ -134,7 +189,10 @@ class TestInspectTables(unittest.TestCase):
         self.assertEqual(table.indexes, self.mock_indexes)
         self.assertEqual(table.table_comment, self.mock_table_comment)
 
-    def test_calls_inspector_methods_with_correct_parameters(self):
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_calls_inspector_methods_with_correct_parameters(self, mock_perm_spec_cls):
+        mock_perm_spec_cls.return_value = self._make_permission_spec_mock()
+        self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
         table_name = 'test_table'
         self.mock_inspector.get_table_names.return_value = [table_name]
         self.mock_inspector.get_columns.return_value = self.mock_columns
@@ -150,29 +208,17 @@ class TestInspectTables(unittest.TestCase):
             table_spec=self.mock_table_spec
         )
 
-        self.mock_inspector.get_columns.assert_called_once_with(
-            table_name=table_name,
-            schema=self.schema_name
-        )
-        self.mock_inspector.get_pk_constraint.assert_called_once_with(
-            table_name=table_name,
-            schema=self.schema_name
-        )
-        self.mock_inspector.get_foreign_keys.assert_called_once_with(
-            table_name=table_name,
-            schema=self.schema_name
-        )
-        self.mock_inspector.get_indexes.assert_called_once_with(
-            table_name=table_name,
-            schema=self.schema_name
-        )
-        self.mock_inspector.get_table_comment.assert_called_once_with(
-            table_name=table_name,
-            schema=self.schema_name
-        )
+        self.mock_inspector.get_columns.assert_called_once_with(table_name=table_name, schema=self.schema_name)
+        self.mock_inspector.get_pk_constraint.assert_called_once_with(table_name=table_name, schema=self.schema_name)
+        self.mock_inspector.get_foreign_keys.assert_called_once_with(table_name=table_name, schema=self.schema_name)
+        self.mock_inspector.get_indexes.assert_called_once_with(table_name=table_name, schema=self.schema_name)
+        self.mock_inspector.get_table_comment.assert_called_once_with(table_name=table_name, schema=self.schema_name)
 
     @patch('integration_service.services.crawl.catalog_builder.inspectors.logger')
-    def test_handles_exception_during_inspection(self, mock_logger):
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_handles_exception_during_inspection(self, mock_perm_spec_cls, mock_logger):
+        mock_perm_spec_cls.return_value = self._make_permission_spec_mock()
+        self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
         self.mock_inspector.get_table_names.return_value = ['table1', 'table2']
 
         def get_columns_side_effect(*args, **kwargs):
@@ -195,14 +241,14 @@ class TestInspectTables(unittest.TestCase):
 
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].name, 'table2')
-
         mock_logger.error.assert_called_once()
-        error_message = mock_logger.error.call_args[0][0]
-        self.assertIn('Failed to inspect table', error_message)
-        self.assertIn('table1', error_message)
+        self.assertIn('table1', mock_logger.error.call_args[0][0])
 
     @patch('integration_service.services.crawl.catalog_builder.inspectors.logger')
-    def test_continues_after_exception(self, mock_logger):
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_continues_after_exception(self, mock_perm_spec_cls, mock_logger):
+        mock_perm_spec_cls.return_value = self._make_permission_spec_mock()
+        self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
         self.mock_inspector.get_table_names.return_value = ['table1', 'table2', 'table3']
 
         call_count = [0]
@@ -230,7 +276,10 @@ class TestInspectTables(unittest.TestCase):
         self.assertEqual(result[0].name, 'table1')
         self.assertEqual(result[1].name, 'table3')
 
-    def test_returns_tuple_type(self):
+    @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
+    def test_returns_tuple_type(self, mock_perm_spec_cls):
+        mock_perm_spec_cls.return_value = self._make_permission_spec_mock()
+        self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
         self.mock_inspector.get_table_names.return_value = ['table1']
         self.mock_inspector.get_columns.return_value = self.mock_columns
         self.mock_inspector.get_pk_constraint.return_value = self.mock_pk_constraint

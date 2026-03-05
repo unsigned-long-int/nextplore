@@ -8,6 +8,7 @@ from integration_service.services.crawl.filters.logic import AlwaysTrueSpec
 class TestCrawlIntegration(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.event_mock = MagicMock()
+        self.repo_mock = MagicMock()
         self.backend_connector_mock = MagicMock()
         self.engine_manager_mock = MagicMock()
 
@@ -33,11 +34,11 @@ class TestCrawlIntegration(unittest.IsolatedAsyncioTestCase):
         always_truespec_mock.return_value = always_true_spec
         await crawl_initial_integration_metadata(
             self.event_mock,
-            self.backend_connector_mock,
+            self.repo_mock,
             self.engine_manager_mock
         )
         build_integrations_registry_catalog_mock.assert_awaited_once_with(
-            backend_connector=self.backend_connector_mock,
+            repo=self.repo_mock,
             engine_manager=self.engine_manager_mock,
             user_id=self.event_mock.user_id,
             organization_id=self.event_mock.organization_id,

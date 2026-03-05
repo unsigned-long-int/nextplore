@@ -14,16 +14,16 @@ from integration_service.services.crawl.catalogs import (
 from integration_service.services.crawl.exceptions import CrawlIntegrationsFailed
 from integration_service.domain.models.integration import Integration
 from integration_service.domain.models.secret import IntegrationSecret, SecretType
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 from nextplore_sdk.database.connection_maker.models.connection_profile import ConnectionProfile
 from nextplore_sdk.database.connection_maker.exc.exceptions import ConnectionFailed
 from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
+from integration_service.database.repositories import IntegrationRepository
 
 
 class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
-        self.backend_connector = MagicMock(spec=DatabaseBackendConnector)
+        self.repo = AsyncMock(spec=IntegrationRepository)
         self.engine_manager = MagicMock(spec=EngineManager)
         self.engine_manager.acquire_engine = AsyncMock()
 
@@ -84,16 +84,8 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
         }
 
         self.mock_schemas = [
-            SchemaCatalog(
-                integration_id=self.integration_id_1,
-                name='schema1',
-                tables=[]
-            ),
-            SchemaCatalog(
-                integration_id=self.integration_id_1,
-                name='schema2',
-                tables=[]
-            )
+            SchemaCatalog(integration_id=self.integration_id_1, name='schema1', tables=[]),
+            SchemaCatalog(integration_id=self.integration_id_1, name='schema2', tables=[])
         ]
 
         self.mock_integration_spec = MagicMock()
@@ -101,35 +93,26 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
 
         self.mock_schema_spec = MagicMock()
         self.mock_table_spec = MagicMock()
-
         self.mock_engine = MagicMock()
 
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.build_schemas_catalog')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.decrypt_secret')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.AzureCryptoClient')
-    @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.IntegrationRepository')
     async def test_successful_crawl_single_integration(
             self,
-            mock_repo_cls,
             mock_crypto_client_cls,
             mock_decrypt_secret,
             mock_build_schemas
     ):
-        mock_repo = MagicMock()
-        mock_repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
-        mock_repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
-        mock_repo_cls.return_value = mock_repo
-
-        mock_crypto_client = MagicMock()
-        mock_crypto_client_cls.return_value = mock_crypto_client
-
+        self.repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
+        self.repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
+        mock_crypto_client_cls.return_value = MagicMock()
         mock_decrypt_secret.side_effect = lambda secret_type, secrets, client: f'decrypted_{secret_type}'
         mock_build_schemas.return_value = self.mock_schemas
-
         self.engine_manager.acquire_engine.return_value = self.mock_engine
 
         result = await build_integrations_registry_catalog(
-            backend_connector=self.backend_connector,
+            repo=self.repo,
             engine_manager=self.engine_manager,
             user_id=self.user_id,
             organization_id=self.organization_id,
@@ -144,30 +127,25 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.integrations[0].id, self.integration_id_1)
         self.assertEqual(len(result.integrations[0].schemas), 2)
 
-        mock_repo.get_integration_by_id.assert_called_once_with(
+        self.repo.get_integration_by_id.assert_called_once_with(
             organization_id=self.organization_id,
             user_id=self.user_id,
             integration_id=self.integration_id_1
         )
-        mock_repo.get_secrets.assert_called_once_with(
+        self.repo.get_secrets.assert_called_once_with(
             organization_id=self.organization_id,
             user_id=self.user_id,
             integration_id=self.integration_id_1
         )
-
         mock_crypto_client_cls.assert_called_once_with(self.kek_kid)
-
         self.engine_manager.acquire_engine.assert_called_once()
-
         mock_build_schemas.assert_called_once()
 
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.build_schemas_catalog')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.decrypt_secret')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.AzureCryptoClient')
-    @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.IntegrationRepository')
     async def test_successful_crawl_multiple_integrations(
             self,
-            mock_repo_cls,
             mock_crypto_client_cls,
             mock_decrypt_secret,
             mock_build_schemas
@@ -195,21 +173,17 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
             autosync_on=True
         )
 
-        mock_repo = MagicMock()
-        mock_repo.get_integration_by_id = AsyncMock(
+        self.repo.get_integration_by_id = AsyncMock(
             side_effect=[self.mock_integration, integration_2]
         )
-        mock_repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
-        mock_repo_cls.return_value = mock_repo
-
+        self.repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
         mock_crypto_client_cls.return_value = MagicMock()
         mock_decrypt_secret.side_effect = lambda secret_type, secrets, client: f'decrypted_{secret_type}'
         mock_build_schemas.return_value = self.mock_schemas
-
         self.engine_manager.acquire_engine.return_value = self.mock_engine
 
         result = await build_integrations_registry_catalog(
-            backend_connector=self.backend_connector,
+            repo=self.repo,
             engine_manager=self.engine_manager,
             user_id=self.user_id,
             organization_id=self.organization_id,
@@ -220,28 +194,23 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertEqual(len(result.integrations), 2)
-        self.assertEqual(mock_repo.get_integration_by_id.call_count, 2)
+        self.assertEqual(self.repo.get_integration_by_id.call_count, 2)
         self.assertEqual(mock_build_schemas.call_count, 2)
 
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.build_schemas_catalog')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.decrypt_secret')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.AzureCryptoClient')
-    @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.IntegrationRepository')
     async def test_skips_integration_not_satisfying_spec(
             self,
-            mock_repo_cls,
             mock_crypto_client_cls,
             mock_decrypt_secret,
             mock_build_schemas
     ):
         self.mock_integration_spec.is_satisfied_by.return_value = False
 
-        mock_repo = MagicMock()
-        mock_repo_cls.return_value = mock_repo
-
         with self.assertRaises(CrawlIntegrationsFailed) as context:
             await build_integrations_registry_catalog(
-                backend_connector=self.backend_connector,
+                repo=self.repo,
                 engine_manager=self.engine_manager,
                 user_id=self.user_id,
                 organization_id=self.organization_id,
@@ -252,33 +221,26 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
             )
 
         self.assertIn('None of the 1 integrations', str(context.exception))
-
-        mock_repo.get_integration_by_id.assert_not_called()
+        self.repo.get_integration_by_id.assert_not_called()
 
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.build_schemas_catalog')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.decrypt_secret')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.AzureCryptoClient')
-    @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.IntegrationRepository')
     async def test_handles_connection_failed_gracefully(
             self,
-            mock_repo_cls,
             mock_crypto_client_cls,
             mock_decrypt_secret,
             mock_build_schemas
     ):
-        mock_repo = MagicMock()
-        mock_repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
-        mock_repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
-        mock_repo_cls.return_value = mock_repo
-
+        self.repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
+        self.repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
         mock_crypto_client_cls.return_value = MagicMock()
         mock_decrypt_secret.side_effect = lambda secret_type, secrets, client: f'decrypted_{secret_type}'
-
         self.engine_manager.acquire_engine.side_effect = ConnectionFailed('Connection refused')
 
         with self.assertRaises(CrawlIntegrationsFailed) as context:
             await build_integrations_registry_catalog(
-                backend_connector=self.backend_connector,
+                repo=self.repo,
                 engine_manager=self.engine_manager,
                 user_id=self.user_id,
                 organization_id=self.organization_id,
@@ -293,29 +255,22 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.build_schemas_catalog')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.decrypt_secret')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.AzureCryptoClient')
-    @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.IntegrationRepository')
     async def test_handles_operational_error_gracefully(
             self,
-            mock_repo_cls,
             mock_crypto_client_cls,
             mock_decrypt_secret,
             mock_build_schemas
     ):
-        mock_repo = MagicMock()
-        mock_repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
-        mock_repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
-        mock_repo_cls.return_value = mock_repo
-
+        self.repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
+        self.repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
         mock_crypto_client_cls.return_value = MagicMock()
         mock_decrypt_secret.side_effect = lambda secret_type, secrets, client: f'decrypted_{secret_type}'
-
         self.engine_manager.acquire_engine.return_value = self.mock_engine
-
         mock_build_schemas.side_effect = OperationalError('SELECT 1', {}, Exception('DB error'))
 
         with self.assertRaises(CrawlIntegrationsFailed):
             await build_integrations_registry_catalog(
-                backend_connector=self.backend_connector,
+                repo=self.repo,
                 engine_manager=self.engine_manager,
                 user_id=self.user_id,
                 organization_id=self.organization_id,
@@ -328,25 +283,20 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.build_schemas_catalog')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.decrypt_secret')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.AzureCryptoClient')
-    @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.IntegrationRepository')
     async def test_handles_unexpected_exception_gracefully(
             self,
-            mock_repo_cls,
             mock_crypto_client_cls,
             mock_decrypt_secret,
             mock_build_schemas
     ):
-        mock_repo = MagicMock()
-        mock_repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
-        mock_repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
-        mock_repo_cls.return_value = mock_repo
-
+        self.repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
+        self.repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
         mock_crypto_client_cls.return_value = MagicMock()
         mock_decrypt_secret.side_effect = Exception('Unexpected decryption error')
 
         with self.assertRaises(CrawlIntegrationsFailed):
             await build_integrations_registry_catalog(
-                backend_connector=self.backend_connector,
+                repo=self.repo,
                 engine_manager=self.engine_manager,
                 user_id=self.user_id,
                 organization_id=self.organization_id,
@@ -359,10 +309,8 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.build_schemas_catalog')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.decrypt_secret')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.AzureCryptoClient')
-    @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.IntegrationRepository')
     async def test_partial_success_with_multiple_integrations(
             self,
-            mock_repo_cls,
             mock_crypto_client_cls,
             mock_decrypt_secret,
             mock_build_schemas
@@ -390,16 +338,12 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
             autosync_on=True
         )
 
-        mock_repo = MagicMock()
-        mock_repo.get_integration_by_id = AsyncMock(
+        self.repo.get_integration_by_id = AsyncMock(
             side_effect=[self.mock_integration, integration_2]
         )
-        mock_repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
-        mock_repo_cls.return_value = mock_repo
-
+        self.repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
         mock_crypto_client_cls.return_value = MagicMock()
         mock_decrypt_secret.side_effect = lambda secret_type, secrets, client: f'decrypted_{secret_type}'
-
         self.engine_manager.acquire_engine.side_effect = [
             self.mock_engine,
             ConnectionFailed('Connection refused')
@@ -407,7 +351,7 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
         mock_build_schemas.return_value = self.mock_schemas
 
         result = await build_integrations_registry_catalog(
-            backend_connector=self.backend_connector,
+            repo=self.repo,
             engine_manager=self.engine_manager,
             user_id=self.user_id,
             organization_id=self.organization_id,
@@ -423,29 +367,22 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.build_schemas_catalog')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.decrypt_secret')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.AzureCryptoClient')
-    @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.IntegrationRepository')
     async def test_skips_integration_with_no_schemas(
             self,
-            mock_repo_cls,
             mock_crypto_client_cls,
             mock_decrypt_secret,
             mock_build_schemas
     ):
-        mock_repo = MagicMock()
-        mock_repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
-        mock_repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
-        mock_repo_cls.return_value = mock_repo
-
+        self.repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
+        self.repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
         mock_crypto_client_cls.return_value = MagicMock()
         mock_decrypt_secret.side_effect = lambda secret_type, secrets, client: f'decrypted_{secret_type}'
-
         self.engine_manager.acquire_engine.return_value = self.mock_engine
-
         mock_build_schemas.return_value = []
 
         with self.assertRaises(CrawlIntegrationsFailed):
             await build_integrations_registry_catalog(
-                backend_connector=self.backend_connector,
+                repo=self.repo,
                 engine_manager=self.engine_manager,
                 user_id=self.user_id,
                 organization_id=self.organization_id,
@@ -458,19 +395,14 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.build_schemas_catalog')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.decrypt_secret')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.AzureCryptoClient')
-    @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.IntegrationRepository')
     async def test_connection_profile_constructed_correctly(
             self,
-            mock_repo_cls,
             mock_crypto_client_cls,
             mock_decrypt_secret,
             mock_build_schemas
     ):
-        mock_repo = MagicMock()
-        mock_repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
-        mock_repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
-        mock_repo_cls.return_value = mock_repo
-
+        self.repo.get_integration_by_id = AsyncMock(return_value=self.mock_integration)
+        self.repo.get_secrets = AsyncMock(return_value=self.mock_secrets)
         mock_crypto_client_cls.return_value = MagicMock()
 
         decrypted_values = {
@@ -482,12 +414,11 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
             SecretType.SNOWFLAKE_PRIVATE_KEY: 'test_private_key'
         }
         mock_decrypt_secret.side_effect = lambda secret_type, secrets, client: decrypted_values.get(secret_type)
-
         mock_build_schemas.return_value = self.mock_schemas
         self.engine_manager.acquire_engine.return_value = self.mock_engine
 
         await build_integrations_registry_catalog(
-            backend_connector=self.backend_connector,
+            repo=self.repo,
             engine_manager=self.engine_manager,
             user_id=self.user_id,
             organization_id=self.organization_id,
@@ -513,23 +444,19 @@ class TestBuildIntegrationsRegistryCatalog(unittest.IsolatedAsyncioTestCase):
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.build_schemas_catalog')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.decrypt_secret')
     @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.AzureCryptoClient')
-    @patch('integration_service.services.crawl.catalog_builder.build_integrations_registry_catalog.IntegrationRepository')
     async def test_raises_crawl_failed_when_all_integrations_fail(
             self,
-            mock_repo_cls,
             mock_crypto_client_cls,
             mock_decrypt_secret,
             mock_build_schemas
     ):
-        mock_repo = MagicMock()
-        mock_repo.get_integration_by_id = AsyncMock(side_effect=Exception('DB error'))
-        mock_repo_cls.return_value = mock_repo
+        self.repo.get_integration_by_id = AsyncMock(side_effect=Exception('DB error'))
 
         integration_ids = [self.integration_id_1, self.integration_id_2]
 
         with self.assertRaises(CrawlIntegrationsFailed) as context:
             await build_integrations_registry_catalog(
-                backend_connector=self.backend_connector,
+                repo=self.repo,
                 engine_manager=self.engine_manager,
                 user_id=self.user_id,
                 organization_id=self.organization_id,
