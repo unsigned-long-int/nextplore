@@ -10,8 +10,9 @@ from .base import InferenceProviderBase
 class CerebrasInference(InferenceProviderBase):
     def __init__(self, provider_name: str, provider_url: str) -> None:
         self.provider_name = provider_name
+        self.provider_url = provider_url
         self.client = AsyncOpenAI(
-            base_url=provider_url,
+            base_url=self.provider_url,
             api_key=os.getenv('HUGGINGFACE_API_KEY')
         )
     
@@ -75,19 +76,38 @@ class CerebrasInference(InferenceProviderBase):
                               },
                               'column_filters': {
                                   'type': 'array',
-                                  'description': 'the list of filters as dict containing operator, value and column for filtering. Can be empty if not necessary.',
+                                  'description': (
+                                        'List of filters for the SQL WHERE clause. Important rules: '
+                                        '1. When the user references multiple entities by name (e.g. "Gimli and Frodo", "both X and Y"), use a SINGLE filter with operator "in" and an array of values - never multiple "like" filters. '
+                                        '2. When the user provides a partial name for a SINGLE entity, use "like" with wildcards e.g. "%Frodo%". '
+                                        '3. When the user provides a partial name among multiple entities, use "in" with the partial name expanded using % wildcards as separate entries. '
+                                        '4. Multiple filters are combined with AND - never use AND logic to match different values of the same column.'
+                                    ),
                                   'items': {
                                        'type': 'object',
                                        'description': 'delivers the filter values for sql statement if needed to filter selected column.',
                                        'properties': {
                                             'operator': {
                                                 'type': 'string',
-                                                'description': 'delivers operator to be used for filtering',
+                                                'description': (
+                                                    'Operator for filtering. Rules: '
+                                                    '"in" - use when filtering by multiple specific values (e.g. "Gimli and Frodo", "these three countries"). '
+                                                    '"like" - use ONLY for a single partial/fuzzy match (e.g. "someone named Fro%"). '
+                                                    'Never apply multiple "like" filters with AND when the user lists multiple entities - use "in" instead. '
+                                                    '"==" - exact single value match. '
+                                                    '">", "<", ">=", "<=" - numeric or date comparisons.'
+                                                ),
                                                 'enum': context.filter_op_enum
                                             },
                                             'value': {
-                                                'type': ['number', 'string'],
-                                                'description': 'delivers value to be used by operator'
+                                                'type': ['number', 'string', 'array'],
+                                                'description':  (
+                                                    'Value to be used by operator. '
+                                                    'For "in" operator, provide an array of values e.g. ["Gimli", "Frodo Baggins"]. '
+                                                    'For "like" operator, provide a single string with % wildcards e.g. "%Frodo%". '
+                                                    'Never use "like" multiple times for multiple entities - use "in" instead.'
+                                                ),
+                                                'items': {'type': ['string', 'number']}
                                             },
                                             'filter_column': {
                                                 'type': 'string',
