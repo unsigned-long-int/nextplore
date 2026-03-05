@@ -60,7 +60,7 @@ class VectorRepository:
                         )
                     .where(VectorORM.qdrant_vector_id.in_(vector_ids))
                 )
-                vectors = result.scalars().all()
+                vectors = result.all()
                 return vectors
         except SQLAlchemyError as e:
             msg = f'Get vectors failed with database error: {str(e)}'

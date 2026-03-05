@@ -47,16 +47,20 @@ class QDrantStoreClient:
             )
             hits = await self._client.query_points(
                 collection_name=collection,
-                query_vector=embedding,
+                query=embedding,
                 limit=top_k,
                 with_payload=True,
                 with_vectors=False,
                 query_filter=qd_filter
             )
-            if not hits:
+            if not hits.points:
                 return []
             
-            return [UUID(hit.payload.get('qdrant_vector_id')) for hit in hits]
+            return [
+                UUID(chunk_id)
+                for hit in hits.points
+                if (chunk_id := hit.payload.get('qdrant_vector_id')) is not None
+            ]
         except ResponseHandlingException as e:
             msg = f'QDrant response handling failed: {e}'
             logger.error(msg, exc_info=True)
