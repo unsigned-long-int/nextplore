@@ -5,6 +5,7 @@ from nextplore_sdk.database.backend.database_backend_connector import DatabaseBa
 from kafka_messaging.message_bus import get_kafka_message_bus
 from kafka_messaging.events.integration_service import IntegrationMetaCrawled, TableMeta, IntegrationCreated
 
+from integration_service.database.repositories import IntegrationRepository
 from integration_service.services.crawl.catalog_builder import build_integrations_registry_catalog
 from integration_service.services.crawl.filters.logic import AlwaysTrueSpec
 from integration_service.services.crawl.filters.factory import create_specs
@@ -12,11 +13,11 @@ from integration_service.services.crawl.filters.factory import create_specs
 
 async def crawl_initial_integration_metadata(
     event: IntegrationCreated,
-    backend_connector: DatabaseBackendConnector,
+    repo: IntegrationRepository,
     engine_manager: EngineManager
 ) -> None:
     integration_registry = await build_integrations_registry_catalog(
-        backend_connector=backend_connector,
+        repo=repo,
         engine_manager=engine_manager,
         user_id=event.user_id,
         organization_id=event.organization_id,

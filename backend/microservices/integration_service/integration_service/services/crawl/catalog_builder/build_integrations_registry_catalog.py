@@ -4,7 +4,6 @@ import time
 from typing import List
 from uuid import UUID
 from sqlalchemy.exc import OperationalError
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 from nextplore_sdk.database.connection_maker.models.connection_profile import ConnectionProfile
 from nextplore_sdk.database.connection_maker.exc.exceptions import ConnectionFailed
 from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
@@ -30,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 async def build_integrations_registry_catalog(
-        backend_connector: DatabaseBackendConnector,
+        repo: IntegrationRepository,
         engine_manager: EngineManager,
         user_id: UUID,
         organization_id: UUID,
@@ -39,7 +38,6 @@ async def build_integrations_registry_catalog(
         schema_spec: Specification,
         table_spec: Specification
 ) -> IntegrationRegistryCatalog:
-    integration_repo = IntegrationRepository(backend_connector)
     integrations = []
 
     for integration_id in integration_ids:
@@ -50,12 +48,12 @@ async def build_integrations_registry_catalog(
                 continue
 
             integration, secrets = await asyncio.gather(
-                integration_repo.get_integration_by_id(
+                repo.get_integration_by_id(
                     organization_id=organization_id,
                     user_id=user_id,
                     integration_id=integration_id
                 ),
-                integration_repo.get_secrets(
+                repo.get_secrets(
                     organization_id=organization_id,
                     user_id=user_id,
                     integration_id=integration_id

@@ -31,7 +31,8 @@ async def lifespan(app: FastAPI):
     backend_connector = DatabaseBackendConnector(DATABASE_URL)
     backend_connector.init()
     app.state.backend_connector = backend_connector
-    app.state.repo = IntegrationRepository(backend_connector)
+    repo = IntegrationRepository(backend_connector)
+    app.state.repo = repo
 
     cache = BaseCache(namespace='integration_service', version='v1')
     app.state.cache_service = CacheService(cache)
@@ -44,7 +45,7 @@ async def lifespan(app: FastAPI):
     await kafka_message_bus.subscribe(
         event_cls=IntegrationCreated, handler=partial(
             crawl_initial_integration_metadata,
-            backend_connector=backend_connector,
+            repo=repo,
             engine_manager=engine_manager
         )
     )
