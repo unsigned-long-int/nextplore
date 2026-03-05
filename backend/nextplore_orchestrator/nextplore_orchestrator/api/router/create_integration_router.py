@@ -30,7 +30,7 @@ async def create_integration(
 
     try:
         kek_kid = await auth_repo.get_kek_kid(org_id)
-        enriched_integration = integration_create_request.copy(update={'kek_kid': kek_kid})
+        enriched_integration = integration_create_request.model_copy(update={'kek_kid': kek_kid})
         await integration_client.create_integration(
             organization_id=org_id,
             user_id=user_id,
