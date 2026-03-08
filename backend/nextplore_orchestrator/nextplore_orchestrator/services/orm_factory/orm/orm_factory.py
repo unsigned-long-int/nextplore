@@ -64,7 +64,7 @@ class ORMFactory:
         for column in reflected_columns:
             column_attrs[column['name']] = Column(
                 column['type'],
-                primary_key=bool(column.get('primary_key'))
+                primary_key=bool(column.get('primary_key')),
             )
 
         table_identifier = f'{self.schema_name}.{self.table_name}'

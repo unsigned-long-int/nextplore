@@ -9,7 +9,7 @@ from .base import InferenceProviderBase
 
 class NovitaInference(InferenceProviderBase):
     def __init__(self, provider_name: str, provider_url: str) -> None:
-        self.provider_name = provider_name
+        super().__init__(provider_name, provider_url)
         self.client = AsyncOpenAI(
             base_url=provider_url,
             api_key=os.getenv('HUGGINGFACE_API_KEY')
@@ -90,14 +90,12 @@ class NovitaInference(InferenceProviderBase):
                                                 'enum': context.filter_op_enum
                                             },
                                             'value': {
-                                                'type': ['number', 'string', 'array'],
+                                                'type': ['number', 'string'],
                                                 'description': (
                                                     'Value to be used by operator. '
-                                                    'For "in" operator, provide an array of values e.g. ["Gimli", "Frodo Baggins"]. '
+                                                    'For "in" operator, provide a comma-separated string e.g. "Gimli, Frodo Baggins". '
                                                     'For "like" operator, provide a single string with % wildcards e.g. "%Frodo%". '
-                                                    'Never use "like" multiple times for multiple entities - use "in" instead.'
                                                 ),
-                                                'items': {'type': ['string', 'number']}
                                             },
                                             'filter_column': {
                                                 'type': 'string',

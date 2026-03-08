@@ -43,7 +43,7 @@ class OpenAIProvider(BaseProvider):
                   'function': {
                       'name': 'generate_orm_class',
                       'description': (
-                          'Function:  responsible for dynamically generating orm classes'
+                          'Function: responsible for dynamically generating orm classes'
                           'with schema_name, class_name, table_name and column_names'
                           'which are most likely to provide the answer to user query.'),
                       'parameters': {
@@ -103,14 +103,12 @@ class OpenAIProvider(BaseProvider):
                                                 'enum': context.filter_op_enum
                                             },
                                             'value': {
-                                                'type': ['number', 'string', 'array'],
+                                                'type': ['number', 'string'],
                                                 'description': (
                                                     'Value to be used by operator. '
-                                                    'For "in" operator, provide an array of values e.g. ["Gimli", "Frodo Baggins"]. '
+                                                    'For "in" operator, provide a comma-separated string e.g. "Gimli, Frodo Baggins". '
                                                     'For "like" operator, provide a single string with % wildcards e.g. "%Frodo%". '
-                                                    'Never use "like" multiple times for multiple entities - use "in" instead.'
                                                 ),
-                                                'items': {'type': ['string', 'number']},
                                             },
                                             'filter_column': {
                                                 'type': 'string',
