@@ -3,7 +3,6 @@ from uuid import uuid4
 from fastapi import FastAPI
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
-from pydantic import SecretStr
 from svc_integration_contracts.models import (
     IntegrationConnectionProfile,
     DB,
@@ -80,11 +79,11 @@ class TestConnectionProfileRouter(unittest.TestCase):
             database_name=self.integration.database_name,
             port=self.integration.port,
             warehouse=self.integration.warehouse,
-            username=SecretStr('cached_user'),
-            password=SecretStr('cached_pwd'),
-            client_secret=SecretStr('cached_secret'),
-            aws_external_id=SecretStr('cached_ext'),
-            aws_role_arn=SecretStr('cached_arn'),
+            username='cached_user',
+            password='cached_pwd',
+            client_secret='cached_secret',
+            aws_external_id='cached_ext',
+            aws_role_arn='cached_arn',
             snowflake_private_key=None,
             azure_cert_kid=self.integration.azure_cert_kid,
             tenant_id=self.integration.tenant_id,
