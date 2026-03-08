@@ -6,8 +6,8 @@ export const useAiQueryApi = () => {
     const http = useOrchestratorClient();
     return {
         getAiResponse: (data: AIQueryRequest) =>
-            http.post<AIQueryResponse>('ai-orm/query', data),
+            http.post<AIQueryResponse>('llm-inference/query', data),
         getModels: () =>
-            http.get<ModelInfo[]>('ai-orm/models'),
+            http.get<ModelInfo[]>('llm-inference/models'),
     };
 };
