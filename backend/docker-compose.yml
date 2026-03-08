@@ -182,23 +182,23 @@ services:
     mem_limit: 384m
     mem_reservation: 256m
 
-  ai_orm_context_service:
+  llm_inference_service:
     build:
       context: .
-      dockerfile: microservices/ai_orm_context_service/Dockerfile
+      dockerfile: microservices/llm_inference_service/Dockerfile
       args:
         NEXTPLORE_SDK: libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
-        SVC_AI_ORM_CONTEXT_CONTRACTS: libs/.wheelhouse/svc_ai_orm_context_contracts-0.1.0-py3-none-any.whl
-    container_name: ai_orm_context_service
+        SVC_LLM_INFERENCE_CONTRACTS: libs/.wheelhouse/svc_llm_inference_contracts-0.1.0-py3-none-any.whl
+    container_name: llm_inference_service
     depends_on:
       - redis
     ports:
-      - "${AI_ORM_CONTEXT_PORT:-8004}:8001"
+      - "${LLM_INFERENCE_PORT:-8004}:8001"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - REDIS_URL=${REDIS_URL}
       - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
-    profiles: [ai_orm_context_service, all]
+    profiles: [llm_inference_service, all]
     restart: on-failure
     networks:
       - app-network
@@ -212,7 +212,7 @@ services:
       args:
         NEXTPLORE_SDK: libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
         KAFKA_MESSAGING: libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl
-        SVC_AI_ORM_CONTEXT_CONTRACTS: libs/.wheelhouse/svc_ai_orm_context_contracts-0.1.0-py3-none-any.whl
+        SVC_LLM_INFERENCE_CONTRACTS: libs/.wheelhouse/svc_llm_inference_contracts-0.1.0-py3-none-any.whl
         SVC_EMBEDDING_CONTRACTS: libs/.wheelhouse/svc_embedding_contracts-0.1.0-py3-none-any.whl
         SVC_INTEGRATION_CONTRACTS: libs/.wheelhouse/svc_integration_contracts-0.1.0-py3-none-any.whl
         SVC_NEXTPLORE_ORCHESTRATOR_CONTRACTS: libs/.wheelhouse/svc_nextplore_orchestrator_contracts-0.1.0-py3-none-any.whl

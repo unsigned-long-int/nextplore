@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
         integration_client=clients_factory.create_integration_client(),
         embedding_client=clients_factory.create_embedding_client(),
         vector_client=clients_factory.create_vector_client(),
-        ai_orm_context_client=clients_factory.create_ai_orm_context_client()
+        llm_inference_client=clients_factory.create_llm_inference_client()
     )
     app.state.clients = registry
 

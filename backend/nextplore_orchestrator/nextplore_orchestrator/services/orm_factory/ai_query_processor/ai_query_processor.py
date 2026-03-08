@@ -7,15 +7,15 @@ from sqlalchemy import Select
 from nextplore_orchestrator.clients.embedding import EmbeddingClient
 from nextplore_orchestrator.clients.vector import VectorClient
 from nextplore_orchestrator.clients.integration import IntegrationClient
-from nextplore_orchestrator.clients.ai_orm_context import AIORMContextClient
+from nextplore_orchestrator.clients.llm_inference import LlmInferenceClient
 from nextplore_orchestrator.services.orm_factory.orm import get_orm
 from nextplore_orchestrator.domain.models import ORMRequest, StatementRequest
 from nextplore_orchestrator.services.orm_factory.statement import get_statement
 from nextplore_orchestrator.services.rag import build_rag_context, RAGContext
 from nextplore_orchestrator.api.context import UserIdentity
 from nextplore_orchestrator.clients.embedding.models.embedding_response import EmbeddingResponse
-from nextplore_orchestrator.clients.ai_orm_context.models.orm_context_request import ORMContextRequest, Context
-from nextplore_orchestrator.clients.ai_orm_context.models.orm_context_response import ORMContextResponse
+from nextplore_orchestrator.clients.llm_inference.models.orm_context_request import ORMContextRequest, Context
+from nextplore_orchestrator.clients.llm_inference.models.orm_context_response import ORMContextResponse
 from nextplore_orchestrator.api.models.ai_query_request import AIQueryRequest
 from nextplore_orchestrator.api.models.ai_query_response import AIQueryResponse
 from nextplore_orchestrator.clients.vector.models.qdrant_vector_response import QDrantVectorResponse
@@ -39,14 +39,14 @@ class AIQueryProcessor:
         embedding_client: EmbeddingClient,
         vector_client: VectorClient,
         integration_client: IntegrationClient,
-        ai_orm_context_client: AIORMContextClient,
+        llm_inference_client: LlmInferenceClient,
         user_identity: UserIdentity,
         engine_manager: EngineManager
     ) -> None:
         self.embedding_client = embedding_client
         self.vector_client = vector_client
         self.integration_client = integration_client
-        self.ai_orm_context_client = ai_orm_context_client
+        self.llm_inference_client = llm_inference_client
         self.user_identity = user_identity
         self.engine_manager = engine_manager
 
@@ -88,7 +88,11 @@ class AIQueryProcessor:
             query=request.prompt,
             context=context
         )
-        return await self.ai_orm_context_client.get_orm_context(orm_context_request)
+        return await self.llm_inference_client.get_orm_context(
+            organization_id=self.user_identity.organization_id,
+            user_id=self.user_identity.user_id,
+            payload=orm_context_request
+        )
     
     async def _get_connection_profile(self, orm_context: ORMContextResponse) -> ConnectionProfile:
         connection_profile = await self.integration_client.get_connection_profile(

@@ -9,10 +9,10 @@ from nextplore_orchestrator.api.dependencies.microservices import (
     get_integration_client, 
     get_vector_client,
     get_embedding_client,
-    get_ai_orm_context_client
+    get_llm_inference_client
 )
 from nextplore_orchestrator.api.dependencies.engine import get_engine_manager
-from nextplore_orchestrator.clients.ai_orm_context import ModelResponseRemoteError
+from nextplore_orchestrator.clients.llm_inference import ModelResponseRemoteError
 from nextplore_orchestrator.clients.embedding import EmbeddingResponseRemoteError
 from nextplore_orchestrator.clients.integration import IntegrationGetRemoteError
 from nextplore_orchestrator.clients.vector import VectorSearchDBRemoteError, VectorGetMetasRemoteError
@@ -24,14 +24,14 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/v1/nextplore-orchestrator', tags=['AiQuery'])
 
 
-@router.post('/ai-orm/query', response_model=AIQueryResponse)
+@router.post('/llm-inference/query', response_model=AIQueryResponse)
 async def ai_query(
     request: AIQueryRequest, 
     user_identity=Depends(get_active_user),
     integration_client=Depends(get_integration_client),
     vector_client=Depends(get_vector_client),
     embedding_client=Depends(get_embedding_client),
-    ai_orm_context_client=Depends(get_ai_orm_context_client),
+    llm_inference_client=Depends(get_llm_inference_client),
     engine_manager: EngineManager = Depends(get_engine_manager)
 ) -> AIQueryResponse:
     org_id = getattr(user_identity, 'organization_id', None)
@@ -41,7 +41,7 @@ async def ai_query(
             embedding_client=embedding_client,
             vector_client=vector_client,
             integration_client=integration_client,
-            ai_orm_context_client=ai_orm_context_client,
+            llm_inference_client=llm_inference_client,
             user_identity=user_identity,
             engine_manager=engine_manager
         )

@@ -6,7 +6,7 @@ PYTHON := python3
 TEST_PATTERN := test_*.py
 COVERAGE_MIN := 80
 
-AI_SERVICE := microservices/ai_orm_context_service
+AI_SERVICE := microservices/llm_inference_service
 EMBEDDING_SERVICE := microservices/embedding_service
 INTEGRATION_SERVICE := microservices/integration_service
 VECTOR_SERVICE := microservices/vector_service
@@ -23,8 +23,8 @@ build-libs:
 	@cd libs/messaging/ && python -m build -w -o ../.wheelhouse/
 	@cd libs/svc_integration_contracts/ && python -m build -w -o ../.wheelhouse/
 	@echo "Building svc_integration_contracts..."
-	@cd libs/svc_ai_orm_context_contracts/ && python -m build -w -o ../.wheelhouse/
-	@echo "Building svc_ai_orm_context_contracts..."
+	@cd libs/svc_llm_inference_contracts/ && python -m build -w -o ../.wheelhouse/
+	@echo "Building svc_llm_inference_contracts..."
 	@cd libs/svc_embedding_contracts/ && python -m build -w -o ../.wheelhouse/
 	@echo "Building svc_embedding_contracts..."
 	@cd libs/svc_nextplore_orchestrator_contracts/ && python -m build -w -o ../.wheelhouse/
@@ -39,8 +39,8 @@ check-libs:
 		(echo "nextplore_sdk wheel not found. Run 'make build-libs' first" && exit 1)
 	@test -f libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl || \
 		(echo "kafka_messaging wheel not found. Run 'make build-libs' first" && exit 1)
-	@test -f libs/.wheelhouse/svc_ai_orm_context_contracts-0.1.0-py3-none-any.whl || \
-		(echo "svc_ai_orm_context_contracts wheel not found. Run 'make build-libs' first" && exit 1)
+	@test -f libs/.wheelhouse/svc_llm_inference_contracts-0.1.0-py3-none-any.whl || \
+		(echo "svc_llm_inference_contracts wheel not found. Run 'make build-libs' first" && exit 1)
 	@test -f libs/.wheelhouse/svc_embedding_contracts-0.1.0-py3-none-any.whl || \
 		(echo "svc_embedding_contracts wheel not found. Run 'make build-libs' first" && exit 1)
 	@test -f libs/.wheelhouse/svc_integration_contracts-0.1.0-py3-none-any.whl || \
@@ -57,7 +57,7 @@ install-test-deps:
 	@echo "Coverage installed"
 
 run-tests: install-libs
-	@echo "Running tests for ai_orm_context_service..."
+	@echo "Running tests for llm_inference_service..."
 	@cd $(AI_SERVICE) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
 	@echo ""
 	@echo "Running tests for embedding_service..."
@@ -122,7 +122,7 @@ run-tests-cov: install-libs install-test-deps
 	@echo "XML report: coverage.xml"
 
 test-ai: install-libs
-	@echo "Running tests for ai_orm_context_service..."
+	@echo "Running tests for llm_inference_service..."
 	@cd $(AI_SERVICE) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v
 
 test-embedding: install-libs
@@ -189,7 +189,7 @@ install-libs: check-libs
 	@echo "Installing libraries..."
 	@pip install libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
 	@pip install libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl
-	@pip install libs/.wheelhouse/svc_ai_orm_context_contracts-0.1.0-py3-none-any.whl
+	@pip install libs/.wheelhouse/svc_llm_inference_contracts-0.1.0-py3-none-any.whl
 	@pip install libs/.wheelhouse/svc_embedding_contracts-0.1.0-py3-none-any.whl
 	@pip install libs/.wheelhouse/svc_integration_contracts-0.1.0-py3-none-any.whl
 	@pip install libs/.wheelhouse/svc_nextplore_orchestrator_contracts-0.1.0-py3-none-any.whl
@@ -198,7 +198,7 @@ install-libs: check-libs
 
 uninstall-libs:
 	@echo "Uninstalling libraries..."
-	@pip uninstall -y nextplore_sdk kafka_messaging svc_ai_orm_context_contracts \
+	@pip uninstall -y nextplore_sdk kafka_messaging svc_llm_inference_contracts \
 		svc_embedding_contracts svc_integration_contracts \
 		svc_nextplore_orchestrator_contracts svc_vector_contracts 2>/dev/null || true
 	@echo "Libraries uninstalled"
@@ -217,7 +217,7 @@ dev-vector: infra
 
 dev-ai:
 	docker compose up -d redis
-	docker compose --profile ai_orm_context_service up
+	docker compose --profile llm_inference_service up
 
 dev-orchestration: infra
 	docker compose --profile orchestration_service up
@@ -248,7 +248,7 @@ vector:
 	docker compose up vector_service
 
 ai-orm:
-	docker compose up ai_orm_context_service
+	docker compose up llm_inference_service
 
 orchestration:
 	docker compose up orchestration_service
