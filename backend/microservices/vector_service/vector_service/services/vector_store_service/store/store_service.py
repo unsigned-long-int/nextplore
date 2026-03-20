@@ -1,6 +1,5 @@
 import logging
 from typing import List
-from uuid import UUID
 
 from vector_service.services.vector_store_service.exceptions import (
     DeleteVectorDBFailed,
@@ -8,7 +7,7 @@ from vector_service.services.vector_store_service.exceptions import (
     UpsertVectorDBFailed
 )
 from vector_service.services.vector_store_service.clients import VectorStoreClient
-from vector_service.services.vector_store_service.models import VectorPoint
+from vector_service.services.vector_store_service.models import VectorPoint, Vector
 from vector_service.api.context import UserIdentity
 
 
@@ -43,7 +42,7 @@ class VectorStoreService:
         user_identity: UserIdentity, 
         embedding: List[float],
         top_k: int = 5
-    ) -> List[UUID]:
+    ) -> List[Vector]:
         try:
             return await self.client.search_nearest_vectors(
                 user_identity,

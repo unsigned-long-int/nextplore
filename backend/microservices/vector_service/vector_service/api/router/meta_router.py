@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from svc_vector_contracts.models import VectorMetaResponse, VectorMetaRequest
+from svc_vector_contracts.models import VectorMetadata, VectorMetadataQuery
 from vector_service.api.context import get_current_identity
 from vector_service.api.dependencies import get_backend_connector
 from vector_service.cache import CacheService, get_cache_service
@@ -20,15 +20,15 @@ router = APIRouter(prefix='/v1/vector', tags=['VectorMeta'])
 
 @router.post(
     '/organizations/{organization_id}/users/{user_id}/integrations/vectors/meta',
-    response_model=List[VectorMetaResponse]
+    response_model=List[VectorMetadata]
 )
 async def get_meta(
     organization_id: UUID,
     user_id: UUID,
-    payload: VectorMetaRequest,
+    payload: VectorMetadataQuery,
     backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
     cache_service: CacheService = Depends(get_cache_service)
-) -> List[VectorMetaResponse]:
+) -> List[VectorMetadata]:
     user_identity = get_current_identity()
 
     if organization_id != user_identity.organization_id or user_id != user_identity.user_id:
@@ -51,18 +51,19 @@ async def get_meta(
 
         vector_repo = VectorRepository(backend_connector)
 
-        vector_metas = await vector_repo.get_vectors(
+        vector_metadata = await vector_repo.get_vectors(
             organization_id=user_identity.organization_id,
             user_id=user_identity.user_id,
             vector_ids=payload.vector_ids
         )
         response = [
-            VectorMetaResponse(
-                integration_id=vector_meta.integration_id,
-                schema_name=vector_meta.schema_name,
-                table_name=vector_meta.table_name,
-                table_meta=json.loads(vector_meta.table_meta)
-            ) for vector_meta in vector_metas
+            VectorMetadata(
+                vector_id=vm.qdrant_vector_id,
+                integration_id=vm.integration_id,
+                schema_name=vm.schema_name,
+                table_name=vm.table_name,
+                table_metadata=json.loads(vm.table_meta)
+            ) for vm in vector_metadata
         ]
         await cache_service.set_vector_metas(
             user_identity=user_identity,

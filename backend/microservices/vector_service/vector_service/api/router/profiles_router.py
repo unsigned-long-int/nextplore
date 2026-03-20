@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from svc_vector_contracts.models import VectorProfileResponse
+from svc_vector_contracts.models import TableProfile
 from vector_service.api.context import get_current_identity
 from vector_service.api.dependencies import get_backend_connector
 from vector_service.cache import CacheService, get_cache_service
@@ -19,7 +19,7 @@ router = APIRouter(prefix='/v1/vector', tags=['VectorProfiles'])
 
 @router.get(
     '/organizations/{organization_id}/users/{user_id}/integrations/{integration_id}/vectors/profiles',
-    response_model=List[VectorProfileResponse]
+    response_model=List[TableProfile]
 )
 async def get_profiles(
     organization_id: UUID,
@@ -27,7 +27,7 @@ async def get_profiles(
     integration_id: UUID,
     backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
     cache_service: CacheService = Depends(get_cache_service)
-) -> List[VectorProfileResponse]:
+) -> List[TableProfile]:
     user_identity = get_current_identity()
     if organization_id != user_identity.organization_id or user_id != user_identity.user_id:
         logger.error(
@@ -55,7 +55,7 @@ async def get_profiles(
             integration_id=integration_id
         )
         response = [
-            VectorProfileResponse(
+            TableProfile(
                 integration_id=vector_profile.integration_id,
                 schema_name=vector_profile.schema_name,
                 table_name=vector_profile.table_name,

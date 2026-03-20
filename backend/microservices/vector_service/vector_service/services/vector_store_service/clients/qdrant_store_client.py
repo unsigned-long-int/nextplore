@@ -17,7 +17,7 @@ from vector_service.services.vector_store_service.exceptions import (
     SearchVectorDBFailed,
     UpsertVectorDBFailed
 )
-from vector_service.services.vector_store_service.models import VectorPoint
+from vector_service.services.vector_store_service.models import VectorPoint, Vector
 from vector_service.api.context import UserIdentity
 
 
@@ -37,7 +37,7 @@ class QDrantStoreClient:
         embedding: List[float],
         top_k: int = 5,
         collection: str = 'nextplore'
-    ) -> List[UUID]:
+    ) -> List[Vector]:
         try:
             qd_filter = Filter(
                 must=[
@@ -57,7 +57,10 @@ class QDrantStoreClient:
                 return []
             
             return [
-                UUID(chunk_id)
+                Vector(
+                    id=UUID(chunk_id),
+                    score=hit.score
+                )
                 for hit in hits.points
                 if (chunk_id := hit.payload.get('qdrant_vector_id')) is not None
             ]

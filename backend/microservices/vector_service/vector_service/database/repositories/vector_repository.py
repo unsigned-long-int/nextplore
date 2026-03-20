@@ -53,6 +53,7 @@ class VectorRepository:
             async with self._db.session_scope(organization_id, user_id) as scoped_session:
                 result = await scoped_session.execute(
                     select(
+                        VectorORM.qdrant_vector_id,
                         VectorORM.integration_id,
                         VectorORM.schema_name,
                         VectorORM.table_name,

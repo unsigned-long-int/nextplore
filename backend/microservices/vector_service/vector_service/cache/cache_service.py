@@ -2,12 +2,13 @@ from typing import List
 from uuid import UUID
 
 from svc_vector_contracts.models import (
-    VectorProfileResponse,
-    VectorStatsResponse,
-    VectorMetaRequest,
-    VectorMetaResponse,
-    QDrantVectorRequest,
-    QDrantVectorResponse
+    EmbeddingQuery,
+    VectorSearchResult,
+    VectorMetadataQuery,
+    TableProfile,
+    VectorIndexStats,
+    TableMetadata,
+    VectorMetadata
 )
 from nextplore_sdk.cache.utils.key_factory import get_cache_key, get_string_cache_key
 from nextplore_sdk.cache.client.interface import Cache
@@ -19,7 +20,7 @@ class CacheService:
     def __init__(self, cache: Cache) -> None:
         self.cache = cache
     
-    async def get_stats(self, user_identity: UserIdentity) -> VectorStatsResponse:
+    async def get_stats(self, user_identity: UserIdentity) -> VectorIndexStats:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.organization_id)}{str(user_identity.user_id)}',
             prefix='stats'
@@ -28,13 +29,13 @@ class CacheService:
             user_identity.organization_id, 
             user_identity.user_id, 
             cache_key, 
-            model=VectorStatsResponse
+            model=VectorIndexStats
         )
     
     async def set_stats(
         self, 
         user_identity: UserIdentity,
-        response: VectorStatsResponse
+        response: VectorIndexStats
     ) -> None:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.organization_id)}{str(user_identity.user_id)}',
@@ -50,21 +51,21 @@ class CacheService:
     async def get_vector_metas(
         self, 
         user_identity: UserIdentity,
-        request: VectorMetaRequest
-    ) -> List[VectorMetaResponse]:
+        request: VectorMetadataQuery
+    ) -> List[VectorMetadata]:
         cache_key = get_cache_key(model=request, prefix='metas')
         return await self.cache.get_many(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key, 
-            model=VectorMetaResponse
+            model=VectorMetadata
         )
     
     async def set_vector_metas(
         self, 
         user_identity: UserIdentity,
-        request: VectorMetaRequest,
-        response: List[VectorMetaResponse]
+        request: VectorMetadataQuery,
+        response: List[VectorMetadata]
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='metas')
         await self.cache.set_many(
@@ -77,7 +78,7 @@ class CacheService:
     async def delete_vector_metas(
         self,
         user_identity: UserIdentity,
-        request: VectorMetaRequest
+        request: VectorMetadataQuery
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='metas')
         await self.cache.delete(
@@ -89,21 +90,21 @@ class CacheService:
     async def get_qdrant_vectors(
         self, 
         user_identity: UserIdentity,
-        request: QDrantVectorRequest
-    ) -> QDrantVectorResponse:
+        request: VectorSearchResult
+    ) -> VectorSearchResult:
         cache_key = get_cache_key(model=request, prefix='qdrant-vectors')
         return await self.cache.get_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key, 
-            model=QDrantVectorResponse
+            model=VectorSearchResult
         )
     
     async def set_qdrant_vectors(
         self, 
         user_identity: UserIdentity,
-        request: QDrantVectorRequest,
-        response: QDrantVectorResponse
+        request: EmbeddingQuery,
+        response: VectorSearchResult
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='qdrant-vectors')
         await self.cache.set_one(
@@ -117,7 +118,7 @@ class CacheService:
         self, 
         user_identity: UserIdentity,
         integration_id: UUID
-    ) -> List[VectorProfileResponse]:
+    ) -> List[TableProfile]:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.organization_id)}{str(user_identity.user_id)}{str(integration_id)}',
             prefix='vector-profiles'
@@ -126,14 +127,14 @@ class CacheService:
             user_identity.organization_id,
             user_identity.user_id,
             cache_key, 
-            model=VectorProfileResponse
+            model=TableProfile
         )
     
     async def set_vector_profiles(
         self, 
         user_identity: UserIdentity,
         integration_id: UUID,
-        response: List[VectorProfileResponse]
+        response: List[TableMetadata]
     ) -> None:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.organization_id)}{str(user_identity.user_id)}{str(integration_id)}',

@@ -1,7 +1,6 @@
 from typing import Protocol, runtime_checkable, List
-from uuid import UUID
 
-from vector_service.services.vector_store_service.models import VectorPoint
+from vector_service.services.vector_store_service.models import VectorPoint, Vector
 from vector_service.api.context import UserIdentity
 
 
@@ -12,7 +11,7 @@ class VectorStoreClient(Protocol):
         user_identity: UserIdentity, 
         embedding: List[float],
         top_k: int = 5
-    ) ->  List[UUID]: ...
+    ) ->  List[Vector]: ...
 
 
     async def delete_vectors(

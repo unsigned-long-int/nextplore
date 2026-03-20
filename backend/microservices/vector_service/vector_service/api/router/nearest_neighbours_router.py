@@ -1,8 +1,9 @@
 import logging
+from typing import List
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from svc_vector_contracts.models import QDrantVectorRequest, QDrantVectorResponse
+from svc_vector_contracts.models import EmbeddingQuery, VectorSearchResult
 from vector_service.api.context import get_current_identity
 from vector_service.api.dependencies import get_vector_store_service
 from vector_service.services.vector_store_service.exceptions import SearchVectorDBFailed
@@ -15,14 +16,14 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/v1/vector', tags=['NearestNeighbour'])
 
 
-@router.post('/organizations/{organization_id}/users/{user_id}/nearest-neighbours', response_model=QDrantVectorResponse)
+@router.post('/organizations/{organization_id}/users/{user_id}/nearest-neighbours', response_model=List[VectorSearchResult])
 async def get_nearest_neighbours(
     organization_id: UUID,
     user_id: UUID,
-    payload: QDrantVectorRequest,
+    payload: EmbeddingQuery,
     cache_service: CacheService = Depends(get_cache_service),
     vector_store_service: VectorStoreService = Depends(get_vector_store_service)
-) -> QDrantVectorResponse:
+) -> List[VectorSearchResult]:
     user_identity = get_current_identity()
 
     if organization_id != user_identity.organization_id or user_id != user_identity.user_id:
@@ -43,10 +44,13 @@ async def get_nearest_neighbours(
         if cached:
             return cached
         
-        vector_ids = await vector_store_service.search_nearest_vectors(user_identity, payload.embedding)
-        response = QDrantVectorResponse(
-            vector_ids=vector_ids
-        )
+        vectors = await vector_store_service.search_nearest_vectors(user_identity, payload.embedding)
+        response = [
+            VectorSearchResult(
+                vector_id=v.id,
+                score=v.score
+            ) for v in vectors
+        ]
 
         await cache_service.set_qdrant_vectors(
             user_identity=user_identity,
