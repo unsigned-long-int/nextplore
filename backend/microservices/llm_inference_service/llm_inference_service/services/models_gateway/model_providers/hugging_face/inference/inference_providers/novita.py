@@ -3,7 +3,7 @@ import os
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionUserMessageParam, ChatCompletionToolParam
 from typing import Dict, Any, List
-from svc_llm_inference_contracts.models import ORMContextRequest
+from svc_llm_inference_contracts.models import ORMContextRequest, LlmOutputSpecs
 
 from .base import InferenceProviderBase
 
@@ -17,8 +17,8 @@ class NovitaInference(InferenceProviderBase):
         )
     
     async def get_structured_model_response(self, hf_path: str, max_tokens: int, orm_context_request: ORMContextRequest) -> Dict[str, Any]:
-        context = orm_context_request.context
-        tools: List[ChatCompletionToolParam] = self._build_function_schema(context)
+        llm_output_specs = orm_context_request.llm_output_specs
+        tools: List[ChatCompletionToolParam] = self._build_function_schema(llm_output_specs)
         messages: List[ChatCompletionUserMessageParam] = [{'role': 'user', 'content': orm_context_request.query}]
         request = await self.client.chat.completions.create(
             model=f'{hf_path}:{self.provider_name}',
@@ -45,7 +45,7 @@ class NovitaInference(InferenceProviderBase):
         )
         return response.choices[0].message.content
 
-    def _build_function_schema(self, context) -> List[ChatCompletionToolParam]:
+    def _build_function_schema(self, context: LlmOutputSpecs) -> List[ChatCompletionToolParam]:
         tools = [{'type': 'function',
                   'function': {
                       'name': 'generate_orm_class',

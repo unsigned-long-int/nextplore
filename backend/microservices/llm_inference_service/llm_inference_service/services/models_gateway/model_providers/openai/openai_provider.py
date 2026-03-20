@@ -3,11 +3,11 @@ import json
 from typing import Dict, List, Any
 from pydantic import ValidationError
 from openai.types.chat import ChatCompletionUserMessageParam, ChatCompletionToolParam
-from svc_llm_inference_contracts.models import ORMContextResponse, ORMContextRequest
+from svc_llm_inference_contracts.models import ORMContextResponse, ORMContextRequest, LlmOutputSpecs
 from nextplore_sdk.open_ai_client_loader.open_ai_client_loader import load_open_ai_client
 
-from llm_inference_service.services.orm_context.model_providers.base import BaseProvider
-from llm_inference_service.services.orm_context.exceptions import InvalidModelResponse
+from llm_inference_service.services.models_gateway.model_providers.base import BaseProvider
+from llm_inference_service.services.models_gateway.exceptions import InvalidModelResponse
 
 
 class OpenAIProvider(BaseProvider):
@@ -16,8 +16,8 @@ class OpenAIProvider(BaseProvider):
         self.client = load_open_ai_client(os.getenv('OPENAI_API_KEY'))
 
     async def execute_structured_query(self, orm_context_request: ORMContextRequest) -> Dict[str, Any]:
-        context = orm_context_request.context
-        tools: List[ChatCompletionToolParam] = self._build_function_schema(context)
+        llm_output_specs = orm_context_request.llm_output_specs
+        tools: List[ChatCompletionToolParam] = self._build_function_schema(llm_output_specs)
         messages: List[ChatCompletionUserMessageParam] = [
             {'role': 'user', 'content': orm_context_request.query}
         ]
@@ -41,6 +41,8 @@ class OpenAIProvider(BaseProvider):
             model=self.model_id,
             input=query,
         )
+        if len(response.output_text.strip().splitlines()) < 2:
+            raise InvalidModelResponse(f'Invalid model response. Model: {self.model_id}. Provider: OpenAI')
         return response.output_text
     
     def _validate_response_schema(self, model_response: Dict[str, Any]) -> bool:
@@ -50,7 +52,7 @@ class OpenAIProvider(BaseProvider):
         except ValidationError:
             return False
     
-    def _build_function_schema(self, context) -> List[ChatCompletionToolParam]:
+    def _build_function_schema(self, context: LlmOutputSpecs) -> List[ChatCompletionToolParam]:
         tools = [{'type': 'function',
                   'function': {
                       'name': 'generate_orm_class',

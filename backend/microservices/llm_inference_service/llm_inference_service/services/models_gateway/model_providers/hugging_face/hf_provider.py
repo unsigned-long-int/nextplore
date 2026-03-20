@@ -2,10 +2,10 @@ from typing import Dict, Any
 from pydantic import ValidationError
 from svc_llm_inference_contracts.models import ORMContextRequest, ORMContextResponse
 
-from llm_inference_service.services.orm_context.model_providers.hugging_face.inference.inference_providers import InferenceProviderBase
-from llm_inference_service.services.orm_context.exceptions import InvalidModelResponse
+from llm_inference_service.services.models_gateway.model_providers.hugging_face.inference.inference_providers import InferenceProviderBase
+from llm_inference_service.services.models_gateway.exceptions import InvalidModelResponse
 from llm_inference_service.domain.models.hf_model import HFModel
-from llm_inference_service.services.orm_context.model_providers.base import BaseProvider
+from llm_inference_service.services.models_gateway.model_providers.base import BaseProvider
 
 
 class HFProvider(BaseProvider):
@@ -30,6 +30,8 @@ class HFProvider(BaseProvider):
             max_tokens=self.model.max_tokens,
             query=query
         )
+        if len(response.strip().splitlines()) < 2:
+            raise InvalidModelResponse(f'Invalid model response. Model: {self.model.model_id}. Provider: {self.inference_provider!r}')
         return response
     
     def _validate_response_schema(self, model_response: Dict[str, Any]) -> bool:

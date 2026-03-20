@@ -1,6 +1,6 @@
 from typing import Dict, Any
 
-from llm_inference_service.services.orm_context.exceptions import MissingModelProviderFactory
+from llm_inference_service.services.models_gateway.exceptions import MissingModelProviderFactory
 from .factory import ProviderFactoryBase
 from .registry import PROVIDER_FACTORY_REGISTRY
 

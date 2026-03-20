@@ -1,5 +1,5 @@
-from llm_inference_service.services.orm_context.exceptions import InferenceProviderMissing
-from llm_inference_service.services.orm_context.model_providers.hugging_face.inference.inference_providers.base import InferenceProviderBase
+from llm_inference_service.services.models_gateway.exceptions import InferenceProviderMissing
+from llm_inference_service.services.models_gateway.model_providers.hugging_face.inference.inference_providers.base import InferenceProviderBase
 from .registry import INFERENCE_REGISTRY
 
 

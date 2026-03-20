@@ -3,10 +3,10 @@ from typing import List
 from uuid import UUID
 from fastapi import APIRouter, Depends, status, HTTPException
 
-from svc_ai_orm_context_contracts.models import ModelInfo
+from svc_llm_inference_contracts.models import ModelInfo
 from llm_inference_service.api.context import get_current_identity
 from llm_inference_service.cache import CacheService, get_cache_service
-from llm_inference_service.services.orm_context.models_registry import ModelsRegistry, get_models_registry
+from llm_inference_service.services.models_gateway.models_registry import ModelsRegistry, get_models_registry
 
 
 logger = logging.getLogger(__name__)

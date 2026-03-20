@@ -6,7 +6,7 @@ from pathlib import Path
 from nextplore_sdk.cache.client.base_redis_client import BaseCache
 from nextplore_sdk.logging.setup import setup_logger
 from llm_inference_service.cache import CacheService
-from llm_inference_service.services.orm_context.models_registry import setup_models_registry
+from llm_inference_service.services.models_gateway.models_registry import setup_models_registry
 from _version import version, app_name
 
 

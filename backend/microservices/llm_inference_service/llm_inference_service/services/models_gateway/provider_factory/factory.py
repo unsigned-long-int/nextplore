@@ -2,10 +2,10 @@ from typing import Dict, Any
 from abc import ABC, abstractmethod
 
 from llm_inference_service.domain.models.hf_model import HFModel
-from llm_inference_service.services.orm_context.model_providers.hugging_face.inference.inference_provider_factory import dispatch_inference_provider
-from llm_inference_service.services.orm_context.model_providers.base import BaseProvider
-from llm_inference_service.services.orm_context.model_providers.hugging_face import HFProvider
-from llm_inference_service.services.orm_context.model_providers.openai import OpenAIProvider
+from llm_inference_service.services.models_gateway.model_providers.hugging_face.inference.inference_provider_factory import dispatch_inference_provider
+from llm_inference_service.services.models_gateway.model_providers.base import BaseProvider
+from llm_inference_service.services.models_gateway.model_providers.hugging_face import HFProvider
+from llm_inference_service.services.models_gateway.model_providers.openai import OpenAIProvider
 
 
 class ProviderFactoryBase(ABC):
