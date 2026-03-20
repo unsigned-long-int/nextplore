@@ -18,14 +18,14 @@ import {
     IconSparkles,
 } from '@tabler/icons-react';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import { PipelineTrace, type PipelineTraceData } from '@/features/ai-query/components/LlmPipelineTrace';
+import { PipelineTrace } from '@/features/ai-query/components/LlmPipelineTrace';
 import { PromptBox } from '@/features/ai-query/components/PromptBox';
 import { QueryStatementPreview } from '@/features/ai-query/components/QueryStatementPreview';
 import { QueryResultTable } from '@/features/ai-query/components/QueryResultTable';
 import { LoadingOverlay } from '@/shared/components/LoadingOverlay';
 import { useGetModels } from '@/features/ai-query/hooks/useGetModels';
 import { useGetAiResponse } from '@/features/ai-query/hooks/useGetAiResponse';
-import type { ModelInfo } from '@/shared/api/services/ai-query/types.gen';
+import type { ModelInfo, PipelineTrace as PipelineTraceData} from '@/shared/api/services/ai-query/types.gen';
 
 const P = {
     glow: 'rgba(168,85,247,0.45)',
@@ -52,7 +52,7 @@ interface ModelOption {
     icon?: ReactNode;
 }
 
-const Toast = ({ message, _ }: { message: string; type: 'error' }) => (
+const Toast = ({ message, type }: { message: string; type: 'error' }) => (
     <Box sx={{
         position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
         background: 'linear-gradient(135deg, #1c0b0b 0%, #450a0a 100%)',
@@ -98,7 +98,7 @@ export const AiQueryPage = () => {
         setErrorMessage(null);
         setSqlPreview('');
         setAiQueryResponse([]);
-        setPipelineTrace(undefined);        // ← reset trace
+        setPipelineTrace(undefined);
 
         try {
             const response = await getAiResponse.mutateAsync({
@@ -237,7 +237,7 @@ export const AiQueryPage = () => {
                         <Box ref={params.InputProps.ref}>
                             <input
                                 {...params.inputProps}
-                                placeholder="Search model…"
+                                placeholder="Search model..."
                                 style={{
                                     width: '100%',
                                     background: 'rgba(168,85,247,0.05)',
@@ -297,7 +297,7 @@ export const AiQueryPage = () => {
 
             <Box sx={{ position: 'relative', minHeight: 260, overflow: 'hidden' }}>
                 {loading && (
-                    <LoadingOverlay loadingText="Asking the model… LLM snail is inspecting it…" />
+                    <LoadingOverlay loadingText="Asking the model... LLM snail is inspecting it..." />
                 )}
 
                 <Fade in={showResults} timeout={400}>
