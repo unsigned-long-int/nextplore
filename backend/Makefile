@@ -247,7 +247,7 @@ embedding:
 vector:
 	docker compose up vector_service
 
-ai-orm:
+llm-inference:
 	docker compose up llm_inference_service
 
 orchestration:
@@ -255,3 +255,26 @@ orchestration:
 
 watch:
 	watch -n 2 'docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}"'
+
+
+INFRA_PROFILES := --profile kafka --profile redis --profile zookeeper
+
+rebuild-integration: infra
+	docker compose --profile integration_service $(INFRA_PROFILES) rm -f integration_service
+	docker compose --profile integration_service $(INFRA_PROFILES) up -d --build integration_service
+
+rebuild-embedding: infra
+	docker compose --profile embedding_service $(INFRA_PROFILES) rm -f embedding_service
+	docker compose --profile embedding_service $(INFRA_PROFILES) up -d --build embedding_service
+
+rebuild-vector: infra
+	docker compose --profile vector_service $(INFRA_PROFILES) rm -f vector_service
+	docker compose --profile vector_service $(INFRA_PROFILES) up -d --build vector_service
+
+rebuild-llm-inference: infra
+	docker compose --profile llm_inference_service $(INFRA_PROFILES) rm -f llm_inference_service
+	docker compose --profile llm_inference_service $(INFRA_PROFILES) up -d --build llm_inference_service
+
+rebuild-orchestration: infra
+	docker compose --profile orchestration_service $(INFRA_PROFILES) rm -f orchestration_service
+	docker compose --profile orchestration_service $(INFRA_PROFILES) up -d --build orchestration_service
