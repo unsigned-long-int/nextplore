@@ -4,7 +4,7 @@ from uuid import uuid4
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 
-from svc_vector_contracts.models import VectorProfileResponse
+from svc_vector_contracts.models import TableProfile
 from vector_service.api.router.profiles_router import router
 from vector_service.database.exceptions import VectorProfilesGetFailed
 
@@ -123,13 +123,13 @@ class TestGetProfilesEndpoint(unittest.TestCase):
         mock_get_identity.return_value = self.user_identity
 
         cached_response = [
-            VectorProfileResponse(
+            TableProfile(
                 integration_id=self.integration_id,
                 schema_name='public',
                 table_name='users',
                 table_meta=self.table_meta_1
             ),
-            VectorProfileResponse(
+            TableProfile(
                 integration_id=self.integration_id,
                 schema_name='public',
                 table_name='orders',

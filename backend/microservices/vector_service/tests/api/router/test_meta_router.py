@@ -5,7 +5,7 @@ from uuid import uuid4
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 
-from svc_vector_contracts.models import VectorMetaResponse, VectorMetaRequest
+from svc_vector_contracts.models import VectorMetadataQuery, VectorMetadata
 from vector_service.api.router.meta_router import router
 from vector_service.database.exceptions import VectorGetFailed
 
@@ -18,6 +18,7 @@ class MockUserIdentity:
 
 class MockVectorMeta:
     def __init__(self, integration_id, schema_name, table_name, table_meta):
+        self.qdrant_vector_id = uuid4()
         self.integration_id = integration_id
         self.schema_name = schema_name
         self.table_name = table_name
@@ -41,7 +42,7 @@ class TestGetMetaEndpoint(unittest.TestCase):
         self.integration_id = uuid4()
 
         self.vector_ids = [uuid4(), uuid4(), uuid4()]
-        self.request = VectorMetaRequest(vector_ids=self.vector_ids)
+        self.request = VectorMetadataQuery(vector_ids=self.vector_ids)
 
         self.user_identity = MockUserIdentity(
             organization_id=self.organization_id,
@@ -122,14 +123,14 @@ class TestGetMetaEndpoint(unittest.TestCase):
         self.assertEqual(data[0]['integration_id'], str(self.integration_id))
         self.assertEqual(data[0]['schema_name'], 'public')
         self.assertEqual(data[0]['table_name'], 'users')
-        self.assertEqual(data[0]['table_meta'], self.table_meta_1)
+        self.assertEqual(data[0]['table_metadata'], self.table_meta_1)
 
         self.assertEqual(data[1]['table_name'], 'orders')
-        self.assertEqual(data[1]['table_meta'], self.table_meta_2)
+        self.assertEqual(data[1]['table_metadata'], self.table_meta_2)
 
         self.assertEqual(data[2]['schema_name'], 'analytics')
         self.assertEqual(data[2]['table_name'], 'products')
-        self.assertEqual(data[2]['table_meta'], self.table_meta_3)
+        self.assertEqual(data[2]['table_metadata'], self.table_meta_3)
 
         mock_vector_repo.get_vectors.assert_called_once_with(
             organization_id=self.organization_id,
@@ -144,17 +145,19 @@ class TestGetMetaEndpoint(unittest.TestCase):
         mock_get_identity.return_value = self.user_identity
 
         cached_response = [
-            VectorMetaResponse(
+            VectorMetadata(
+                vector_id=self.vector_ids[0],
                 integration_id=self.integration_id,
                 schema_name='public',
                 table_name='users',
-                table_meta=self.table_meta_1
+                table_metadata=self.table_meta_1
             ),
-            VectorMetaResponse(
+            VectorMetadata(
+                vector_id=self.vector_ids[1],
                 integration_id=self.integration_id,
                 schema_name='public',
                 table_name='orders',
-                table_meta=self.table_meta_2
+                table_metadata=self.table_meta_2
             )
         ]
 
@@ -376,7 +379,6 @@ class TestGetMetaEndpoint(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         data = response.json()
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['table_name'], 'users')

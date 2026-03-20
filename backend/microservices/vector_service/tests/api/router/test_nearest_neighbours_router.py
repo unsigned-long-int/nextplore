@@ -4,8 +4,9 @@ from uuid import uuid4, UUID
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 
-from svc_vector_contracts.models import QDrantVectorRequest, QDrantVectorResponse
+from svc_vector_contracts.models import EmbeddingQuery, VectorSearchResult
 from vector_service.api.router.nearest_neighbours_router import router
+from vector_service.services.vector_store_service.models import Vector
 from vector_service.services.vector_store_service.exceptions import SearchVectorDBFailed
 
 
@@ -36,9 +37,13 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
         )
 
         self.embedding = [0.1, 0.2, 0.3, 0.4, 0.5]
-        self.request = QDrantVectorRequest(embedding=self.embedding)
+        self.request = EmbeddingQuery(embedding=self.embedding)
 
-        self.vector_ids = [uuid4(), uuid4(), uuid4()]
+        self.vector_results = [
+            VectorSearchResult(vector_id=uuid4(), score=0.95),
+            VectorSearchResult(vector_id=uuid4(), score=0.87),
+            VectorSearchResult(vector_id=uuid4(), score=0.75),
+        ]
 
     def _get_endpoint_url(self, org_id=None, user_id=None):
         org_id = org_id or self.organization_id
@@ -52,7 +57,7 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
         self.mock_cache_service.get_qdrant_vectors = AsyncMock(return_value=None)
         self.mock_cache_service.set_qdrant_vectors = AsyncMock()
         self.mock_vector_store_service.search_nearest_vectors = AsyncMock(
-            return_value=self.vector_ids
+            return_value=[Vector(id=v.vector_id, score=v.score) for v in self.vector_results]
         )
 
         response = self.client.post(
@@ -63,28 +68,29 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.json()
-        self.assertIn('vector_ids', data)
-        self.assertEqual(len(data['vector_ids']), 3)
-        self.assertEqual(
-            [UUID(vid) for vid in data['vector_ids']],
-            self.vector_ids
-        )
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 3)
+
+        returned_ids = [UUID(r['vector_id']) for r in data]
+        expected_ids = [r.vector_id for r in self.vector_results]
+        self.assertEqual(returned_ids, expected_ids)
+
+        returned_scores = [r['score'] for r in data]
+        expected_scores = [r.score for r in self.vector_results]
+        self.assertEqual(returned_scores, expected_scores)
 
         self.mock_vector_store_service.search_nearest_vectors.assert_called_once_with(
             self.user_identity,
             self.embedding
         )
-
         self.mock_cache_service.set_qdrant_vectors.assert_called_once()
 
     @patch('vector_service.api.router.nearest_neighbours_router.get_current_identity')
     def test_get_nearest_neighbours_success_from_cache(self, mock_get_identity):
         mock_get_identity.return_value = self.user_identity
 
-        cached_response = QDrantVectorResponse(vector_ids=self.vector_ids[:2])
-        self.mock_cache_service.get_qdrant_vectors = AsyncMock(
-            return_value=cached_response
-        )
+        cached_results = self.vector_results[:2]
+        self.mock_cache_service.get_qdrant_vectors = AsyncMock(return_value=cached_results)
         self.mock_cache_service.set_qdrant_vectors = AsyncMock()
 
         response = self.client.post(
@@ -95,12 +101,11 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.json()
-        self.assertEqual(len(data['vector_ids']), 2)
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 2)
 
         self.mock_cache_service.get_qdrant_vectors.assert_called_once()
-
         self.mock_vector_store_service.search_nearest_vectors.assert_not_called()
-
         self.mock_cache_service.set_qdrant_vectors.assert_not_called()
 
     @patch('vector_service.api.router.nearest_neighbours_router.get_current_identity')
@@ -109,9 +114,7 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
 
         self.mock_cache_service.get_qdrant_vectors = AsyncMock(return_value=None)
         self.mock_cache_service.set_qdrant_vectors = AsyncMock()
-        self.mock_vector_store_service.search_nearest_vectors = AsyncMock(
-            return_value=[]
-        )
+        self.mock_vector_store_service.search_nearest_vectors = AsyncMock(return_value=[])
 
         response = self.client.post(
             self._get_endpoint_url(),
@@ -121,7 +124,8 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.json()
-        self.assertEqual(data['vector_ids'], [])
+        self.assertIsInstance(data, list)
+        self.assertEqual(data, [])
 
         self.mock_cache_service.set_qdrant_vectors.assert_called_once()
 
@@ -255,7 +259,7 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
         )
         self.mock_cache_service.set_qdrant_vectors = AsyncMock()
         self.mock_vector_store_service.search_nearest_vectors = AsyncMock(
-            return_value=self.vector_ids
+            return_value=[Vector(id=v.vector_id, score=v.score) for v in self.vector_results]
         )
 
         response = self.client.post(
@@ -275,16 +279,17 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
         self.mock_cache_service.get_qdrant_vectors = AsyncMock(return_value=None)
         self.mock_cache_service.set_qdrant_vectors = AsyncMock()
         self.mock_vector_store_service.search_nearest_vectors = AsyncMock(
-            return_value=self.vector_ids
+            return_value=[Vector(id=v.vector_id, score=v.score) for v in self.vector_results]
         )
 
         large_embedding = [0.1] * 1536
-        large_request = QDrantVectorRequest(embedding=large_embedding)
+        large_request = EmbeddingQuery(embedding=large_embedding)
 
         response = self.client.post(
             self._get_endpoint_url(),
             json=large_request.model_dump(mode='json')
         )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -328,11 +333,9 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
 
         self.mock_cache_service.get_qdrant_vectors = AsyncMock(return_value=None)
         self.mock_cache_service.set_qdrant_vectors = AsyncMock()
-        self.mock_vector_store_service.search_nearest_vectors = AsyncMock(
-            return_value=[]
-        )
+        self.mock_vector_store_service.search_nearest_vectors = AsyncMock(return_value=[])
 
-        empty_request = QDrantVectorRequest(embedding=[])
+        empty_request = EmbeddingQuery(embedding=[])
 
         response = self.client.post(
             self._get_endpoint_url(),
@@ -351,7 +354,7 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
         self.mock_cache_service.get_qdrant_vectors = AsyncMock(return_value=None)
         self.mock_cache_service.set_qdrant_vectors = AsyncMock()
         self.mock_vector_store_service.search_nearest_vectors = AsyncMock(
-            return_value=self.vector_ids
+            return_value=[Vector(id=v.vector_id, score=v.score) for v in self.vector_results]
         )
 
         response = self.client.post(
@@ -374,7 +377,7 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
             side_effect=Exception('Redis write error')
         )
         self.mock_vector_store_service.search_nearest_vectors = AsyncMock(
-            return_value=self.vector_ids
+            return_value=[Vector(id=v.vector_id, score=v.score) for v in self.vector_results]
         )
 
         response = self.client.post(
@@ -383,3 +386,31 @@ class TestGetNearestNeighboursEndpoint(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @patch('vector_service.api.router.nearest_neighbours_router.get_current_identity')
+    def test_get_nearest_neighbours_results_ordered_by_score(self, mock_get_identity):
+        mock_get_identity.return_value = self.user_identity
+
+        ordered_results = [
+            VectorSearchResult(vector_id=uuid4(), score=0.99),
+            VectorSearchResult(vector_id=uuid4(), score=0.80),
+            VectorSearchResult(vector_id=uuid4(), score=0.61),
+        ]
+
+        self.mock_cache_service.get_qdrant_vectors = AsyncMock(return_value=None)
+        self.mock_cache_service.set_qdrant_vectors = AsyncMock()
+        self.mock_vector_store_service.search_nearest_vectors = AsyncMock(
+            return_value=[Vector(id=v.vector_id, score=v.score) for v in ordered_results]
+        )
+
+        response = self.client.post(
+            self._get_endpoint_url(),
+            json=self.request.model_dump(mode='json')
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.json()
+        self.assertIsInstance(data, list)
+        returned_scores = [r['score'] for r in data]
+        self.assertEqual(returned_scores, [0.99, 0.80, 0.61])

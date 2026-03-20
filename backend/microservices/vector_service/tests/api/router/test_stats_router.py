@@ -4,7 +4,7 @@ from uuid import uuid4
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 
-from svc_vector_contracts.models import VectorStatsResponse
+from svc_vector_contracts.models import VectorIndexStats
 from vector_service.api.router.stats_router import router
 from vector_service.database.exceptions import VectorCountGetFailed
 
@@ -76,7 +76,7 @@ class TestGetStatsEndpoint(unittest.TestCase):
     def test_get_stats_success_from_cache(self, mock_get_identity):
         mock_get_identity.return_value = self.user_identity
 
-        cached_response = VectorStatsResponse(vector_count=100)
+        cached_response = VectorIndexStats(vector_count=100)
         self.mock_cache_service.get_stats = AsyncMock(return_value=cached_response)
         self.mock_cache_service.set_stats = AsyncMock()
 
@@ -424,7 +424,7 @@ class TestGetStatsEndpoint(unittest.TestCase):
     ):
         mock_get_identity.return_value = self.user_identity
 
-        cached_response = VectorStatsResponse(vector_count=999)
+        cached_response = VectorIndexStats(vector_count=999)
         self.mock_cache_service.get_stats = AsyncMock(return_value=cached_response)
 
         mock_vector_repo = MagicMock()
