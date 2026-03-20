@@ -4,7 +4,7 @@ import json
 from unittest.mock import AsyncMock, MagicMock, patch
 from svc_llm_inference_contracts.models import (
     ORMContextRequest,
-    Context
+    LlmOutputSpecs
 )
 
 from llm_inference_service.services.models_gateway.model_providers.hugging_face.inference.inference_providers import \
@@ -21,7 +21,7 @@ class TestNovitaInference(unittest.IsolatedAsyncioTestCase):
             provider='Deepseek',
             model_id='Deepseek-14-build',
             query='Count the powers for strong marvel characters',
-            context=Context(
+            llm_output_specs=LlmOutputSpecs(
                 integration_registry_repr='general',
                 integrations_enum=[str(uuid.uuid4()), str(uuid.uuid4())],
                 schemas_enum=['marvel', 'dc', 'startrek'],
@@ -32,7 +32,7 @@ class TestNovitaInference(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-    @patch('llm_inference_service.services.orm_context.model_providers.hugging_face.inference.inference_providers.novita.AsyncOpenAI')
+    @patch('llm_inference_service.services.models_gateway.model_providers.hugging_face.inference.inference_providers.novita.AsyncOpenAI')
     async def test_gets_model_response(
         self,
         openai_mock
@@ -60,7 +60,7 @@ class TestNovitaInference(unittest.IsolatedAsyncioTestCase):
         openai_instance_mock.chat.completions.create.assert_awaited_once_with(
             model=f'hf-path:{self.provider_name}',
             messages=[{'role': 'user', 'content': self.request.query}],
-            tools=inference._build_function_schema(self.request.context),
+            tools=inference._build_function_schema(self.request.llm_output_specs),
             tool_choice='required',
             max_tokens=300
         )

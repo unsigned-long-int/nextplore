@@ -6,7 +6,7 @@ from llm_inference_service.services.models_gateway.provider_factory import dispa
 
 
 class TestDispatcher(unittest.TestCase):
-    @patch('llm_inference_service.services.orm_context.provider_factory.dispatcher.PROVIDER_FACTORY_REGISTRY', new_callable=dict)
+    @patch('llm_inference_service.services.models_gateway.provider_factory.dispatcher.PROVIDER_FACTORY_REGISTRY', new_callable=dict)
     def test_successfully_dispatches(
         self,
         provider_registry_mock
@@ -20,7 +20,7 @@ class TestDispatcher(unittest.TestCase):
         self.assertEqual(factory, provider_instance)
         provider_cls.assert_called_once_with(model_meta_mock)
 
-    @patch('llm_inference_service.services.orm_context.provider_factory.dispatcher.PROVIDER_FACTORY_REGISTRY', new_callable=dict)
+    @patch('llm_inference_service.services.models_gateway.provider_factory.dispatcher.PROVIDER_FACTORY_REGISTRY', new_callable=dict)
     def test_raises_if_missing_provider(
         self,
         provider_registry_mock

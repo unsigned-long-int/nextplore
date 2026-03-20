@@ -2,10 +2,10 @@ import unittest
 import uuid
 import json
 from unittest.mock import MagicMock, patch, AsyncMock
-from svc_llm_inference_contracts.models import ORMContextRequest, Context
+from svc_llm_inference_contracts.models import ORMContextRequest, LlmOutputSpecs
 
 from llm_inference_service.services.models_gateway.exceptions import InvalidModelResponse
-from llm_inference_service.services.models_gateway.model_providers import OpenAIProvider
+from llm_inference_service.services.models_gateway.model_providers.openai import OpenAIProvider
 
 
 class TestOpenAIProvider(unittest.IsolatedAsyncioTestCase):
@@ -14,7 +14,7 @@ class TestOpenAIProvider(unittest.IsolatedAsyncioTestCase):
             provider='Deepseek',
             model_id='Deepseek-14-build',
             query='Count the powers for strong marvel characters',
-            context=Context(
+            llm_output_specs=LlmOutputSpecs(
                 integration_registry_repr='general',
                 integrations_enum=[str(uuid.uuid4()), str(uuid.uuid4())],
                 schemas_enum=['marvel', 'dc', 'startrek'],
@@ -25,7 +25,7 @@ class TestOpenAIProvider(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-    @patch('llm_inference_service.services.orm_context.model_providers.openai.openai_provider.load_open_ai_client')
+    @patch('llm_inference_service.services.models_gateway.model_providers.openai.openai_provider.load_open_ai_client')
     async def test_successfully_retrieves_model_response(
         self,
         load_open_ai_client_mock
@@ -57,11 +57,11 @@ class TestOpenAIProvider(unittest.IsolatedAsyncioTestCase):
         client.chat.completions.create.assert_awaited_once_with(
             model='Deepseek-14-build',
             messages=[{'role': 'user', 'content': self.request.query}],
-            tools=provider._build_function_schema(self.request.context),
+            tools=provider._build_function_schema(self.request.llm_output_specs),
             tool_choice='required'
         )
 
-    @patch('llm_inference_service.services.orm_context.model_providers.openai.openai_provider.load_open_ai_client')
+    @patch('llm_inference_service.services.models_gateway.model_providers.openai.openai_provider.load_open_ai_client')
     async def test_raises_by_invalid_response_schema(
         self,
         load_open_ai_client_mock

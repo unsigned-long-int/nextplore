@@ -2,13 +2,13 @@ import unittest
 from unittest.mock import patch, MagicMock
 
 from llm_inference_service.services.models_gateway.exceptions import InferenceProviderMissing
-from llm_inference_service.services.models_gateway.model_providers import \
+from llm_inference_service.services.models_gateway.model_providers.hugging_face.inference.inference_provider_factory import \
     dispatch_inference_provider
 
 
 class TestFactory(unittest.TestCase):
 
-    @patch('llm_inference_service.services.orm_context.model_providers.hugging_face.inference.inference_provider_factory.factory.INFERENCE_REGISTRY', new_callable=dict)
+    @patch('llm_inference_service.services.models_gateway.model_providers.hugging_face.inference.inference_provider_factory.factory.INFERENCE_REGISTRY', new_callable=dict)
     def test_returns_provider_instance(
         self,
         registry_mock
@@ -22,7 +22,7 @@ class TestFactory(unittest.TestCase):
         provider_class_mock.assert_called_once_with('cerebras', 'whatever-url')
         self.assertEqual(result, provider_instance_mock)
 
-    @patch('llm_inference_service.services.orm_context.model_providers.hugging_face.inference.inference_provider_factory.factory.INFERENCE_REGISTRY', new_callable=dict)
+    @patch('llm_inference_service.services.models_gateway.model_providers.hugging_face.inference.inference_provider_factory.factory.INFERENCE_REGISTRY', new_callable=dict)
     def test_raises_inference_provider_missing_exception(
         self,
         registry_mock

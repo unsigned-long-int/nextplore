@@ -3,10 +3,10 @@ import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from svc_ai_orm_context_contracts.models import ModelInfo
+from svc_llm_inference_contracts.models import ModelInfo
 
 from llm_inference_service.api.router.models_router import router
-from llm_inference_service.services.orm_context.models_registry import get_models_registry
+from llm_inference_service.services.models_gateway.models_registry import get_models_registry
 from llm_inference_service.cache import get_cache_service
 
 

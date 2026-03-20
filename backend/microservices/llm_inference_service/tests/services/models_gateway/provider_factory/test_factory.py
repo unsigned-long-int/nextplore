@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
-from llm_inference_service.services.models_gateway.provider_factory import (
+from llm_inference_service.services.models_gateway.provider_factory.factory import (
     ProviderFactoryBase,
     HFProviderFactory,
     OpenAIProviderFactory
@@ -29,9 +29,9 @@ class TestProviderFactoryBase(unittest.TestCase):
 
 
 class TestHFProviderFactory(unittest.TestCase):
-    @patch('llm_inference_service.services.orm_context.provider_factory.factory.HFModel')
-    @patch('llm_inference_service.services.orm_context.provider_factory.factory.dispatch_inference_provider')
-    @patch('llm_inference_service.services.orm_context.provider_factory.factory.HFProvider')
+    @patch('llm_inference_service.services.models_gateway.provider_factory.factory.HFModel')
+    @patch('llm_inference_service.services.models_gateway.provider_factory.factory.dispatch_inference_provider')
+    @patch('llm_inference_service.services.models_gateway.provider_factory.factory.HFProvider')
     def test_creates_hf_provider(
         self,
         hf_provider_mock,
@@ -55,7 +55,7 @@ class TestHFProviderFactory(unittest.TestCase):
 
 
 class TestOpenAIProviderFactory(unittest.TestCase):
-    @patch('llm_inference_service.services.orm_context.provider_factory.factory.OpenAIProvider')
+    @patch('llm_inference_service.services.models_gateway.provider_factory.factory.OpenAIProvider')
     def test_create_openai_provider(
         self,
         open_ai_provider_mock

@@ -2,7 +2,7 @@ import unittest
 import uuid
 
 from llm_inference_service.domain.models.orm_context import ORMContext
-from llm_inference_service.services.orm_context.ai_adapter import adapt_llm_response
+from llm_inference_service.services.rag_pipeline.ai_adapter import adapt_llm_response
 
 
 class TestAdaptLLMResponse(unittest.TestCase):

@@ -3,15 +3,15 @@ import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from svc_ai_orm_context_contracts.models import (
+from svc_llm_inference_contracts.models import (
     ORMContextRequest,
     ORMContextResponse,
-    Context
+    LlmOutputSpecs
 )
 
 from llm_inference_service.api.router.orm_context_router import router
-from llm_inference_service.services.orm_context.exceptions import InferenceProviderMissing, InvalidModelResponse
-from llm_inference_service.services.orm_context.models_registry import get_models_registry
+from llm_inference_service.services.models_gateway.exceptions import InferenceProviderMissing, InvalidModelResponse
+from llm_inference_service.services.models_gateway.models_registry import get_models_registry
 from llm_inference_service.cache import get_cache_service
 
 
@@ -41,7 +41,7 @@ class TestOrmContextRouter(unittest.TestCase):
             provider='Deepseek',
             model_id='Deepseek-14-build',
             query='Count the powers for strong marvel characters',
-            context=Context(
+            llm_output_specs=LlmOutputSpecs(
                 integration_registry_repr='general',
                 integrations_enum=[str(uuid.uuid4()), str(uuid.uuid4())],
                 schemas_enum=['marvel', 'dc', 'startrek'],

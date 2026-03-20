@@ -1,11 +1,11 @@
 import unittest
 import uuid
 from unittest.mock import patch, AsyncMock
-from svc_ai_orm_context_contracts.models import (
+from svc_llm_inference_contracts.models import (
     ModelInfo,
     ORMContextResponse,
     ORMContextRequest,
-    Context
+    LlmOutputSpecs
 )
 
 from llm_inference_service.cache import CacheService
@@ -32,7 +32,7 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             provider='Deepseek',
             model_id='Deepseek-14-build',
             query='Count the powers for strong marvel characters',
-            context=Context(
+            llm_output_specs=LlmOutputSpecs(
                 integration_registry_repr='general',
                 integrations_enum=[str(uuid.uuid4()), str(uuid.uuid4())],
                 schemas_enum=['marvel', 'dc', 'startrek'],
