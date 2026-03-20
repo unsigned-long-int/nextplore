@@ -53,6 +53,12 @@ Request any data across your integrations and get structured response.
 
 ![AI Query Use Case](./docs/ai-query-use-case.gif)
 
+**Pipeline Tracing**
+
+Use multi-query retrieval to broaden semantic coverage, combined with Reciprocal Rank Fusion (RRF) for robust result aggregation. Leverage RAG trace instrumentation to gain visibility into context construction and retrieval effectiveness.
+
+![Pipeline Tracing](./docs/pipeline-trace-use-case.gif)
+
 **Integration Creation/Update/Delete**
 
 Create and manage your integrations. 
