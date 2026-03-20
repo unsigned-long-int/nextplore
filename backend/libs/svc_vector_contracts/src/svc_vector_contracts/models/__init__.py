@@ -5,30 +5,31 @@
 from pydantic import UUID4, BaseModel, Field, RootModel
 
 
-class QDrantVectorRequest(BaseModel):
+class EmbeddingQuery(BaseModel):
     embedding: list[float] = Field(..., title="Embedding")
 
 
-class QDrantVectorResponse(BaseModel):
+class VectorSearchResult(BaseModel):
+    vector_id: UUID4 = Field(..., title="ID")
+    score: float = Field(..., title="Score")
+
+
+class VectorMetadataQuery(BaseModel):
     vector_ids: list[UUID4] = Field(..., title="Vector Ids")
 
 
-class VectorMetaRequest(BaseModel):
-    vector_ids: list[UUID4] = Field(..., title="Vector Ids")
-
-
-class VectorProfileResponse(BaseModel):
+class TableProfile(BaseModel):
     integration_id: UUID4 = Field(..., title="Integration Id")
     schema_name: str = Field(..., title="Schema Name")
     table_name: str = Field(..., title="Table Name")
     table_meta: str = Field(..., title="Table Meta")
 
 
-class VectorStatsResponse(BaseModel):
+class VectorIndexStats(BaseModel):
     vector_count: int = Field(..., title="Vector Count")
 
 
-class TableMeta(BaseModel):
+class TableMetadata(BaseModel):
     integration_id: UUID4 = Field(..., title="Integration Id")
     schema_name: str = Field(..., title="Schema Name")
     table_name: str = Field(..., title="Table Name")
@@ -42,9 +43,9 @@ class ValidationError(BaseModel):
 
 
 class ResponseGetProfilesV1VectorOrganizationsOrganizationIdUsersUserIdIntegrationsIntegrationIdVectorsProfilesGet(
-    RootModel[list[VectorProfileResponse]]
+    RootModel[list[TableProfile]]
 ):
-    root: list[VectorProfileResponse] = Field(
+    root: list[TableProfile] = Field(
         ...,
         title="Response Get Profiles V1 Vector Organizations  Organization Id  Users  User Id  Integrations  Integration Id  Vectors Profiles Get",
     )
@@ -54,17 +55,18 @@ class HTTPValidationError(BaseModel):
     detail: list[ValidationError] | None = Field(default=None, title="Detail")
 
 
-class VectorMetaResponse(BaseModel):
+class VectorMetadata(BaseModel):
+    vector_id: UUID4 = Field(..., title="Vector Id")
     integration_id: UUID4 = Field(..., title="Integration Id")
     schema_name: str = Field(..., title="Schema Name")
     table_name: str = Field(..., title="Table Name")
-    table_meta: TableMeta
+    table_metadata: TableMetadata
 
 
 class ResponseGetMetaV1VectorOrganizationsOrganizationIdUsersUserIdIntegrationsVectorsMetaGet(
-    RootModel[list[VectorMetaResponse]]
+    RootModel[list[VectorMetadata]]
 ):
-    root: list[VectorMetaResponse] = Field(
+    root: list[VectorMetadata] = Field(
         ...,
         title="Response Get Meta V1 Vector Organizations  Organization Id  Users  User Id  Integrations Vectors Meta Get",
     )
