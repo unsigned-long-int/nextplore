@@ -2,8 +2,7 @@ import json
 from typing import List, Dict
 from collections import defaultdict
 
-from nextplore_orchestrator.clients.vector.models.vector_meta_response import VectorMetaResponse
-from .rag_context import RAGContext
+from nextplore_orchestrator.domain.models import RagContext, VectorNeighbour
 
 
 def dictify(d):
@@ -13,31 +12,31 @@ def dictify(d):
 
 
 def build_rag_context(
-    vectors_meta: List[VectorMetaResponse]
-) -> RAGContext:
-    integrations = {str(meta.integration_id) for meta in vectors_meta}
-    schemas = {str(meta.schema_name) for meta in vectors_meta}
-    tables = {str(meta.table_name) for meta in vectors_meta}
+    vector_neighbours: List[VectorNeighbour]
+) -> RagContext:
+    integrations = {str(vn.orm_metadata.integration_id) for vn in vector_neighbours}
+    schemas = {str(vn.orm_metadata.schema_name) for vn in vector_neighbours}
+    tables = {str(vn.orm_metadata.table_name) for vn in vector_neighbours}
     columns = {
-        str(col) for meta in vectors_meta
-        for col in meta.table_meta.column_names
+        str(col) for vn in vector_neighbours
+        for col in vn.orm_metadata.column_names
     }
 
     registry: Dict[str, Dict[str, Dict[str, List[str]]]] = defaultdict(
         lambda: defaultdict(lambda: defaultdict(list))
     )
 
-    for meta in vectors_meta:
-        integration_id = str(meta.integration_id)
-        schema_name = str(meta.schema_name)
-        table_name = str(meta.table_name)
-        column_names = meta.table_meta.column_names
+    for vn in vector_neighbours:
+        integration_id = str(vn.orm_metadata.integration_id)
+        schema_name = str(vn.orm_metadata.schema_name)
+        table_name = str(vn.orm_metadata.table_name)
+        column_names = vn.orm_metadata.column_names
         column_names = [str(col) for col in column_names]
 
         registry[integration_id][schema_name][table_name] = column_names
 
     clean_registry = dictify(registry)
-    return RAGContext(
+    return RagContext(
         integration_registry_repr=json.dumps(clean_registry, indent=2),
         integrations_enum=list(integrations),
         schemas_enum=list(schemas),

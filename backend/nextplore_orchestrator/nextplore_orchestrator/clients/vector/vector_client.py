@@ -10,12 +10,17 @@ from nextplore_orchestrator.clients.vector.exceptions import (
     VectorGetProfilesRemoteError,
     VectorGetStatsRemoteError
 )
-from nextplore_orchestrator.clients.vector.models.vector_meta_request import VectorMetaRequest
-from nextplore_orchestrator.clients.vector.models.vector_meta_response import VectorMetaResponse
-from nextplore_orchestrator.clients.vector.models.vector_stats_response import VectorStatsResponse
-from nextplore_orchestrator.clients.vector.models.qdrant_vector_request import QDrantVectorRequest
-from nextplore_orchestrator.clients.vector.models.qdrant_vector_response import QDrantVectorResponse
-from nextplore_orchestrator.clients.vector.models.vector_profile_response import VectorProfileResponse
+
+from svc_vector_contracts.models import (
+    EmbeddingQuery,
+    VectorSearchResult,
+    VectorMetadataQuery,
+    TableProfile,
+    VectorIndexStats,
+    TableMetadata,
+    VectorMetadata
+)
+
 
 
 class VectorClient(BaseServiceClient):
@@ -26,13 +31,13 @@ class VectorClient(BaseServiceClient):
         self,
         organization_id: UUID,
         user_id: UUID,
-        payload: VectorMetaRequest
-    ) -> List[VectorMetaResponse]:
+        payload: VectorMetadataQuery
+    ) -> List[VectorMetadata]:
         try:
             url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/integrations/vectors/meta'
             response = await self.post(url, payload.model_dump())
             response.raise_for_status()
-            return [VectorMetaResponse(**item) for item in response.json()]
+            return [VectorMetadata(**item) for item in response.json()]
         except httpx.HTTPStatusError as e:
             if e.response.status_code in (424, 403):
                 try:
@@ -43,12 +48,12 @@ class VectorClient(BaseServiceClient):
                 raise VectorGetMetasRemoteError(message)
             raise
     
-    async def get_stats(self, organization_id: UUID, user_id: UUID) -> VectorStatsResponse:
+    async def get_stats(self, organization_id: UUID, user_id: UUID) -> VectorIndexStats:
         try:
             url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/stats'
             response = await self.get(url)
             response.raise_for_status()
-            return VectorStatsResponse(**response.json())
+            return VectorIndexStats(**response.json())
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 424:
                 try:
@@ -63,13 +68,13 @@ class VectorClient(BaseServiceClient):
         self,
         organization_id: UUID,
         user_id: UUID,
-        payload: QDrantVectorRequest
-    ) -> QDrantVectorResponse:
+        payload: EmbeddingQuery
+    ) -> List[VectorSearchResult]:
         try:
             url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/nearest-neighbours'
             response = await self.post(url, payload.model_dump())
             response.raise_for_status()
-            return QDrantVectorResponse(**response.json())
+            return [VectorSearchResult(**item) for item in response.json()]
         except httpx.HTTPStatusError as e:
             if e.response.status_code in (424, 403):
                 try:
@@ -85,12 +90,12 @@ class VectorClient(BaseServiceClient):
         organization_id: UUID,
         user_id: UUID,
         integration_id: UUID
-    ) -> List[VectorProfileResponse]:
+    ) -> List[TableProfile]:
         try:
             url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/integrations/{integration_id}/vectors/profiles'
             response = await self.get(url)
             response.raise_for_status()
-            return [VectorProfileResponse(**item) for item in response.json()]
+            return [TableProfile(**item) for item in response.json()]
         except httpx.HTTPStatusError as e:
             if e.response.status_code in (424, 403):
                 try:

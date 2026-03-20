@@ -15,6 +15,12 @@ from nextplore_orchestrator.cache.orchestrator_cache import OrchestratorCacheSer
 from nextplore_orchestrator.cache.identity_cache import IdentityCacheService
 from nextplore_orchestrator.cache.jwks_cache import JWKSCacheService
 from _version import version, app_name
+from nextplore_orchestrator.services.model_gateway import ModelGateway
+from nextplore_orchestrator.services.query_orchestrator.llm_orchestrator import SimpleLlmOrchestrator, \
+    ExpandedLlmOrchestrator, LlmOrchestratorFactory
+from nextplore_orchestrator.services.query_orchestrator.query_executor import QueryExecutor
+from nextplore_orchestrator.services.rag import RagPipeline
+from nextplore_orchestrator.services.vector_searcher import VectorSearcher
 
 
 @asynccontextmanager
@@ -54,9 +60,40 @@ async def lifespan(app: FastAPI):
     identity_cache_client = BaseCache(namespace='user_identity', version='v1')
     app.state.identity_cache_service = IdentityCacheService(identity_cache_client)
 
+    vector_searcher = VectorSearcher(
+        embedding_client=registry.embedding_client,
+        vector_client=registry.vector_client
+    )
+    model_gateway = ModelGateway(
+        llm_inference_client=registry.llm_inference_client,
+    )
+    query_executor = QueryExecutor(
+        integration_client=registry.integration_client,
+        engine_manager=engine_manager,
+    )
+    rag_pipeline = RagPipeline(
+        vector_search=vector_searcher,
+        model_gateway=model_gateway,
+    )
+
+    simple_llm_orchestrator = SimpleLlmOrchestrator(
+        vector_search=vector_searcher,
+        model_gateway=model_gateway,
+        query_executor=query_executor,
+    )
+    expanded_llm_orchestrator = ExpandedLlmOrchestrator(
+        model_gateway=model_gateway,
+        query_executor=query_executor,
+        rag_pipeline=rag_pipeline,
+    )
+    app.state.llm_orchestrator_factory = LlmOrchestratorFactory(
+        simple_llm_orchestrator=simple_llm_orchestrator,
+        expanded_llm_orchestrator=expanded_llm_orchestrator,
+    )
+
     yield
 
     await registry.close_clients()
     await jwks_fetcher.aclose()
-    await engine_manager.shutdown()
     await backend_connector.dispose()
+    engine_manager.shutdown()

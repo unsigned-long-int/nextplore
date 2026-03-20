@@ -9,6 +9,9 @@ from nextplore_orchestrator.clients.llm_inference.models.orm_context_response im
 from nextplore_orchestrator.clients.base import BaseServiceClient
 from .exceptions import ModelResponseRemoteError
 
+from svc_llm_inference_contracts.models import ChatRequest, ChatResponse
+
+
 
 class LlmInferenceClient(BaseServiceClient):
     def __init__(self, base_url: str = 'http://llm_inference_service:8001') -> None:
@@ -28,9 +31,9 @@ class LlmInferenceClient(BaseServiceClient):
             if e.response.status_code in (424, 403):
                 try:
                     detail = e.response.json().get('detail', {})
-                    message = detail.get('message', 'Model response failed')
+                    message = detail.get('message', 'Structured model response failed')
                 except (JSONDecodeError, KeyError, TypeError):
-                    message = 'Model response failed and error response could not be parsed'
+                    message = 'Structured model response failed and error response could not be parsed'
                 raise ModelResponseRemoteError(message)
             raise 
     
@@ -52,4 +55,23 @@ class LlmInferenceClient(BaseServiceClient):
                     message = 'Available models response failed and error response could not be parsed'
                 raise ModelResponseRemoteError(message)
             raise
-    
+
+    async def get_chat_response(
+        self,
+        organization_id: UUID,
+        user_id: UUID,
+        payload: ChatRequest,
+    ) -> ChatResponse:
+        try:
+            url = f'/v1/llm-inference/organizations/{organization_id}/users/{user_id}/chat'
+            response = await self.post(url, payload)
+            return ChatResponse(**response.json())
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code in (424, 403):
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Chat model response failed')
+                except (JSONDecodeError, KeyError, TypeError):
+                    message = 'Chat model response failed and error response could not be parsed'
+                raise ModelResponseRemoteError(message)
+            raise
