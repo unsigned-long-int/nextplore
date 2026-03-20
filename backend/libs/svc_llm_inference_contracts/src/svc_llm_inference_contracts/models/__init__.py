@@ -3,6 +3,7 @@
 #   timestamp: 2026-03-08T17:50:55+00:00
 
 from pydantic import UUID4, BaseModel, Field, RootModel
+from typing import List
 
 
 class ModelInfo(BaseModel):
@@ -22,7 +23,7 @@ class ORMContextResponse(BaseModel):
     column_filters: list[dict[str, str | int]] = Field(..., title="Column Filters")
 
 
-class Context(BaseModel):
+class LlmOutputSpecs(BaseModel):
     integration_registry_repr: str = Field(..., title="Integration Registry Repr")
     integrations_enum: list[str] = Field(..., title="Integrations Enum")
     schemas_enum: list[str] = Field(..., title="Schemas Enum")
@@ -50,4 +51,14 @@ class ORMContextRequest(BaseModel):
     provider: str = Field(..., title="Provider")
     model_id: str = Field(..., title="Model Id")
     query: str = Field(..., title="Query")
-    context: Context
+    llm_output_specs: LlmOutputSpecs
+
+
+class ChatRequest(BaseModel):
+    provider: str = Field(..., title="Provider")
+    model_id: str = Field(..., title="Model Id")
+    multiplier: int = Field(..., title="Multiplier")
+    query: str = Field(..., title="Query")
+
+class ChatResponse(BaseModel):
+    variants: List[str] = Field(..., title="Variants")
