@@ -44,7 +44,7 @@ async def crawl_filtered_integration_metadata(
         user_id: UUID,
         organization_id: UUID,
         inspection_request: FilteredCrawlRequest,
-        backend_connector: DatabaseBackendConnector,
+        repo: IntegrationRepository,
         engine_manager: EngineManager
 ) -> CrawlResponse:
     integration_spec, schema_spec, table_spec = create_specs(
@@ -54,7 +54,7 @@ async def crawl_filtered_integration_metadata(
     )
 
     integration_registry = await build_integrations_registry_catalog(
-        backend_connector=backend_connector,
+        repo=repo,
         engine_manager=engine_manager,
         user_id=user_id,
         organization_id=organization_id,

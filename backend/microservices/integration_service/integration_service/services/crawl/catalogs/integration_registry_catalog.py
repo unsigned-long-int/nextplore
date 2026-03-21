@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field 
 from typing import Tuple, List, Dict, ClassVar
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from .integration_catalog import IntegrationCatalog
 
@@ -13,8 +13,8 @@ class IntegrationRegistryCatalog:
     integrations: Tuple[IntegrationCatalog] = field(default_factory=tuple)
 
     @property
-    def integrations_enum(self) -> List[UUID]:
-        return [integration.id for integration in self.integrations]
+    def integrations_enum(self) -> List[str]:
+        return [str(integration.id) for integration in self.integrations]
     
     @property
     def table_metas(self) -> List[Dict[str, UUID | str | List[str]]]:

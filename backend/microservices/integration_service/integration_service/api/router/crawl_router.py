@@ -9,7 +9,7 @@ from integration_service.services.crawl.exceptions import CrawlIntegrationsFaile
 from integration_service.api.context import get_current_identity
 from integration_service.api.handlers import crawl_filtered_integration_metadata
 from integration_service.cache import CacheService, get_cache_service
-from integration_service.api.dependencies import get_backend_connector, get_engine_manager
+from integration_service.api.dependencies import get_engine_manager, get_repo
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ async def craw_filtered_integration(
     user_id: UUID,
     payload: FilteredCrawlRequest,
     cache_service: CacheService = Depends(get_cache_service),
-    backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
+    repo: DatabaseBackendConnector = Depends(get_repo),
     engine_manager: EngineManager = Depends(get_engine_manager)
 ) -> CrawlResponse:
     
@@ -49,7 +49,7 @@ async def craw_filtered_integration(
             user_id=user_identity.user_id,
             organization_id=user_identity.organization_id,
             inspection_request=payload,
-            backend_connector=backend_connector,
+            repo=repo,
             engine_manager=engine_manager
         )
         await cache_service.set_filtered_integration(
