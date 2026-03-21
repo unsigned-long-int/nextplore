@@ -66,7 +66,7 @@ class OpenAIProvider(BaseProvider):
         for col in model_response['column_names']:
             if not col.startswith(f'{schema_name}.{table_name}.'):
                 msg = f'Parsing failed. Column {col} does not belong to {schema_name}.{table_name}. Model: OpenAI. Provider: OpenAI, Response: {model_response}'
-                raise InvalidModelResponse(msg)  backend/microservices/integration_service/
+                raise InvalidModelResponse(msg)
 
         return {
             'integration': model_response['integration'],
