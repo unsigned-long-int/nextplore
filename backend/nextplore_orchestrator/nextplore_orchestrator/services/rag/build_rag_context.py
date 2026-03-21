@@ -41,5 +41,6 @@ def build_rag_context(
         integrations_enum=list(integrations),
         schemas_enum=list(schemas),
         tables_enum=list(tables),
-        columns_enum=list(columns)
+        columns_enum=list(columns),
+        table_columns_registry=clean_registry
     )

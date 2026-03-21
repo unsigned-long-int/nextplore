@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 
 
 from svc_vector_contracts.models import VectorMetadata, VectorSearchResult
-from svc_llm_inference_contracts.models import LlmOutputSpecs
+from svc_llm_inference_contracts.models import LlmOutputSpecs, IntegrationEntry, SchemaEntry
 from nextplore_orchestrator.domain.models import (
     Organization,
     User,
@@ -71,5 +71,12 @@ def llm_output_specs_dto_from_rag_context(rag_context: RagContext) -> LlmOutputS
         tables_enum=rag_context.tables_enum,
         columns_enum=rag_context.columns_enum,
         filter_op_enum=rag_context.filter_op_enum,
-        agg_funcs_enum=rag_context.agg_funcs_enum
+        agg_funcs_enum=rag_context.agg_funcs_enum,
+        table_columns_registry={
+            integration_id: IntegrationEntry(schemas={
+                schema_name: SchemaEntry(tables=tables)
+                for schema_name, tables in schemas.items()
+            })
+            for integration_id, schemas in rag_context.table_columns_registry.items()
+        }
     )

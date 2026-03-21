@@ -6,7 +6,9 @@ from fastapi.testclient import TestClient
 from svc_llm_inference_contracts.models import (
     ORMContextRequest,
     ORMContextResponse,
-    LlmOutputSpecs
+    LlmOutputSpecs,
+    IntegrationEntry,
+    SchemaEntry
 )
 
 from llm_inference_service.api.router.orm_context_router import router
@@ -48,7 +50,14 @@ class TestOrmContextRouter(unittest.TestCase):
                 tables_enum=['characters', 'relatives', 'realms'],
                 columns_enum=['power', 'skills', 'age', 'height', 'weight', 'name'],
                 filter_op_enum=['=', '>', '<', '!='],
-                agg_funcs_enum=['avg', 'sum', 'count', 'min', 'max']
+                agg_funcs_enum=['avg', 'sum', 'count', 'min', 'max'],
+                table_columns_registry={
+                    str(uuid.uuid4()): IntegrationEntry(schemas={
+                        'marvel': SchemaEntry(tables={
+                            'characters': ['power', 'skills', 'age', 'height', 'weight', 'name']
+                        })
+                    })
+                }
             )
         )
 
