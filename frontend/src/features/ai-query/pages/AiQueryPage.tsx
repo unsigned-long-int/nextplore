@@ -192,10 +192,11 @@ export const AiQueryPage = () => {
                             Nothing found
                         </Typography>
                     }
-                    renderOption={(props, opt) => (
+                    renderOption={({key, ...options}, opt) => (
                         <Box
                             component="li"
-                            {...props}
+                            key={key}
+                            {...options}
                             sx={{
                                 display: 'flex', alignItems: 'center', gap: 1.25,
                                 px: '12px !important', py: '9px !important',

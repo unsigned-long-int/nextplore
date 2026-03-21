@@ -27,6 +27,7 @@ export const IntegrationsList = () => {
                 id: row.id,
                 data: {autosync_on: enabled}
             });
+            row.autosync_on = enabled;
             showNotification({
                 title: 'Integration Updated',
                 message: `${row.connection_name} autosync ${enabled ? 'enabled' : 'disabled'}`,
