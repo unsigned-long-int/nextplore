@@ -90,10 +90,10 @@ class CacheService:
     async def get_qdrant_vectors(
         self, 
         user_identity: UserIdentity,
-        request: VectorSearchResult
-    ) -> VectorSearchResult:
+        request: EmbeddingQuery
+    ) -> List[VectorSearchResult]:
         cache_key = get_cache_key(model=request, prefix='qdrant-vectors')
-        return await self.cache.get_one(
+        return await self.cache.get_many(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key, 
@@ -104,10 +104,10 @@ class CacheService:
         self, 
         user_identity: UserIdentity,
         request: EmbeddingQuery,
-        response: VectorSearchResult
+        response: List[VectorSearchResult]
     ) -> None:
         cache_key = get_cache_key(model=request, prefix='qdrant-vectors')
-        await self.cache.set_one(
+        await self.cache.set_many(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key, 
