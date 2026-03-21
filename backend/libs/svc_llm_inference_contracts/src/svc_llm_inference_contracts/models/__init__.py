@@ -3,7 +3,7 @@
 #   timestamp: 2026-03-08T17:50:55+00:00
 
 from pydantic import UUID4, BaseModel, Field, RootModel
-from typing import List
+from typing import List, Dict
 
 
 class ModelInfo(BaseModel):
@@ -22,6 +22,11 @@ class ORMContextResponse(BaseModel):
     column_aggregates: list[dict[str, str]] = Field(..., title="Column Aggregates")
     column_filters: list[dict[str, str | int]] = Field(..., title="Column Filters")
 
+class SchemaEntry(BaseModel):
+    tables: Dict[str, List[str]]
+
+class IntegrationEntry(BaseModel):
+    schemas: Dict[str, SchemaEntry]
 
 class LlmOutputSpecs(BaseModel):
     integration_registry_repr: str = Field(..., title="Integration Registry Repr")
@@ -31,6 +36,7 @@ class LlmOutputSpecs(BaseModel):
     columns_enum: list[str] = Field(..., title="Columns Enum")
     filter_op_enum: list[str] = Field(..., title="Filter Op Enum")
     agg_funcs_enum: list[str] = Field(..., title="Agg Funcs Enum")
+    table_columns_registry: Dict[str, IntegrationEntry] = Field(..., title="Table Columns Registry")
 
 
 class ValidationError(BaseModel):
