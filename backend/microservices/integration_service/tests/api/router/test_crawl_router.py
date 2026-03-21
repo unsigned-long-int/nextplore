@@ -5,16 +5,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from svc_integration_contracts.models import (
     FilteredCrawlRequest,
-    IntegrationProfile,
     CrawlResponse,
-    Auth,
-    DB,
-    Cloud
 )
 from integration_service.services.crawl.exceptions import CrawlIntegrationsFailed
 from integration_service.cache import get_cache_service
 from integration_service.api.router.crawl_router import router
-from integration_service.api.dependencies import get_backend_connector, get_engine_manager
+from integration_service.api.dependencies import get_backend_connector, get_engine_manager, get_repo
 
 
 
@@ -25,10 +21,12 @@ class TestCrawlRouter(unittest.TestCase):
         self.client = TestClient(self.app)
 
         self.cache_mock = AsyncMock()
+        self.repo_mock = AsyncMock()
         self.database_backend_connector_mock = AsyncMock()
         self.engine_manager_mock = AsyncMock()
         self.app.dependency_overrides = {
             get_cache_service: lambda: self.cache_mock,
+            get_repo: lambda: self.repo_mock,
             get_backend_connector: lambda: self.database_backend_connector_mock,
             get_engine_manager: lambda: self.engine_manager_mock,
         }
