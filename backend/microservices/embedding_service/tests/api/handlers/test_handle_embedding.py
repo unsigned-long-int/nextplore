@@ -22,12 +22,16 @@ class TestHandleEmbedding(unittest.IsolatedAsyncioTestCase):
             table_metas=[
                 TableMeta(
                     integration_id=uuid.uuid4(),
+                    integration_name='marvel-integration',
+                    integration_descr='Store contains information about Marvel universe',
                     schema_name='marvel',
                     table_name='characters',
                     column_names=['age', 'skills', 'power']
                 ),
                 TableMeta(
                     integration_id=uuid.uuid4(),
+                    integration_name='marvel-integration',
+                    integration_descr='Store contains information about Marvel universe',
                     schema_name='dc',
                     table_name='villains',
                     column_names=['partner', 'crimes']
