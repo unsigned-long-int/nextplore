@@ -11,6 +11,7 @@ class IntegrationCreateRequest(BaseModel):
     cloud: Cloud
     db: DB
     connection_name: str
+    descr: str
     host: str
     database_name: str
     port: Optional[int] = Field(default=None)

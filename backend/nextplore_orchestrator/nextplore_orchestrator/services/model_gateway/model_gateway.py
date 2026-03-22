@@ -1,7 +1,7 @@
 from typing import List
 
 from svc_llm_inference_contracts.models import (
-    ChatRequest,
+    MultiQueryRequest,
     ORMContextResponse,
     ORMContextRequest,
     LlmOutputSpecs
@@ -19,10 +19,10 @@ class ModelGateway:
         self.llm_inference_client = llm_inference_client
 
     async def expand_query(self, request: AIQueryRequest, user_identity: UserIdentity) -> List[str]:
-        response = await self.llm_inference_client.get_chat_response(
+        response = await self.llm_inference_client.get_expanded_query(
             organization_id=user_identity.organization_id,
             user_id=user_identity.user_id,
-            payload=ChatRequest(
+            payload=MultiQueryRequest(
                 provider=request.provider,
                 model_id=request.model_id,
                 multiplier=5,

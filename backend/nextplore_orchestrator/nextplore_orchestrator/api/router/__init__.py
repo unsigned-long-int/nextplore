@@ -10,3 +10,4 @@ from .update_integration_router import router as update_integration_router
 from .delete_integration_router import router as delete_integration_router
 from .cert_profiles_router import router as cert_profiles_router
 from .create_cert_router import router as create_cert_router
+from .description_enhancement_router import router as description_enhancement_router

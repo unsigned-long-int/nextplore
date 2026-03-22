@@ -16,7 +16,8 @@ from nextplore_orchestrator.api.router import (
     update_integration_router,
     delete_integration_router,
     cert_profiles_router,
-    create_cert_router
+    create_cert_router,
+    description_enhancement_router
 )
 
 app = FastAPI(lifespan=lifespan)
@@ -40,5 +41,6 @@ app.include_router(update_integration_router)
 app.include_router(delete_integration_router)
 app.include_router(cert_profiles_router)
 app.include_router(create_cert_router)
+app.include_router(description_enhancement_router)
 
 Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)
