@@ -9,6 +9,7 @@ class IntegrationCreate:
     cloud: Cloud
     db: DB
     connection_name: str
+    descr: str
     host: str
     database_name: str
     kek_kid: str

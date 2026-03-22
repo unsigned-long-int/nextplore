@@ -32,6 +32,8 @@ async def crawl_initial_integration_metadata(
             organization_id=event.organization_id,
             table_metas=[TableMeta(
                 integration_id=table_meta.get('integration_id'),
+                integration_name=event.integration_name,
+                integration_descr=event.integration_descr,
                 schema_name=table_meta.get('schema_name'),
                 table_name=table_meta.get('table_name'),
                 column_names=table_meta.get('column_names'),

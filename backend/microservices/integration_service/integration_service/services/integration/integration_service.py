@@ -68,7 +68,9 @@ class IntegrationService:
                 IntegrationCreated(
                     user_id=user_identity.user_id,
                     organization_id=user_identity.organization_id,
-                    integration_id=integration_id
+                    integration_id=integration_id,
+                    integration_name=payload.connection_name,
+                    integration_descr=payload.descr
                 )
             )
             await self._cache_service.cache.delete_by_prefix(

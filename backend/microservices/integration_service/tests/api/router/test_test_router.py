@@ -31,6 +31,7 @@ class TestTestRouter(unittest.TestCase):
 
         self.postgres_request = IntegrationCreateRequest(
             connection_name='test-postgres',
+            descr='test-descr',
             cloud=Cloud.aws,
             auth=Auth.iam,
             db=DB.postgresql,
@@ -44,6 +45,7 @@ class TestTestRouter(unittest.TestCase):
 
         self.snowflake_request = IntegrationCreateRequest(
             connection_name='test-snowflake',
+            descr='test-descr',
             cloud=Cloud.snowflake_managed,
             auth=Auth.cert,
             db=DB.snowflake,
@@ -62,6 +64,7 @@ class TestTestRouter(unittest.TestCase):
 
         self.aws_request = IntegrationCreateRequest(
             connection_name='test-aws',
+            descr='test-descr',
             cloud=Cloud.aws,
             auth=Auth.iam,
             db=DB.mysql,
@@ -370,6 +373,7 @@ class TestTestRouter(unittest.TestCase):
 
         minimal_request = IntegrationCreateRequest(
             connection_name='test-minimal',
+            descr='test-descr',
             cloud=Cloud.gcp,
             auth=Auth.password_proxy,
             db=DB.sqlserver,

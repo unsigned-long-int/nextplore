@@ -47,6 +47,7 @@ class IntegrationORM(Base):
         nullable=False
     )
     connection_name = Column(Text, nullable=False)
+    descr = Column(Text, nullable=False)
     host = Column(Text, nullable=False)
     port = Column(Integer, nullable=True)
     database_name = Column(Text, nullable=False)
