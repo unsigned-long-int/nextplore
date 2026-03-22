@@ -9,6 +9,8 @@
         {"name": "timestamp", "type": {"type": "long", "logicalType": "timestamp-micros"}},
         {"name": "user_id", "type": {"type": "string", "logicalType": "uuid"}},
         {"name": "organization_id", "type": {"type": "string", "logicalType": "uuid"}},
-        {"name": "integration_id", "type": {"type": "string", "logicalType": "uuid"}}
+        {"name": "integration_id", "type": {"type": "string", "logicalType": "uuid"}},
+        {"name":  "integration_name", "type":  "string"},
+        {"name": "integration_descr", "type": "string"}
     ]
 }

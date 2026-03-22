@@ -16,7 +16,7 @@ router = APIRouter(prefix='/v1/llm-inference', tags=['Chat'])
 
 
 @router.post('/organizations/{organization_id}/users/{user_id}/chat', response_model=ChatResponse)
-async def get_chat_response(
+async def get_expanded_query(
     organization_id: UUID,
     user_id: UUID,
     payload: ChatRequest,
@@ -36,7 +36,7 @@ async def get_chat_response(
         )
 
     try:
-        cached = await cache_service.get_chat_response(
+        cached = await cache_service.get_expanded_query(
             user_identity=user_identity,
             request=payload
         )
@@ -50,9 +50,15 @@ async def get_chat_response(
         query_response = await provider.execute_query(expanded_query)
         variants = [q.strip() for q in query_response.strip().splitlines() if q.strip()]
 
-        return ChatResponse(
+        chat_response = ChatResponse(
             variants=[payload.query] + variants[:payload.multiplier]
         )
+        await cache_service.set_expanded_query(
+            user_identity=user_identity,
+            request=payload,
+            response=chat_response,
+        )
+        return chat_response
     except (InferenceProviderMissing, InvalidModelResponse) as e:
         logger.error(f'Get context failed: {e}', exc_info=True)
         raise HTTPException(

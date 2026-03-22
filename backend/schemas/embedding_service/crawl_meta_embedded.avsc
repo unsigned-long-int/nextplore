@@ -29,6 +29,8 @@
                                 "namespace": "com.nextplore.embedding",
                                 "fields": [
                                     {"name": "integration_id", "type": {"type":"string","logicalType":"uuid"}},
+                                    {"name": "integration_name", "type": "string"},
+                                    {"name": "integration_descr", "type": "string"},
                                     {"name": "schema_name", "type": "string"},
                                     {"name": "table_name", "type": "string"},
                                     {"name": "column_names", "type": {"type":"array","items":"string"}}

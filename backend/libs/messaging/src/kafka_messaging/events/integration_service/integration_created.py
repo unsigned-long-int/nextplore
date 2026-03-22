@@ -9,6 +9,8 @@ class IntegrationCreated(BaseEvent):
     version: ClassVar[str] = 'v1'
 
     integration_id: UUID4
+    integration_name: str
+    integration_descr: str
 
     def get_topics(self) -> List[str]:
         return [self.event_name]

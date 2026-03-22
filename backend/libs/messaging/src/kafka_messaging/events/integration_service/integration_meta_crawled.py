@@ -6,6 +6,8 @@ from kafka_messaging.events.base import BaseEvent
 
 class TableMeta(BaseModel):
     integration_id: UUID4
+    integration_name: str
+    integration_descr: str
     schema_name: str
     table_name: str
     column_names: List[str]
