@@ -33,6 +33,7 @@ export type IntegrationCreateRequest = {
     connection_name: string;
     host: string;
     database_name: string;
+    descr: string;
     port?: number | null;
     warehouse?: string | null;
     tenant_id?: string | null;

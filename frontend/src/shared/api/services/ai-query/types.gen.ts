@@ -41,3 +41,11 @@ export type ModelInfo = {
     label: string;
     tags: string[];
 };
+
+export type PromptRequest = {
+    prompt: string;
+};
+
+export type PromptResponse = {
+    response: string;
+};
