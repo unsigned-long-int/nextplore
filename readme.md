@@ -61,7 +61,7 @@ Use multi-query retrieval to broaden semantic coverage, combined with Reciprocal
 
 **Integration Creation/Update/Delete**
 
-Create and manage your integrations. 
+Create and manage your integrations. Benefit from LLM help to generate vector-friendly integration description to boost RAG efficiency. 
 
 ![Integrations Use Case](./docs/integration-creation-use-case.gif)
 
