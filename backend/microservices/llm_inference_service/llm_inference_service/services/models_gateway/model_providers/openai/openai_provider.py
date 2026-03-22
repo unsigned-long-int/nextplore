@@ -47,6 +47,13 @@ class OpenAIProvider(BaseProvider):
             raise InvalidModelResponse(msg)
         return response.output_text
 
+    async def prompt_model(self, prompt: str) -> str:
+        response = await self.client.responses.create(
+            model=self.model_id,
+            input=prompt,
+        )
+        return response.output_text
+
     @staticmethod
     def _validate_response_schema(model_response: Dict[str, Any]) -> bool:
         try:

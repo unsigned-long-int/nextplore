@@ -11,3 +11,8 @@ class BaseProvider(ABC):
     @abstractmethod
     async def execute_query(self, query: str) -> str:
         ...
+
+    @abstractmethod
+    async def prompt_model(self, prompt: str) -> str:
+        ...
+    

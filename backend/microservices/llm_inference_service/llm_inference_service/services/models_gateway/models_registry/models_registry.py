@@ -1,7 +1,7 @@
 import yaml
 import logging
 from pathlib import Path
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Tuple
 
 
 logger = logging.getLogger(__name__)
@@ -45,6 +45,9 @@ class ModelsRegistry:
             for provider, model in self._registry.items()
             for model_id, meta in model.items()
         ]
+
+    def get_default_model_config(self) -> Tuple[Dict[str, Any], str]:
+        return self.get_model(provider='openai', model_id='gpt-4o'), 'openai'
 
     def get_model(self, provider: str, model_id: str) -> Dict[str, Any]:
         model_registry = self.get_model_registry(provider)

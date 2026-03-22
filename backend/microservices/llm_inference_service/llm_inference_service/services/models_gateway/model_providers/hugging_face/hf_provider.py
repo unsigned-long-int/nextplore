@@ -35,6 +35,14 @@ class HFProvider(BaseProvider):
             raise InvalidModelResponse(f'Invalid chat model response. Model: {self.model.model_id}. Provider: {self.inference_provider!r}')
         return response
 
+    async def prompt_model(self, prompt: str) -> str:
+        response = await self.inference_provider.get_model_response(
+            hf_path=self.model.hf_path,
+            max_tokens=self.model.max_tokens,
+            query=prompt
+        )
+        return response
+
     @staticmethod
     def _validate_response_schema(model_response: Dict[str, Any]) -> bool:
         try:

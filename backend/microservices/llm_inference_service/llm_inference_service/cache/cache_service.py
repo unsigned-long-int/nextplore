@@ -4,8 +4,10 @@ from svc_llm_inference_contracts.models import (
     ModelInfo,
     ORMContextRequest,
     ORMContextResponse,
-    ChatRequest,
-    ChatResponse
+    MultiQueryRequest,
+    MultiQueryResponse,
+    PromptRequest,
+    PromptResponse
 )
 from nextplore_sdk.cache.utils.key_factory import get_string_cache_key, get_cache_key
 from nextplore_sdk.cache.client.interface import Cache
@@ -73,29 +75,57 @@ class CacheService:
             value=response
         )
 
-    async def get_chat_response(
+    async def get_expanded_query(
         self,
         user_identity: UserIdentity,
-        request: ChatRequest
-    ) -> ChatResponse:
-        cache_key = get_cache_key(model=request, prefix='chat-response')
+        request: MultiQueryRequest
+    ) -> MultiQueryResponse:
+        cache_key = get_cache_key(model=request, prefix='multi-query-response')
         return await self.cache.get_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            model=ChatResponse
+            model=MultiQueryResponse
         )
 
-    async def set_chat_response(
+    async def set_expanded_query(
         self,
         user_identity: UserIdentity,
-        request: ChatRequest,
-        response: ChatResponse,
+        request: MultiQueryRequest,
+        response: MultiQueryResponse,
     ) -> None:
-        cache_key = get_cache_key(model=request, prefix='chat-response')
+        cache_key = get_cache_key(model=request, prefix='multi-query-response')
         await self.cache.set_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
             value=response
         )
+
+    async def get_prompt_response(
+        self,
+        user_identity: UserIdentity,
+        request: PromptRequest
+    ) -> PromptResponse:
+        cache_key = get_cache_key(model=request, prefix='prompt-response')
+        return await self.cache.get_one(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key,
+            model=PromptResponse
+        )
+
+    async def set_prompt_response(
+        self,
+        user_identity: UserIdentity,
+        request: PromptRequest,
+        response: PromptResponse
+    ) -> None:
+        cache_key = get_cache_key(model=request, prefix='prompt-response')
+        await self.cache.set_one(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key,
+            value=response
+        )
+

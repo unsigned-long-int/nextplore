@@ -1,7 +1,7 @@
 import logging
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
-from svc_llm_inference_contracts.models import ChatRequest, ChatResponse
+from svc_llm_inference_contracts.models import MultiQueryRequest, MultiQueryResponse
 
 from llm_inference_service.api.context import get_current_identity
 from llm_inference_service.cache import CacheService, get_cache_service
@@ -12,17 +12,17 @@ from llm_inference_service.services.rag_pipeline.decomposition.multi_query_creat
 
 logger  = logging.getLogger(__name__)
 
-router = APIRouter(prefix='/v1/llm-inference', tags=['Chat'])
+router = APIRouter(prefix='/v1/llm-inference', tags=['QueryMultiplier'])
 
 
-@router.post('/organizations/{organization_id}/users/{user_id}/chat', response_model=ChatResponse)
+@router.post('/organizations/{organization_id}/users/{user_id}/query_multiplier', response_model=MultiQueryResponse)
 async def get_expanded_query(
     organization_id: UUID,
     user_id: UUID,
-    payload: ChatRequest,
+    payload: MultiQueryRequest,
     models_registry: ModelsRegistry = Depends(get_models_registry),
     cache_service: CacheService = Depends(get_cache_service),
-) -> ChatResponse:
+) -> MultiQueryResponse:
     user_identity = get_current_identity()
 
     if organization_id != user_identity.organization_id or user_id != user_identity.user_id:
@@ -50,23 +50,23 @@ async def get_expanded_query(
         query_response = await provider.execute_query(expanded_query)
         variants = [q.strip() for q in query_response.strip().splitlines() if q.strip()]
 
-        chat_response = ChatResponse(
+        multi_query_response = MultiQueryResponse(
             variants=[payload.query] + variants[:payload.multiplier]
         )
         await cache_service.set_expanded_query(
             user_identity=user_identity,
             request=payload,
-            response=chat_response,
+            response=multi_query_response,
         )
-        return chat_response
+        return multi_query_response
     except (InferenceProviderMissing, InvalidModelResponse) as e:
-        logger.error(f'Get context failed: {e}', exc_info=True)
+        logger.error(f'Get multi query failed: {e}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={'message': str(e)}
         )
     except Exception as e:
-        logger.error(f'Unexpected get context error: {e}', exc_info=True)
+        logger.error(f'Unexpected get multi query error: {e}', exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={'message': f'Unexpected error: {str(e)}'}
