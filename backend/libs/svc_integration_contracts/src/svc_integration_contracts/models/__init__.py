@@ -127,6 +127,7 @@ class IntegrationCreateRequest(BaseModel):
     cloud: Cloud
     db: DB
     connection_name: str = Field(..., title="Connection Name")
+    descr: str = Field(..., title="Description")
     host: str = Field(..., title="Host")
     database_name: str = Field(..., title="Database Name")
     port: int | None = Field(default=None, title="Port")

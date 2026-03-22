@@ -60,11 +60,20 @@ class ORMContextRequest(BaseModel):
     llm_output_specs: LlmOutputSpecs
 
 
-class ChatRequest(BaseModel):
+class MultiQueryRequest(BaseModel):
     provider: str = Field(..., title="Provider")
     model_id: str = Field(..., title="Model Id")
     multiplier: int = Field(..., title="Multiplier")
     query: str = Field(..., title="Query")
 
-class ChatResponse(BaseModel):
+
+class MultiQueryResponse(BaseModel):
     variants: List[str] = Field(..., title="Variants")
+
+
+class PromptRequest(BaseModel):
+    prompt: str = Field(..., title="Prompt")
+
+
+class PromptResponse(BaseModel):
+    response: str = Field(..., title="Response")
