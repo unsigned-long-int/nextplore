@@ -13,8 +13,7 @@ class TestHasSelectPermissionSpec(unittest.TestCase):
         self.schema_name = 'test_schema'
         self.mock_crawler = MagicMock()
         self.mock_conn = MagicMock()
-        self.mock_crawler.bind.connect.return_value.__enter__ = MagicMock(return_value=self.mock_conn)
-        self.mock_crawler.bind.connect.return_value.__exit__ = MagicMock(return_value=False)
+        self.mock_crawler.bind = self.mock_conn
 
     def _make_candidate(self, name: str):
         return TableCatalog(integration_id=self.integration_id, name=name)

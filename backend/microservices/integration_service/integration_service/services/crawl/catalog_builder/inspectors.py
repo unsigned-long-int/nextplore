@@ -19,15 +19,13 @@ def inspect_tables(
     schema_name: str,
     table_spec: Specification
 ) -> Tuple[TableCatalog, ...]:
-    permission_specs = HasSelectPermissionSpec(crawler, schema_name)
-    effective_spec = table_spec & permission_specs
 
     table_names = crawler.get_table_names(schema=quoted_name(schema_name, quote=True))
     tables = []
 
     for table_name in table_names:
         table_candidate = TableCatalog(integration_id=integration_id, name=table_name)
-        if not effective_spec.is_satisfied_by(table_candidate):
+        if not table_spec.is_satisfied_by(table_candidate):
             continue
         try:
             table = TableCatalog(
@@ -59,7 +57,15 @@ def inspect_schemas(
         schema_candidate = SchemaCatalog(integration_id=integration_id, name=schema_name)
         if not schema_spec.is_satisfied_by(schema_candidate):
             continue
-        tables = inspect_tables(crawler, integration_id, schema_name, table_spec)
+        if (permission_specs := HasSelectPermissionSpec(crawler, schema_name)).is_empty():
+            logger.info(f'Skipping schema {schema_name}: no accessible tables found')
+            continue
+        tables = inspect_tables(
+            crawler=crawler,
+            integration_id=integration_id,
+            schema_name=schema_name,
+            table_spec=table_spec & permission_specs
+        )
         if tables:
             schemas.append(SchemaCatalog(integration_id=integration_id, name=schema_name, tables=tables))
 

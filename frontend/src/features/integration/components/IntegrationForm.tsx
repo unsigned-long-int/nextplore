@@ -291,6 +291,16 @@ export const IntegrationForm: React.FC<Props> = ({
                             </Group>
                         </>
                 )}
+                 {(
+                        form.values.auth === Auth.IAM
+                        && form.values.cloud === Cloud.GCP
+                        && (form.values.db !== DB.MYSQL)) && (
+                            <>
+                                <Group grow mt='md'>
+                                    <TextInput label='Username' {...form.getInputProps('username')} />
+                                </Group>
+                            </>
+                 )}
                 <Group justify='flex-end' mt='lg'>
                     <Button
                         variant='default'

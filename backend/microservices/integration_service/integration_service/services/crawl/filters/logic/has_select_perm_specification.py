@@ -32,8 +32,18 @@ SELECT_PERM_STMT = {
         FROM INFORMATION_SCHEMA.TABLES
         WHERE TABLE_SCHEMA = :schema
         AND EXISTS (
+            SELECT 1 FROM INFORMATION_SCHEMA.SCHEMA_PRIVILEGES
+            WHERE TABLE_SCHEMA = :schema
+            AND PRIVILEGE_TYPE = 'SELECT'
+        )
+        UNION
+        SELECT TABLE_NAME
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = :schema
+        AND EXISTS (
             SELECT 1 FROM INFORMATION_SCHEMA.USER_PRIVILEGES
-            WHERE PRIVILEGE_TYPE = 'SELECT')
+            WHERE PRIVILEGE_TYPE = 'SELECT'
+        )
     '''
 }
 
@@ -47,17 +57,22 @@ class HasSelectPermissionSpec(Specification):
             return True
         return candidate.name in self._accessible
 
+    def is_empty(self):
+        return self._accessible is not None and len(self._accessible) == 0
+
     def _fetch_accessible(self, crawler: Inspector, schema_name: str) -> Set[str] | None:
         dialect = crawler.dialect.name
+        logger.info('Fetching accessible permissions for schema %s, dialog: %s', schema_name, dialect)
         try:
-            with crawler.bind.connect() as conn:
-                if (stmt := SELECT_PERM_STMT.get(dialect)) is not None:
-                    result = conn.execute(text(stmt), {'schema': schema_name})
-                    return {row[0] for row in result}
-                elif dialect == 'snowflake':
-                    return self._probe_snowflake(conn, schema_name, crawler)
-                else:
-                    return None
+            conn = crawler.bind
+            if (stmt := SELECT_PERM_STMT.get(dialect)) is not None:
+                result = conn.execute(text(stmt), {'schema': schema_name})
+                logger.info('Allowed schemas: %s', result)
+                return {row[0] for row in result}
+            elif dialect == 'snowflake':
+                return self._probe_snowflake(conn, schema_name, crawler)
+            else:
+                return None
         except Exception as e:
             logger.warning(f'Permission filter failed for {schema_name}: {e}')
             return None

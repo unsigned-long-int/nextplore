@@ -217,6 +217,8 @@ services:
         SVC_INTEGRATION_CONTRACTS: libs/.wheelhouse/svc_integration_contracts-0.1.0-py3-none-any.whl
         SVC_NEXTPLORE_ORCHESTRATOR_CONTRACTS: libs/.wheelhouse/svc_nextplore_orchestrator_contracts-0.1.0-py3-none-any.whl
         SVC_VECTOR_CONTRACTS: libs/.wheelhouse/svc_vector_contracts-0.1.0-py3-none-any.whl
+    volumes:
+      - ~/.gcp-keys/gcp-access-key.json:/app/gcp-access-key.json:ro
     container_name: orchestration_service
     depends_on:
       - kafka
@@ -224,6 +226,7 @@ services:
     ports:
       - "${ORCHESTRATION_PORT:-8005}:8001"
     environment:
+      - GCP_ACCESS_KEY=/app/gcp-access-key.json
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1
       - KAFKA_GROUP_PREFIX=${KAFKA_GROUP_PREFIX}
