@@ -7,8 +7,8 @@ from svc_llm_inference_contracts.models import LlmOutputSpecs
 def build_tool_schema(llm_output_specs: LlmOutputSpecs) -> List[ChatCompletionToolParam]:
     qualified_columns = [
         f'{schema_name}.{table_name}.{column}'
-        for integration_entry in llm_output_specs.table_columns_registry.values()
-        for schema_name, schema_entry in integration_entry.schemas.items()
+        for datastore_entry in llm_output_specs.table_columns_registry.values()
+        for schema_name, schema_entry in datastore_entry.schemas.items()
         for table_name, columns in schema_entry.tables.items()
         for column in columns
     ]
@@ -27,10 +27,10 @@ def build_tool_schema(llm_output_specs: LlmOutputSpecs) -> List[ChatCompletionTo
             'parameters': {
                 'type': 'object',
                 'properties': {
-                    'integration': {
+                    'datastore': {
                         'type': 'string',
-                        'description': f'delivers the connection id of database from Metadata: {llm_output_specs.integration_registry_repr}',
-                        'enum': llm_output_specs.integrations_enum
+                        'description': f'delivers the connection id of database from Metadata: {llm_output_specs.datastore_registry_repr}',
+                        'enum': llm_output_specs.datastores_enum
                     },
                     'class_name': {
                         'type': 'string',
@@ -41,7 +41,7 @@ def build_tool_schema(llm_output_specs: LlmOutputSpecs) -> List[ChatCompletionTo
                         'description': 'delivers the names of the columns for chosen table in schema.table.column format.',
                         'items': {
                             'type': 'string',
-                            'description': f'delivers the fully qualified column name (schema.table.column) for respective table from chosen schema from Metadata: {llm_output_specs.integration_registry_repr}',
+                            'description': f'delivers the fully qualified column name (schema.table.column) for respective table from chosen schema from Metadata: {llm_output_specs.datastore_registry_repr}',
                             'enum': qualified_columns
                         }
                     },
@@ -111,7 +111,7 @@ def build_tool_schema(llm_output_specs: LlmOutputSpecs) -> List[ChatCompletionTo
                         }
                     }
                 },
-                'required': ['integration', 'class_name', 'column_names', 'column_filters', 'column_aggregates'],
+                'required': ['datastore', 'class_name', 'column_names', 'column_filters', 'column_aggregates'],
                 'additionalProperties': False
             },
             'strict': True

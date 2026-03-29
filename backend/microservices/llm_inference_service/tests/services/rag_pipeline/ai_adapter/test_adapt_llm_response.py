@@ -7,9 +7,9 @@ from llm_inference_service.services.rag_pipeline.ai_adapter import adapt_llm_res
 
 class TestAdaptLLMResponse(unittest.TestCase):
     def test_adapt_llm_response(self):
-        integration = uuid.uuid4()
+        datastore = uuid.uuid4()
         response = {
-            'integration': integration,
+            'datastore': datastore,
             'schema_name': 'marvel',
             'class_name': 'marvel_characters',
             'table_name': 'characters',
@@ -19,5 +19,5 @@ class TestAdaptLLMResponse(unittest.TestCase):
         }
         result = adapt_llm_response(response)
         self.assertIsInstance(result, ORMContext)
-        self.assertEqual(result.integration, integration)
+        self.assertEqual(result.datastore, datastore)
         self.assertEqual(result.schema_name, 'marvel')

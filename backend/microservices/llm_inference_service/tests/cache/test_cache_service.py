@@ -6,7 +6,7 @@ from svc_llm_inference_contracts.models import (
     ORMContextResponse,
     ORMContextRequest,
     LlmOutputSpecs,
-    IntegrationEntry,
+    DataStoreEntry,
     SchemaEntry,
     MultiQueryRequest,
     MultiQueryResponse,
@@ -39,15 +39,15 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             model_id='Deepseek-14-build',
             query='Count the powers for strong marvel characters',
             llm_output_specs=LlmOutputSpecs(
-                integration_registry_repr='general',
-                integrations_enum=[str(uuid.uuid4()), str(uuid.uuid4())],
+                datastore_registry_repr='general',
+                datastores_enum=[str(uuid.uuid4()), str(uuid.uuid4())],
                 schemas_enum=['marvel', 'dc', 'startrek'],
                 tables_enum=['characters', 'relatives', 'realms'],
                 columns_enum=['power', 'skills', 'age', 'height', 'weight', 'name'],
                 filter_op_enum=['=', '>', '<', '!='],
                 agg_funcs_enum=['avg', 'sum', 'count', 'min', 'max'],
                 table_columns_registry={
-                    str(uuid.uuid4()): IntegrationEntry(schemas={
+                    str(uuid.uuid4()): DataStoreEntry(schemas={
                         'marvel': SchemaEntry(tables={
                             'characters': ['power', 'skills', 'age', 'height', 'weight', 'name']
                         })
@@ -56,7 +56,7 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             )
         )
         self.orm_context = ORMContextResponse(
-            integration=uuid.uuid4(),
+            datastore=uuid.uuid4(),
             schema_name='marvel',
             class_name='MarvelCharacters',
             table_name='characters',

@@ -1,5 +1,5 @@
 import unittest
-from svc_llm_inference_contracts.models import LlmOutputSpecs, IntegrationEntry, SchemaEntry
+from svc_llm_inference_contracts.models import LlmOutputSpecs, DataStoreEntry, SchemaEntry
 
 from llm_inference_service.services.rag_pipeline.ai_adapter.llm_output_specs_tool_adapter import build_tool_schema
 
@@ -14,15 +14,15 @@ ALL_QUALIFIED_COLUMNS  = QUALIFIED_COLUMNS_EMP + QUALIFIED_COLUMNS_DEPT
 
 def make_llm_output_specs() -> LlmOutputSpecs:
     return LlmOutputSpecs(
-        integration_registry_repr='{"int-1": {"hr": {"employees": ["employee_id", "full_name", "department_id"], "departments": ["department_id", "name"]}}}',
-        integrations_enum=['int-1'],
+        datastore_registry_repr='{"int-1": {"hr": {"employees": ["employee_id", "full_name", "department_id"], "departments": ["department_id", "name"]}}}',
+        datastores_enum=['int-1'],
         schemas_enum=['hr'],
         tables_enum=['employees', 'departments'],
         columns_enum=['employee_id', 'full_name', 'department_id', 'name'],
         filter_op_enum=['==', 'in', 'like', '>', '<', '>=', '<='],
         agg_funcs_enum=['avg', 'sum', 'min', 'max', 'count'],
         table_columns_registry={
-            'int-1': IntegrationEntry(schemas={
+            'int-1': DataStoreEntry(schemas={
                 'hr': SchemaEntry(tables={
                     'employees':   COLUMNS_EMP,
                     'departments': COLUMNS_DEPT,
@@ -34,15 +34,15 @@ def make_llm_output_specs() -> LlmOutputSpecs:
 
 def make_single_table_specs() -> LlmOutputSpecs:
     return LlmOutputSpecs(
-        integration_registry_repr='{"int-1": {"hr": {"employees": ["employee_id"]}}}',
-        integrations_enum=['int-1'],
+        datastore_registry_repr='{"int-1": {"hr": {"employees": ["employee_id"]}}}',
+        datastores_enum=['int-1'],
         schemas_enum=['hr'],
         tables_enum=['employees'],
         columns_enum=['employee_id'],
         filter_op_enum=['==', 'in'],
         agg_funcs_enum=['count'],
         table_columns_registry={
-            'int-1': IntegrationEntry(schemas={
+            'int-1': DataStoreEntry(schemas={
                 'hr': SchemaEntry(tables={'employees': ['employee_id']})
             })
         }
@@ -82,24 +82,24 @@ class TestBuildToolSchemaStructure(unittest.TestCase):
     def test_required_fields(self):
         self.assertEqual(
             set(self.params['required']),
-            {'integration', 'class_name', 'column_names', 'column_filters', 'column_aggregates'}
+            {'datastore', 'class_name', 'column_names', 'column_filters', 'column_aggregates'}
         )
 
     def test_no_one_of_present(self):
         self.assertNotIn('oneOf', self.params)
 
 
-class TestBuildToolSchemaIntegration(unittest.TestCase):
+class TestBuildToolSchemaDataStore(unittest.TestCase):
 
     def setUp(self):
         self.specs = make_llm_output_specs()
         self.props = build_tool_schema(self.specs)[0]['function']['parameters']['properties']
 
-    def test_integration_enum_matches(self):
-        self.assertEqual(self.props['integration']['enum'], self.specs.integrations_enum)
+    def test_datastore_enum_matches(self):
+        self.assertEqual(self.props['datastore']['enum'], self.specs.datastores_enum)
 
-    def test_integration_description_contains_registry_repr(self):
-        self.assertIn(self.specs.integration_registry_repr, self.props['integration']['description'])
+    def test_datastore_description_contains_registry_repr(self):
+        self.assertIn(self.specs.datastore_registry_repr, self.props['datastore']['description'])
 
     def test_class_name_present(self):
         self.assertIn('class_name', self.props)
@@ -144,8 +144,8 @@ class TestBuildToolSchemaQualifiedColumns(unittest.TestCase):
 
     def test_empty_registry_produces_empty_enum(self):
         specs = LlmOutputSpecs(
-            integration_registry_repr='{}',
-            integrations_enum=[],
+            datastore_registry_repr='{}',
+            datastores_enum=[],
             schemas_enum=[],
             tables_enum=[],
             columns_enum=[],

@@ -51,7 +51,7 @@ async def get_orm_context(
         orm_context = adapt_llm_response(model_response)
 
         response = ORMContextResponse(
-            integration=orm_context.integration,
+            datastore=orm_context.datastore,
             schema_name=orm_context.schema_name,
             class_name=orm_context.class_name,
             table_name=orm_context.table_name,

@@ -1,11 +1,17 @@
 from typing import Dict, Type
 
-from .factory import ProviderFactoryBase, HFProviderFactory, OpenAIProviderFactory
+from .factory import (
+    ProviderFactoryBase,
+    HFProviderFactory,
+    OpenAIProviderFactory,
+    UserLlmProviderFactory
+)
 
 
 PROVIDER_FACTORY_REGISTRY: Dict[str, Type[ProviderFactoryBase]] = {
     'huggingface': HFProviderFactory,
-    'openai': OpenAIProviderFactory
+    'openai': OpenAIProviderFactory,
+    'custom': UserLlmProviderFactory
 }
 
 

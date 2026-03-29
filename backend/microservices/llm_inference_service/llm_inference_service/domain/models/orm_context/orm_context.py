@@ -4,7 +4,7 @@ from typing import List, Dict
 
 @dataclass(frozen=True)
 class ORMContext:
-    integration: str
+    datastore: str
     schema_name: str
     class_name: str
     table_name: str

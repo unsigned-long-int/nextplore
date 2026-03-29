@@ -14,7 +14,7 @@ WORKDIR /app
 
 COPY microservices/llm_inference_service /app/
 
-RUN pip install --no-cache-dir -r requirements.txt 
+RUN pip install --no-cache-dir -c constraints.txt -r requirements.txt
 
 USER llm-inference-service
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]

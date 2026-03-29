@@ -1,4 +1,4 @@
 from .hf_model import HFModel
-from .user_hosted_model import UserHostedModel
+from .user_llm import UserLlm
 
-__all__ = ['HFModel', 'UserHostedModel']
+__all__ = ['HFModel', 'UserLlm']
