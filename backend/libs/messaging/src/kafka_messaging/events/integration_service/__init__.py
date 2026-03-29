@@ -1,3 +1,3 @@
-from .integration_created import IntegrationCreated
-from .integration_deleted import IntegrationDeleted
-from .integration_meta_crawled import IntegrationMetaCrawled, TableMeta
+from .datastore_created import DataStoreCreated
+from .datastore_deleted import DataStoreDeleted
+from .datastore_meta_crawled import DataStoreMetaCrawled, TableMeta

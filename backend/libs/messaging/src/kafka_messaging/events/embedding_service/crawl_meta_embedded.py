@@ -5,16 +5,16 @@ from kafka_messaging.events.base import BaseEvent
 
 
 class TableMeta(BaseModel):
-    integration_id: UUID4
-    integration_name: str
-    integration_descr: str
+    datastore_id: UUID4
+    datastore_name: str
+    datastore_descr: str
     schema_name: str
     table_name: str
     column_names: List[str]
 
 
 class ORMEmbedding(BaseModel):
-    integration_id: UUID4
+    datastore_id: UUID4
     schema_name: str
     table_name: str
     table_meta: TableMeta

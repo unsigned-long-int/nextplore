@@ -6,7 +6,7 @@ BASE = Path('schemas').resolve()
 
 AVRO_SCHEMA_REGISTRY: Dict[str, Path] = {
     'crawlmeta.embedded': BASE / 'embedding_service' / 'crawl_meta_embedded.avsc',
-    'integration.created': BASE / 'integration_service' / 'integration_created.avsc',
-    'integration.deleted': BASE / 'integration_service' / 'integration_deleted.avsc',
-    'integrationmeta.crawled': BASE / 'integration_service' / 'integration_meta_crawled.avsc'
+    'datastore.created': BASE / 'integration_service' / 'datastore_created.avsc',
+    'datastore.deleted': BASE / 'integration_service' / 'datastore_deleted.avsc',
+    'datastore.meta.crawled': BASE / 'integration_service' / 'datastore_meta_crawled.avsc'
 }

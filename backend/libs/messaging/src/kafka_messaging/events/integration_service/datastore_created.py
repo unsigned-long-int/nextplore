@@ -5,7 +5,7 @@ from kafka_messaging.events.base import BaseEvent
 
 
 class DataStoreCreated(BaseEvent):
-    event_name: ClassVar[str] = 'data_store.created'
+    event_name: ClassVar[str] = 'datastore.created'
     version: ClassVar[str] = 'v1'
 
     datastore_id: UUID4

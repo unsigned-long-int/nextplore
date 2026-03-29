@@ -17,7 +17,7 @@ class TestAvroCodec(unittest.TestCase):
     def setUp(self):
         self.schema_str = '''{
             "type": "record",
-            "namespace": "com.nextplore.integration",
+            "namespace": "com.nextplore.data_store",
             "name": "IntegrationCreated",
             "fields": [
                 {"name": "event_name", "type": "string"},
