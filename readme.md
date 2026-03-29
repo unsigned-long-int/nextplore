@@ -15,7 +15,10 @@
 
 # Nextplore - LLM-powered SQL ORM Context Creator
 
-> Nextplore is a multi-tenant microservice SaaS designed to leverage Large Language Models (LLMs) and advanced metaprogramming to enable general users or developers to interact with range of databases easily without knowing SQL language. It enables natural language querying across variety of database systems including Snowflake, MySQL, MSSQL and PostgreSQL. Nextplore supports different LLMs integrations including Deepseek, Qwen, meta-Llama and GPT-4o.
+> Nextplore is a multi-tenant SaaS platform built on a microservice architecture, enabling natural language querying across enterprise databases without requiring SQL knowledge. It leverages LLMs combined with a retrieval-augmented generation (RAG) pipeline - including vector-embedded schema metadata, multi-query expansion, and semantic routing - to translate user intent into precise, context-aware database queries. 
+Nextplore supports PostgreSQL, MySQL, SQL Server, and Snowflake, with native cloud IAM authentication across AWS, GCP, and Azure - including IAM roles, service account credentials, Azure AD (Entra ID), and certificate-based auth. Data stores can be registered from any cloud environment, enabling cross-cloud querying from a single interface.
+On the model layer, Nextplore integrates with 2,600+ language models across 140+ providers through a unified OpenAI-compatible abstraction - including OpenAI GPT-4o, Anthropic Claude, Google Gemini, Meta LLaMA, DeepSeek, Qwen, Mistral, and more. Teams can bring their own API keys, connect self-hosted models via Ollama or vLLM, or register any OpenAI-compatible endpoint.
+All credentials are protected with envelope encryption (AES-256-GCM + RSA-OAEP) via Azure Key Vault.
 
 <p align="center">
   <a href="license.md"><img src="https://img.shields.io/badge/License-Elastic_2.0-4B32C3?style=flat-square" alt="License: Elastic 2.0"></a> <a href="https://github.com/unsigned-long-int/nextplore"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github" alt="GitHub"></a> <img src="https://img.shields.io/badge/Status-WIP-yellow?style=flat-square" alt="Status: WIP">

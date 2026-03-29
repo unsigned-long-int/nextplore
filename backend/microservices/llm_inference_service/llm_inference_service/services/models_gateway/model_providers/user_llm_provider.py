@@ -15,6 +15,7 @@ class UserLlmProvider(LiteLlmProvider):
     def base_kwargs(self) -> Dict[str, Any]:
         return {
             'model': self.model_path(),
+            'api_base': self.model.api_base,
             **self.model.connection_params
         }
 
