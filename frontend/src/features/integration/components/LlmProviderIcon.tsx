@@ -11,6 +11,7 @@ const DEEPSEEK_SVG = `<path d="M23.748 4.482c-.254-.124-.364.113-.512.234-.051.0
 
 type ProviderConfig = {
     patterns: string[];
+    urlPatterns?: string[];
     icon?: SimpleIcon;
     svg?: string;
     color: string;
@@ -18,24 +19,30 @@ type ProviderConfig = {
 
 const PROVIDER_PATTERNS: ProviderConfig[] = [
     {
+        patterns: ['huggingface', 'hf/'],
+        urlPatterns: ['huggingface', 'hf.co'],
+        icon: siHuggingface,
+        color: `#${siHuggingface.hex}`,
+    },
+    {
         patterns: ['gpt', 'openai', 'o1', 'o3', 'davinci', 'turbo'],
         svg: OPENAI_SVG,
         color: '#10a37f',
     },
     {
+        patterns: ['ollama'],
+        icon: siOllama,
+        color: `#A8FF47`,
+    },
+    {
         patterns: ['claude', 'anthropic', 'sonnet', 'haiku', 'opus'],
         icon: siAnthropic,
-        color: `#${siAnthropic.hex}`,
+        color: `#E0E0E0`,
     },
     {
         patterns: ['llama', 'meta', 'codellama'],
         icon: siMeta,
         color: `#${siMeta.hex}`,
-    },
-    {
-        patterns: ['ollama'],
-        icon: siOllama,
-        color: `#${siOllama.hex}`,
     },
     {
         patterns: ['mistral', 'mixtral', 'codestral'],
@@ -46,11 +53,6 @@ const PROVIDER_PATTERNS: ProviderConfig[] = [
         patterns: ['gemini', 'gemma', 'google', 'palm'],
         icon: siGooglegemini,
         color: `#${siGooglegemini.hex}`,
-    },
-    {
-        patterns: ['huggingface', 'hf/'],
-        icon: siHuggingface,
-        color: `#${siHuggingface.hex}`,
     },
     {
         patterns: ['command', 'cohere'],
@@ -64,12 +66,19 @@ const PROVIDER_PATTERNS: ProviderConfig[] = [
     },
 ];
 
+const findProvider = (modelId: string, apiBase?: string) => {
+    return PROVIDER_PATTERNS.find(({ patterns, urlPatterns }) => {
+        const lower = modelId.toLowerCase();
+        const baseMatch = apiBase
+            ? urlPatterns?.some((p) => apiBase.toLowerCase().includes(p))
+            : false;
+        return baseMatch || patterns.some((p) => lower.includes(p));
+    });
+};
 
-export const LlmProviderIcon = ({ modelId, size = 16 }: { modelId: string; size?: number }) => {
-    const lower = modelId.toLowerCase();
-    const match = PROVIDER_PATTERNS.find(({ patterns }) =>
-        patterns.some((p) => lower.includes(p))
-    );
+
+export const LlmProviderIcon = ({ modelId, apiBase, size = 16 }: { modelId: string; apiBase?: string, size?: number }) => {
+    const match = findProvider(modelId, apiBase);
 
     if (!match) return <IconBrain size={size} color='#9C9C9C' />;
 
@@ -96,10 +105,6 @@ export const LlmProviderIcon = ({ modelId, size = 16 }: { modelId: string; size?
     );
 };
 
-export const getLlmProviderColor = (modelId: string): string => {
-    const lower = modelId.toLowerCase();
-    const match = PROVIDER_PATTERNS.find(({ patterns }) =>
-        patterns.some((p) => lower.includes(p))
-    );
-    return match?.color ?? '#9C9C9C';
+export const getLlmProviderColor = (modelId: string, apiBase?: string): string => {
+    return findProvider(modelId, apiBase)?.color ?? '#9C9C9C';
 };

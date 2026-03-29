@@ -14,7 +14,7 @@ export const LlmRow = ({ llm, selected }: Props) => (
     <Table.Tr className={cx({ [classes.rowSelected]: selected })}>
         <Table.Td>
             <Group gap='sm'>
-                <LlmProviderIcon modelId={llm.model_id} size={16} />
+                <LlmProviderIcon modelId={llm.model_id} apiBase={llm.api_base} size={16} />
                 <Text size='sm' fw={500}>{llm.label}</Text>
             </Group>
         </Table.Td>

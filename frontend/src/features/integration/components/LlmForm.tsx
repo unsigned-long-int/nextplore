@@ -319,7 +319,8 @@ export const LlmForm: React.FC<Props> = ({ onSubmit, onTest, loading = false, te
     };
 
     const modelId = form.values.model_id;
-    const providerColor = modelId ? getLlmProviderColor(modelId) : 'var(--mantine-color-violet-5)';
+    const apiBase = form.values.api_base
+    const providerColor = modelId ? getLlmProviderColor(modelId, apiBase) : 'var(--mantine-color-violet-5)';
 
     return (
         <Box maw={760} mx='auto'>
@@ -344,7 +345,7 @@ export const LlmForm: React.FC<Props> = ({ onSubmit, onTest, loading = false, te
                         padding: '2px 8px',
                         opacity: 0.9,
                     }}>
-                        <LlmProviderIcon modelId={modelId} size={12} />
+                        <LlmProviderIcon modelId={modelId} apiBase={apiBase} size={12} />
                         <Text size='xs' fw={500} style={{ color: providerColor, fontFamily: 'monospace' }}>
                             {modelId}
                         </Text>
@@ -379,7 +380,7 @@ export const LlmForm: React.FC<Props> = ({ onSubmit, onTest, loading = false, te
                                 required
                                 leftSection={
                                     modelId
-                                        ? <LlmProviderIcon modelId={modelId} size={14} />
+                                        ? <LlmProviderIcon modelId={modelId} apiBase={apiBase} size={14} />
                                         : <IconSparkles size={14} />
                                 }
                                 {...form.getInputProps('model_id')}

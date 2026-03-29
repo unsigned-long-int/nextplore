@@ -45,11 +45,9 @@ class TestUserLlmProviderBaseKwargs(unittest.TestCase):
     def test_spreads_connection_params(self):
         provider = UserLlmProvider(make_model(connection_params={
             'api_key': 'sk-secret',
-            'api_base': 'https://endpoint.com/v1',
         }))
         kwargs = provider.base_kwargs()
         self.assertEqual(kwargs['api_key'], 'sk-secret')
-        self.assertEqual(kwargs['api_base'], 'https://endpoint.com/v1')
 
     def test_connection_params_override_nothing_critical(self):
         provider = UserLlmProvider(make_model(connection_params={
@@ -60,7 +58,7 @@ class TestUserLlmProviderBaseKwargs(unittest.TestCase):
     def test_empty_connection_params(self):
         provider = UserLlmProvider(make_model(connection_params={}))
         kwargs = provider.base_kwargs()
-        self.assertSetEqual(set(kwargs.keys()), {'model'})
+        self.assertSetEqual(set(kwargs.keys()), {'model', 'api_base'})
 
     def test_arbitrary_connection_params_passed_through(self):
         provider = UserLlmProvider(make_model(connection_params={
