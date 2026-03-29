@@ -26,7 +26,7 @@ export const DB = {
 export type DB = typeof DB[keyof typeof DB];
 
 
-export type IntegrationCreateRequest = {
+export type DataStoreCreateRequest = {
     auth: Auth;
     cloud: Cloud;
     db: DB;
@@ -54,12 +54,12 @@ export type IntegrationCreateRequest = {
 };
 
 
-export type IntegrationTestResponse = {
+export type DataStoreTestResponse = {
     success: boolean,
 };
 
 
-export type IntegrationUpdateRequest = {
+export type DataStoreUpdateRequest = {
     connection_name?: string | null;
     host?: string | null;
     port?: number | null;
@@ -68,7 +68,7 @@ export type IntegrationUpdateRequest = {
 };
 
 
-export type IntegrationProfile = {
+export type DataStoreProfile = {
     id: string;
     auth: Auth;
     cloud: Cloud;
@@ -79,3 +79,20 @@ export type IntegrationProfile = {
     port?: number | null;
     autosync_on: boolean;
 };
+
+
+export type LlmModelCreateRequest = {
+    model_id: string;
+    label: string;
+    api_base: string;
+    connection_params: Record<string, unknown>;
+    max_tokens: number;
+    kek_kid?: string | null;
+}
+
+export type LlmProfile = {
+    api_base: string;
+    model_id: string;
+    label: string;
+    max_tokens: number;
+}

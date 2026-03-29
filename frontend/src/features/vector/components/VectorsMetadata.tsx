@@ -77,12 +77,12 @@ const sortData = (
 }
 
 type VectorMetaProps = {
-    integration_id: string
+    datastore_id: string
 };
 
 
-export const VectorsMetadata: React.FC<VectorMetaProps> = ({ integration_id }) => {
-    const { isPending, isError, data, error } = useVectorProfiles(integration_id);
+export const VectorsMetadata: React.FC<VectorMetaProps> = ({ datastore_id }) => {
+    const { isPending, isError, data, error } = useVectorProfiles(datastore_id);
     const [search, setSearch] = useState<string>('');
     const [sortBy, setSortBy] = useState<keyof VectorProfileResponse | null>(null);
     const [reverseSortDirection, setReverseSortDirection] = useState<boolean>(false);
@@ -92,7 +92,7 @@ export const VectorsMetadata: React.FC<VectorMetaProps> = ({ integration_id }) =
     )
 
 
-    if (isPending) return <LoadingOverlay loadingText='Getting integrations data...' />;
+    if (isPending) return <LoadingOverlay loadingText='Getting vectors data...' />;
     if (isError) return <Text c='red'>{error.message}</Text>;
     if (!data || data.length === 0) return <Text>No vectors data available.</Text>;
 
@@ -106,7 +106,7 @@ export const VectorsMetadata: React.FC<VectorMetaProps> = ({ integration_id }) =
 
     const rows = displayData.map((row) => (
         <Table.Tr key={`${row.schema_name}.${row.table_name}`}>
-            <Table.Td>{row.integration_id}</Table.Td>
+            <Table.Td>{row.datastore_id}</Table.Td>
             <Table.Td>{row.schema_name}</Table.Td>
             <Table.Td>{row.table_name}</Table.Td>
             <Table.Td>{row.table_meta}</Table.Td>
@@ -126,9 +126,9 @@ export const VectorsMetadata: React.FC<VectorMetaProps> = ({ integration_id }) =
                 <Table.Thead>
                     <Table.Tr>
                         <VectorTable
-                            sorted={sortBy === 'integration_id'}
+                            sorted={sortBy === 'datastore_id'}
                             reversed={reverseSortDirection}
-                            onSort={() => setSorting('integration_id')}
+                            onSort={() => setSorting('datastore_id')}
                         >
                             Integration ID
                         </VectorTable>

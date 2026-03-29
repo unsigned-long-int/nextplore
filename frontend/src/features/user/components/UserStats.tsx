@@ -13,8 +13,8 @@ const P = {
 
 const STAT_CONFIG = [
     {
-        key: 'integrations_number',
-        title: 'Integrations',
+        key: 'datastores_number',
+        title: 'Data Stores',
         icon: IconDatabase,
         accent: '#a855f7',
         glow: 'rgba(168,85,247,0.25)',

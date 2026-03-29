@@ -1,12 +1,12 @@
 import { Group } from '@mantine/core';
 
-import { IntegrationsMetadata } from '@/features/integration/components/IntegrationsMetadata';
+import { DatastoresMetadata } from '@/features/integration/components/DatastoresMetadata.tsx';
 
 export const MetaPage = () => {
     return (
         <div>
             <Group wrap="wrap">
-                <IntegrationsMetadata/>
+                <DatastoresMetadata/>
             </Group>
         </div>
     );

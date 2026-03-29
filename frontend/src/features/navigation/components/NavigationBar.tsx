@@ -7,7 +7,8 @@ import {
     IconLogout,
     IconSwitchHorizontal,
     IconUser,
-    IconVector
+    IconVector,
+    IconAi
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -22,10 +23,11 @@ type NavigationStruct = {
 }
 
 const data: Array<NavigationStruct> = [
-  { location: '/user', label: 'User Profile', icon: IconUser },
-  { location: '/query', label: 'AI Queries', icon: IconInputAi },
-  { location: '/integrations', label: 'Integrations', icon: IconCloudDataConnection },
-  { location: '/metadata', label: 'Metadata', icon: IconVector }
+    { location: '/user', label: 'User Profile', icon: IconUser },
+    { location: '/query', label: 'AI Queries', icon: IconInputAi },
+    { location: '/llm', label: 'LLM', icon: IconAi },
+    { location: '/datastores', label: 'Data Stores', icon: IconCloudDataConnection },
+    { location: '/metadata', label: 'Metadata', icon: IconVector }
 ];
 
 

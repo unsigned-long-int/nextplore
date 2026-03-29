@@ -1,22 +1,29 @@
 import { useOrchestratorClient } from '@/shared/api/client/OrchestratorClient';
 import type {
-    IntegrationCreateRequest,
-    IntegrationTestResponse,
-    IntegrationUpdateRequest,
-    IntegrationProfile } from '@/shared/api/services/integration/types.gen';
+    DataStoreCreateRequest,
+    DataStoreTestResponse,
+    DataStoreUpdateRequest,
+    DataStoreProfile,
+    LlmModelCreateRequest,
+    LlmProfile
+} from '@/shared/api/services/integration/types.gen';
 
 export const useIntegrationApi = () => {
     const http = useOrchestratorClient();
     return {
-        testIntegration: (data: IntegrationCreateRequest) =>
-            http.post<IntegrationTestResponse>('integrations/test', data),
-        createIntegration: (data: IntegrationCreateRequest) =>
-            http.post<void>('integrations', data),
-        deleteIntegration: (id: string) =>
-            http.delete<void>(`integrations/${id}`),
-        updateIntegration: (id: string, data: IntegrationUpdateRequest) =>
-            http.patch<void>(`integrations/${id}`, data),
-        getProfiles: () =>
-            http.get<IntegrationProfile[]>('integrations/profiles'),
+        testDatastore: (data: DataStoreCreateRequest) =>
+            http.post<DataStoreTestResponse>('datastores/test', data),
+        createDatastore: (data: DataStoreCreateRequest) =>
+            http.post<void>('datastores', data),
+        deleteDatastore: (id: string) =>
+            http.delete<void>(`datastores/${id}`),
+        updateDatastore: (id: string, data: DataStoreUpdateRequest) =>
+            http.patch<void>(`datastores/${id}`, data),
+        getDatastoreProfiles: () =>
+            http.get<DataStoreProfile[]>('datastores/profiles'),
+        createLlm: (data: LlmModelCreateRequest) =>
+            http.post<void>('llm', data),
+        getLlmProfiles: () =>
+            http.get<LlmProfile[]>('llm/profiles'),
     };
 };

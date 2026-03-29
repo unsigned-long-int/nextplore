@@ -6,8 +6,8 @@ export const useCertApi = () => {
     const http = useOrchestratorClient();
     return {
         getProfiles: () =>
-            http.get<CertProfile[]>('integrations/certificates/profiles'),
+            http.get<CertProfile[]>('datastores/certificates/profiles'),
         createCert: (data: CertCreateRequest) =>
-            http.post<void>('integrations/certificates', data),
+            http.post<void>('datastores/certificates', data),
     }
 }

@@ -1,5 +1,5 @@
 export type UserStats = {
-    integrations_number: number;
+    datastores_number: number;
     vectors_number: number;
 };
 

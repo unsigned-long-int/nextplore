@@ -4,7 +4,7 @@ import type { VectorProfileResponse } from '@/shared/api/services/vector/types.g
 export const useVectorApi = () => {
     const http = useOrchestratorClient();
     return {
-        getProfiles: (integration_id: string) =>
-            http.get<VectorProfileResponse[]>(`integrations/${integration_id}/vectors/profiles`),
+        getProfiles: (datastore_id: string) =>
+            http.get<VectorProfileResponse[]>(`datastores/${datastore_id}/vectors/profiles`),
     }
 }

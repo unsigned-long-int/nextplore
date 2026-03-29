@@ -6,6 +6,7 @@ import type {
     PromptRequest,
     PromptResponse
 } from '@/shared/api/services/ai-query/types.gen';
+import type {LlmModelCreateRequest} from "@/shared/api/services/integration/types.gen.ts";
 
 
 export const useAiQueryApi = () => {
@@ -16,6 +17,8 @@ export const useAiQueryApi = () => {
         getModels: () =>
             http.get<ModelInfo[]>('llm-inference/models'),
         getDescriptionEnhancement: (data: PromptRequest) =>
-            http.post<PromptResponse>('llm-inference/enhancement', data)
+            http.post<PromptResponse>('llm-inference/enhancement', data),
+        testLlm: (data: LlmModelCreateRequest)=>
+            http.post<void>('llm-inference/test', data)
     };
 };

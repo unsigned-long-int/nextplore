@@ -11,7 +11,7 @@ export type CertState = typeof CertState[keyof typeof CertState];
 
 export type CertProfile  = {
     id: string;
-    integration_id?: string | null;
+    datastore_id?: string | null;
     state: CertState;
     cert_kid: string;
     cert_name: string;
