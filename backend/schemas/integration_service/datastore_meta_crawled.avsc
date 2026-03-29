@@ -1,7 +1,7 @@
 {
     "type": "record",
     "namespace": "com.nextplore.integration",
-    "name": "IntegrationMetaCrawled",
+    "name": "DataStoreMetaCrawled",
     "fields": [
         {"name": "event_name", "type": "string"},
         {"name": "version", "type": "string"},
@@ -18,9 +18,9 @@
                     "name": "TableMeta",
                     "namespace": "com.nextplore.integration",
                     "fields": [
-                        {"name": "integration_id", "type": {"type": "string", "logicalType": "uuid"}},
-                        {"name": "integration_name", "type": "string"},
-                        {"name": "integration_descr", "type": "string"},
+                        {"name": "datastore_id", "type": {"type": "string", "logicalType": "uuid"}},
+                        {"name": "datastore_name", "type": "string"},
+                        {"name": "datastore_descr", "type": "string"},
                         {"name": "schema_name", "type": "string"},
                         {"name": "table_name", "type": "string"},
                         {"name": "column_names", "type": {"type": "array", "items": "string"}}
