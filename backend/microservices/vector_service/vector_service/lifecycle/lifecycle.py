@@ -9,7 +9,7 @@ from nextplore_sdk.database.backend.database_backend_connector import DatabaseBa
 from nextplore_sdk.cache.client.base_redis_client import BaseCache
 from kafka_messaging.message_bus import get_kafka_message_bus
 from kafka_messaging.events.embedding_service import CrawlMetaEmbedded
-from kafka_messaging.events.integration_service import IntegrationDeleted
+from kafka_messaging.events.integration_service import DataStoreDeleted
 from vector_service.api.handlers import handle_vector_upsert, handle_vector_delete
 from vector_service.services.vector_store_service.clients import QDrantStoreClient
 from vector_service.services.vector_store_service.store import VectorStoreService
@@ -55,7 +55,7 @@ async def lifespan(app: FastAPI):
         )
     )
     await kafka_message_bus.subscribe(
-        event_cls=IntegrationDeleted,
+        event_cls=DataStoreDeleted,
         handler=partial(
             handle_vector_delete, 
             backend_connector=backend_connector,

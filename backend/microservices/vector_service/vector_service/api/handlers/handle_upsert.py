@@ -32,7 +32,7 @@ async def handle_vector_upsert(
                 user_id=event.user_id,
                 organization_id=event.organization_id,
                 qdrant_vector_id=qdrant_vector_id,
-                integration_id=embedding.integration_id,
+                datastore_id=embedding.datastore_id,
                 schema_name=embedding.schema_name,
                 table_name=embedding.table_name,
                 table_meta=embedding.table_meta.model_dump_json()

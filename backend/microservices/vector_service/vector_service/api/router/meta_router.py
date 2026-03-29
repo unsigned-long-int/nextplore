@@ -19,7 +19,7 @@ router = APIRouter(prefix='/v1/vector', tags=['VectorMeta'])
 
 
 @router.post(
-    '/organizations/{organization_id}/users/{user_id}/integrations/vectors/meta',
+    '/organizations/{organization_id}/users/{user_id}/datastores/vectors/meta',
     response_model=List[VectorMetadata]
 )
 async def get_meta(
@@ -59,7 +59,7 @@ async def get_meta(
         response = [
             VectorMetadata(
                 vector_id=vm.qdrant_vector_id,
-                integration_id=vm.integration_id,
+                datastore_id=vm.datastore_id,
                 schema_name=vm.schema_name,
                 table_name=vm.table_name,
                 table_metadata=json.loads(vm.table_meta)

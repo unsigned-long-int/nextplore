@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class TableMeta:
-    integration_id: UUID
+    datastore_id: UUID
     schema_name: str
     table_name: str
     column_names: List[str]

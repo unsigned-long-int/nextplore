@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from kafka_messaging.events.integration_service import IntegrationDeleted
+from kafka_messaging.events.integration_service import DataStoreDeleted
 from vector_service.services.vector_store_service.store.store_service import VectorStoreService
 from vector_service.services.vector_store_service.exceptions import DeleteVectorDBFailed
 from vector_service.database.repositories import VectorRepository
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 async def handle_vector_delete(
-    event: IntegrationDeleted, 
+    event: DataStoreDeleted,
     backend_connector: DatabaseBackendConnector,
     cache_service: CacheService,
     vector_store_service: VectorStoreService
@@ -23,7 +23,7 @@ async def handle_vector_delete(
     qdrant_vector_ids = await vector_repo.get_qdrant_vector_ids(
         organization_id=event.organization_id,
         user_id=event.user_id,
-        integration_id=event.integration_id
+        datastore_id=event.datastore_id
     )
     vector_ids = [str(v_id) for v_id in qdrant_vector_ids]
     
@@ -32,7 +32,7 @@ async def handle_vector_delete(
             vector_repo.delete_vector_meta(
                 organization_id=event.organization_id, 
                 user_id=event.user_id,
-                integration_id=event.integration_id
+                datastore_id=event.datastore_id
             ),
             vector_store_service.delete_vectors(
                 vector_ids=vector_ids,

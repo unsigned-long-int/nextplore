@@ -6,6 +6,8 @@ from fastapi.testclient import TestClient
 
 from svc_vector_contracts.models import TableProfile
 from vector_service.api.router.profiles_router import router
+from vector_service.cache import get_cache_service
+from vector_service.api.dependencies import get_backend_connector
 from vector_service.database.exceptions import VectorProfilesGetFailed
 
 
@@ -16,8 +18,8 @@ class MockUserIdentity:
 
 
 class MockVectorProfile:
-    def __init__(self, integration_id, schema_name, table_name, table_meta):
-        self.integration_id = integration_id
+    def __init__(self, datastore_id, schema_name, table_name, table_meta):
+        self.datastore_id = datastore_id
         self.schema_name = schema_name
         self.table_name = table_name
         self.table_meta = table_meta
@@ -28,16 +30,21 @@ class TestGetProfilesEndpoint(unittest.TestCase):
         self.app = FastAPI()
         self.app.include_router(router)
 
-        self.mock_backend_connector = MagicMock()
-        self.mock_cache_service = MagicMock()
+        self.mock_backend_connector = AsyncMock()
+        self.mock_cache_service = AsyncMock()
         self.app.state.backend_connector = self.mock_backend_connector
         self.app.state.cache_service = self.mock_cache_service
+
+        self.app.dependency_overrides = {
+            get_cache_service: lambda: self.mock_cache_service,
+            get_backend_connector: lambda: self.mock_backend_connector,
+        }
 
         self.client = TestClient(self.app)
 
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
         self.user_identity = MockUserIdentity(
             organization_id=self.organization_id,
@@ -50,30 +57,30 @@ class TestGetProfilesEndpoint(unittest.TestCase):
 
         self.mock_vector_profiles = [
             MockVectorProfile(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='users',
                 table_meta=self.table_meta_1
             ),
             MockVectorProfile(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='orders',
                 table_meta=self.table_meta_2
             ),
             MockVectorProfile(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='analytics',
                 table_name='products',
                 table_meta=self.table_meta_3
             )
         ]
 
-    def _get_endpoint_url(self, org_id=None, user_id=None, integration_id=None):
+    def _get_endpoint_url(self, org_id=None, user_id=None, datastore_id=None):
         org_id = org_id or self.organization_id
         user_id = user_id or self.user_id
-        integration_id = integration_id or self.integration_id
-        return f'/v1/vector/organizations/{org_id}/users/{user_id}/integrations/{integration_id}/vectors/profiles'
+        datastore_id = datastore_id or self.datastore_id
+        return f'/v1/vector/organizations/{org_id}/users/{user_id}/datastores/{datastore_id}/vectors/profiles'
 
     @patch('vector_service.api.router.profiles_router.get_current_identity')
     @patch('vector_service.api.router.profiles_router.VectorRepository')
@@ -98,7 +105,7 @@ class TestGetProfilesEndpoint(unittest.TestCase):
         data = response.json()
         self.assertEqual(len(data), 3)
 
-        self.assertEqual(data[0]['integration_id'], str(self.integration_id))
+        self.assertEqual(data[0]['datastore_id'], str(self.datastore_id))
         self.assertEqual(data[0]['schema_name'], 'public')
         self.assertEqual(data[0]['table_name'], 'users')
         self.assertEqual(data[0]['table_meta'], self.table_meta_1)
@@ -113,7 +120,7 @@ class TestGetProfilesEndpoint(unittest.TestCase):
         mock_vector_repo.get_profiles.assert_called_once_with(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
         self.mock_cache_service.set_vector_profiles.assert_called_once()
@@ -124,13 +131,13 @@ class TestGetProfilesEndpoint(unittest.TestCase):
 
         cached_response = [
             TableProfile(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='users',
                 table_meta=self.table_meta_1
             ),
             TableProfile(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='orders',
                 table_meta=self.table_meta_2
@@ -153,7 +160,7 @@ class TestGetProfilesEndpoint(unittest.TestCase):
 
         self.mock_cache_service.get_vector_profiles.assert_called_once_with(
             user_identity=self.user_identity,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
         self.mock_cache_service.set_vector_profiles.assert_not_called()
@@ -312,7 +319,7 @@ class TestGetProfilesEndpoint(unittest.TestCase):
         self.mock_cache_service.get_vector_profiles = AsyncMock(return_value=None)
         self.mock_cache_service.set_vector_profiles = AsyncMock()
 
-        mock_vector_repo = MagicMock()
+        mock_vector_repo = AsyncMock()
         mock_vector_repo.get_profiles = AsyncMock(
             return_value=[self.mock_vector_profiles[0]]
         )
@@ -328,35 +335,35 @@ class TestGetProfilesEndpoint(unittest.TestCase):
 
     def test_get_profiles_invalid_uuid_in_path_org(self):
         response = self.client.get(
-            f'/v1/vector/organizations/invalid-uuid/users/{self.user_id}/integrations/{self.integration_id}/vectors/profiles'
+            f'/v1/vector/organizations/invalid-uuid/users/{self.user_id}/datastores/{self.datastore_id}/vectors/profiles'
         )
 
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     def test_get_profiles_invalid_uuid_in_path_user(self):
         response = self.client.get(
-            f'/v1/vector/organizations/{self.organization_id}/users/invalid-uuid/integrations/{self.integration_id}/vectors/profiles'
+            f'/v1/vector/organizations/{self.organization_id}/users/invalid-uuid/datastores/{self.datastore_id}/vectors/profiles'
         )
 
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    def test_get_profiles_invalid_uuid_in_path_integration(self):
+    def test_get_profiles_invalid_uuid_in_path_datastore(self):
         response = self.client.get(
-            f'/v1/vector/organizations/{self.organization_id}/users/{self.user_id}/integrations/invalid-uuid/vectors/profiles'
+            f'/v1/vector/organizations/{self.organization_id}/users/{self.user_id}/datastores/invalid-uuid/vectors/profiles'
         )
 
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     @patch('vector_service.api.router.profiles_router.get_current_identity')
     @patch('vector_service.api.router.profiles_router.VectorRepository')
-    def test_get_profiles_different_integration_ids(
+    def test_get_profiles_different_datastore_ids(
             self,
             mock_vector_repo_class,
             mock_get_identity
     ):
         mock_get_identity.return_value = self.user_identity
 
-        integration_id_2 = uuid4()
+        datastore_id_2 = uuid4()
 
         self.mock_cache_service.get_vector_profiles = AsyncMock(return_value=None)
         self.mock_cache_service.set_vector_profiles = AsyncMock()
@@ -368,7 +375,7 @@ class TestGetProfilesEndpoint(unittest.TestCase):
         mock_vector_repo_class.return_value = mock_vector_repo
 
         response = self.client.get(
-            self._get_endpoint_url(integration_id=integration_id_2)
+            self._get_endpoint_url(datastore_id=datastore_id_2)
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -376,7 +383,7 @@ class TestGetProfilesEndpoint(unittest.TestCase):
         mock_vector_repo.get_profiles.assert_called_once_with(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=integration_id_2
+            datastore_id=datastore_id_2
         )
 
     @patch('vector_service.api.router.profiles_router.get_current_identity')
@@ -442,7 +449,7 @@ class TestGetProfilesEndpoint(unittest.TestCase):
         self.mock_cache_service.set_vector_profiles = AsyncMock()
 
         profile_with_dict_meta = MockVectorProfile(
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name='public',
             table_name='test_table',
             table_meta={'key': 'value'}

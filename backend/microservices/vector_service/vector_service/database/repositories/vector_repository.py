@@ -26,16 +26,16 @@ class VectorRepository:
     def __init__(self, backend_connector: DatabaseBackendConnector) -> None:
         self._db = backend_connector
 
-    async def get_profiles(self, organization_id: UUID, user_id: UUID, integration_id: UUID) -> List[VectorProfile]:
+    async def get_profiles(self, organization_id: UUID, user_id: UUID, datastore_id: UUID) -> List[VectorProfile]:
         try:
-            if not integration_id:
-                logger.warning('No integration id provided.', extra={'org_id': organization_id, 'user_id': user_id})
+            if not datastore_id:
+                logger.warning('No data store id provided.', extra={'org_id': organization_id, 'user_id': user_id})
                 return []
             
             async with self._db.session_scope(organization_id, user_id) as scoped_session:
                 result = await scoped_session.execute(
                     select(VectorORM)
-                    .where(VectorORM.integration_id == integration_id)
+                    .where(VectorORM.datastore_id == datastore_id)
                 )
                 vectors = result.scalars().all()
                 return [orm_to_domain_vector_profile(vector) for vector in vectors]
@@ -54,7 +54,7 @@ class VectorRepository:
                 result = await scoped_session.execute(
                     select(
                         VectorORM.qdrant_vector_id,
-                        VectorORM.integration_id,
+                        VectorORM.datastore_id,
                         VectorORM.schema_name,
                         VectorORM.table_name,
                         VectorORM.table_meta,
@@ -96,13 +96,13 @@ class VectorRepository:
             logger.error(msg, exc_info=True)
             raise VectorUpsertFailed(msg) from e
 
-    async def delete_vector_meta(self, organization_id: UUID, user_id: UUID, integration_id: UUID) -> None:
+    async def delete_vector_meta(self, organization_id: UUID, user_id: UUID, datastore_id: UUID) -> None:
         try:
             async with self._db.session_scope(organization_id, user_id) as scoped_session:
                 stmt = (
                     delete(VectorORM)
                     .where(
-                        VectorORM.integration_id == integration_id
+                        VectorORM.datastore_id == datastore_id
                     )
                 )
                 await scoped_session.execute(stmt)
@@ -111,11 +111,11 @@ class VectorRepository:
             logger.error(msg, exc_info=True)
             raise VectorDeleteFailed(msg) from e
 
-    async def get_qdrant_vector_ids(self, organization_id: UUID, user_id: UUID, integration_id: UUID) -> List[UUID]:
+    async def get_qdrant_vector_ids(self, organization_id: UUID, user_id: UUID, datastore_id: UUID) -> List[UUID]:
         async with self._db.session_scope(organization_id, user_id) as scoped_session:
             result = await scoped_session.execute(
                 select(VectorORM.qdrant_vector_id)
-                .where(VectorORM.integration_id == integration_id)
+                .where(VectorORM.datastore_id == datastore_id)
             )
             qdrant_vector_ids = result.scalars().all()
             return qdrant_vector_ids

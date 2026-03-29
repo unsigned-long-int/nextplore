@@ -7,6 +7,8 @@ from fastapi.testclient import TestClient
 
 from svc_vector_contracts.models import VectorMetadataQuery, VectorMetadata
 from vector_service.api.router.meta_router import router
+from vector_service.cache import get_cache_service
+from vector_service.api.dependencies import get_backend_connector
 from vector_service.database.exceptions import VectorGetFailed
 
 
@@ -17,9 +19,9 @@ class MockUserIdentity:
 
 
 class MockVectorMeta:
-    def __init__(self, integration_id, schema_name, table_name, table_meta):
+    def __init__(self, datastore_id, schema_name, table_name, table_meta):
         self.qdrant_vector_id = uuid4()
-        self.integration_id = integration_id
+        self.datastore_id = datastore_id
         self.schema_name = schema_name
         self.table_name = table_name
         self.table_meta = table_meta
@@ -35,11 +37,16 @@ class TestGetMetaEndpoint(unittest.TestCase):
         self.app.state.backend_connector = self.mock_backend_connector
         self.app.state.cache_service = self.mock_cache_service
 
+        self.app.dependency_overrides = {
+            get_cache_service: lambda: self.mock_cache_service,
+            get_backend_connector: lambda: self.mock_backend_connector,
+        }
+
         self.client = TestClient(self.app)
 
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
         self.vector_ids = [uuid4(), uuid4(), uuid4()]
         self.request = VectorMetadataQuery(vector_ids=self.vector_ids)
@@ -50,19 +57,19 @@ class TestGetMetaEndpoint(unittest.TestCase):
         )
 
         self.table_meta_1 = {
-            'integration_id': str(uuid4()),
+            'datastore_id': str(uuid4()),
             'schema_name': 'test',
             'table_name': 'test',
             'column_names': ['id', 'name', 'email']
         }
         self.table_meta_2 = {
-            'integration_id': str(uuid4()),
+            'datastore_id': str(uuid4()),
             'schema_name': 'test1',
             'table_name': 'test1',
             'column_names': ['id1', 'name1', 'email1']
         }
         self.table_meta_3 = {
-            'integration_id': str(uuid4()),
+            'datastore_id': str(uuid4()),
             'schema_name': 'test2',
             'table_name': 'test2',
             'column_names': ['id2', 'name2', 'email2']
@@ -70,19 +77,19 @@ class TestGetMetaEndpoint(unittest.TestCase):
 
         self.mock_vector_metas = [
             MockVectorMeta(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='users',
                 table_meta=json.dumps(self.table_meta_1)
             ),
             MockVectorMeta(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='orders',
                 table_meta=json.dumps(self.table_meta_2)
             ),
             MockVectorMeta(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='analytics',
                 table_name='products',
                 table_meta=json.dumps(self.table_meta_3)
@@ -92,7 +99,7 @@ class TestGetMetaEndpoint(unittest.TestCase):
     def _get_endpoint_url(self, org_id=None, user_id=None):
         org_id = org_id or self.organization_id
         user_id = user_id or self.user_id
-        return f'/v1/vector/organizations/{org_id}/users/{user_id}/integrations/vectors/meta'
+        return f'/v1/vector/organizations/{org_id}/users/{user_id}/datastores/vectors/meta'
 
     @patch('vector_service.api.router.meta_router.get_current_identity')
     @patch('vector_service.api.router.meta_router.VectorRepository')
@@ -120,7 +127,7 @@ class TestGetMetaEndpoint(unittest.TestCase):
         data = response.json()
         self.assertEqual(len(data), 3)
 
-        self.assertEqual(data[0]['integration_id'], str(self.integration_id))
+        self.assertEqual(data[0]['datastore_id'], str(self.datastore_id))
         self.assertEqual(data[0]['schema_name'], 'public')
         self.assertEqual(data[0]['table_name'], 'users')
         self.assertEqual(data[0]['table_metadata'], self.table_meta_1)
@@ -147,14 +154,14 @@ class TestGetMetaEndpoint(unittest.TestCase):
         cached_response = [
             VectorMetadata(
                 vector_id=self.vector_ids[0],
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='users',
                 table_metadata=self.table_meta_1
             ),
             VectorMetadata(
                 vector_id=self.vector_ids[1],
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='orders',
                 table_metadata=self.table_meta_2
@@ -338,7 +345,7 @@ class TestGetMetaEndpoint(unittest.TestCase):
         self.mock_cache_service.get_vector_metas = AsyncMock(return_value=None)
 
         invalid_vector_meta = MockVectorMeta(
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name='public',
             table_name='invalid',
             table_meta='not valid json{]['
@@ -414,7 +421,7 @@ class TestGetMetaEndpoint(unittest.TestCase):
 
     def test_get_meta_invalid_uuid_in_path(self):
         response = self.client.post(
-            f'/v1/vector/organizations/invalid-uuid/users/{self.user_id}/integrations/vectors/meta',
+            f'/v1/vector/organizations/invalid-uuid/users/{self.user_id}/datastores/vectors/meta',
             json=self.request.model_dump(mode='json')
         )
 

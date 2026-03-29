@@ -6,12 +6,12 @@ from .base import Base
 
 
 class VectorORM(Base):
-    __tablename__ = 'vectors'
+    __tablename__ = 'datastore_vectors'
     __table_args__ = {'schema': 'vector'}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organization_id = Column(UUID(as_uuid=True), nullable=False)
     user_id = Column(UUID(as_uuid=True), nullable=False)
-    integration_id = Column(UUID(as_uuid=True), nullable=False)
+    datastore_id = Column(UUID(as_uuid=True), nullable=False)
     qdrant_vector_id = Column(UUID(as_uuid=True), unique=True, nullable=False)
     schema_name = Column(Text, nullable=False)
     table_name = Column(Text, nullable=False)

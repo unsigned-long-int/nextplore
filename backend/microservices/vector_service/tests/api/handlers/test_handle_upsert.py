@@ -24,13 +24,13 @@ class MockORMEmbedding:
 
     def __init__(
             self,
-            integration_id: UUID,
+            datastore_id: UUID,
             schema_name: str,
             table_name: str,
             table_meta: MockTableMeta,
             embedding: List[float]
     ):
-        self.integration_id = integration_id
+        self.datastore_id = datastore_id
         self.schema_name = schema_name
         self.table_name = table_name
         self.table_meta = table_meta
@@ -42,7 +42,7 @@ class TestHandleVectorUpsert(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
         self.table_meta_1 = MockTableMeta(
             columns=['id', 'name', 'email'],
@@ -55,14 +55,14 @@ class TestHandleVectorUpsert(unittest.IsolatedAsyncioTestCase):
 
         self.orm_embeddings = [
             MockORMEmbedding(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='users',
                 table_meta=self.table_meta_1,
                 embedding=[0.1, 0.2, 0.3, 0.4, 0.5]
             ),
             MockORMEmbedding(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='orders',
                 table_meta=self.table_meta_2,
@@ -115,7 +115,7 @@ class TestHandleVectorUpsert(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(pg_vectors[0].user_id, self.user_id)
         self.assertEqual(pg_vectors[0].organization_id, self.organization_id)
         self.assertEqual(pg_vectors[0].qdrant_vector_id, mock_uuid_1)
-        self.assertEqual(pg_vectors[0].integration_id, self.integration_id)
+        self.assertEqual(pg_vectors[0].datastore_id, self.datastore_id)
         self.assertEqual(pg_vectors[0].schema_name, 'public')
         self.assertEqual(pg_vectors[0].table_name, 'users')
         self.assertIn('Users table', pg_vectors[0].table_meta)
@@ -349,7 +349,7 @@ class TestHandleVectorUpsert(unittest.IsolatedAsyncioTestCase):
 
         self.event.orm_embedding.append(
             MockORMEmbedding(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_name='public',
                 table_name='products',
                 table_meta=MockTableMeta(['id', 'name'], 'Products'),

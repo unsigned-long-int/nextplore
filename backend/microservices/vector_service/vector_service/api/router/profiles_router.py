@@ -18,13 +18,13 @@ router = APIRouter(prefix='/v1/vector', tags=['VectorProfiles'])
 
 
 @router.get(
-    '/organizations/{organization_id}/users/{user_id}/integrations/{integration_id}/vectors/profiles',
+    '/organizations/{organization_id}/users/{user_id}/datastores/{datastore_id}/vectors/profiles',
     response_model=List[TableProfile]
 )
 async def get_profiles(
     organization_id: UUID,
     user_id: UUID,
-    integration_id: UUID,
+    datastore_id: UUID,
     backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
     cache_service: CacheService = Depends(get_cache_service)
 ) -> List[TableProfile]:
@@ -42,7 +42,7 @@ async def get_profiles(
     try:
         cached = await cache_service.get_vector_profiles(
             user_identity=user_identity,
-            integration_id=integration_id
+            datastore_id=datastore_id
         )
         if cached:
             return cached
@@ -52,11 +52,11 @@ async def get_profiles(
         vector_profiles = await vector_repo.get_profiles(
             organization_id=user_identity.organization_id,
             user_id=user_identity.user_id,
-            integration_id=integration_id
+            datastore_id=datastore_id
         )
         response = [
             TableProfile(
-                integration_id=vector_profile.integration_id,
+                datastore_id=vector_profile.datastore_id,
                 schema_name=vector_profile.schema_name,
                 table_name=vector_profile.table_name,
                 table_meta=str(vector_profile.table_meta)
@@ -64,7 +64,7 @@ async def get_profiles(
         ]
         await cache_service.set_vector_profiles(
             user_identity=user_identity,
-            integration_id=integration_id,
+            datastore_id=datastore_id,
             response=response
         )
         return response

@@ -117,10 +117,10 @@ class CacheService:
     async def get_vector_profiles(
         self, 
         user_identity: UserIdentity,
-        integration_id: UUID
+        datastore_id: UUID
     ) -> List[TableProfile]:
         cache_key = get_string_cache_key(
-            value=f'{str(user_identity.organization_id)}{str(user_identity.user_id)}{str(integration_id)}',
+            value=f'{str(user_identity.organization_id)}{str(user_identity.user_id)}{str(datastore_id)}',
             prefix='vector-profiles'
         )
         return await self.cache.get_many(
@@ -133,11 +133,11 @@ class CacheService:
     async def set_vector_profiles(
         self, 
         user_identity: UserIdentity,
-        integration_id: UUID,
+        datastore_id: UUID,
         response: List[TableMetadata]
     ) -> None:
         cache_key = get_string_cache_key(
-            value=f'{str(user_identity.organization_id)}{str(user_identity.user_id)}{str(integration_id)}',
+            value=f'{str(user_identity.organization_id)}{str(user_identity.user_id)}{str(datastore_id)}',
             prefix='vector-profiles'
         )
         await self.cache.set_many(

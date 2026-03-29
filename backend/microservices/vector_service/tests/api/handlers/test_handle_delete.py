@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 
-from kafka_messaging.events.integration_service import IntegrationDeleted
+from kafka_messaging.events.integration_service import DataStoreDeleted
 from vector_service.services.vector_store_service.exceptions import DeleteVectorDBFailed
 from vector_service.database.exceptions import VectorDeleteFailed
 from vector_service.api.handlers import handle_vector_delete
@@ -15,12 +15,12 @@ class TestHandleVectorDelete(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
-        self.event = IntegrationDeleted(
+        self.event = DataStoreDeleted(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
         self.backend_connector = MagicMock()
@@ -54,13 +54,13 @@ class TestHandleVectorDelete(unittest.IsolatedAsyncioTestCase):
         mock_vector_repo.get_qdrant_vector_ids.assert_called_once_with(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
         mock_vector_repo.delete_vector_meta.assert_called_once_with(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
         self.vector_store_service.delete_vectors.assert_called_once_with(
