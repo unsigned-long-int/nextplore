@@ -34,10 +34,10 @@ class QueryExecutor:
         return await asyncio.to_thread(run_query, stmt, engine)
 
     async def _get_connection_profile(self, orm_context: ORMContextResponse, user_identity: UserIdentity) -> ConnectionProfile:
-        connection_profile = await self.integration_client.get_connection_profile(
+        connection_profile = await self.integration_client.get_datastore_connection_profile(
             organization_id=user_identity.organization_id,
             user_id=user_identity.user_id,
-            integration_id=orm_context.integration
+            datastore_id=orm_context.datastore
         )
         return ConnectionProfile(
             cloud=to_domain_cloud(connection_profile.cloud.value),
@@ -61,7 +61,7 @@ class QueryExecutor:
 
     async def _build_statement(self, orm_context: ORMContextResponse, connection_profile: ConnectionProfile) -> Select:
         orm_request = ORMRequest(
-            integration=orm_context.integration,
+            datastore=orm_context.datastore,
             schema_name=orm_context.schema_name,
             class_name=orm_context.class_name,
             table_name=orm_context.table_name
@@ -73,7 +73,7 @@ class QueryExecutor:
         )
         statement_request = StatementRequest(
             orm_model=orm,
-            integration=orm_context.integration,
+            datastore=orm_context.datastore,
             column_names=orm_context.column_names,
             column_aggregates=orm_context.column_aggregates,
             column_filters=orm_context.column_filters

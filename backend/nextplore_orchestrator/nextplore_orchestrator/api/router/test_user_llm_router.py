@@ -1,37 +1,37 @@
 import logging
-from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
 
+from nextplore_orchestrator.clients.integration import DataStoreTestRemoteError
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
-from nextplore_orchestrator.api.dependencies.microservices import get_vector_client
-from nextplore_orchestrator.clients.vector import VectorGetProfilesRemoteError
-from svc_vector_contracts.models import TableProfile
+from nextplore_orchestrator.api.dependencies.microservices import get_llm_inference_client
+
+from svc_integration_contracts.models import UserLlmCreateRequest
+
+from nextplore_orchestrator.clients.llm_inference import ModelResponseRemoteError
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix='/v1/nextplore-orchestrator', tags=['VectorProfiles'])
+router = APIRouter(prefix='/v1/nextplore-orchestrator', tags=['LlmTest'])
 
 
-@router.get('/datastores/{datastore_id}/vectors/profiles', response_model=List[TableProfile])
-async def get_vector_profiles(
-    datastore_id: UUID,
-    user_identity=Depends(get_active_user),
-    vector_client=Depends(get_vector_client)
-) -> List[TableProfile]:
+@router.post('/llm-inference/test', status_code=status.HTTP_204_NO_CONTENT)
+async def test_user_llm(
+        llm_create_request: UserLlmCreateRequest,
+        user_identity=Depends(get_active_user),
+        llm_inference_client=Depends(get_llm_inference_client)
+) -> None:
     org_id = getattr(user_identity, 'organization_id', None)
     user_id = getattr(user_identity, 'user_id', None)
+
     try:
-        vector_profiles = await vector_client.get_profiles(
+        await llm_inference_client.test_user_llm(
             organization_id=org_id,
             user_id=user_id,
-            datastore_id=datastore_id
+            payload=llm_create_request
         )
-        return vector_profiles
-    
-    except VectorGetProfilesRemoteError as e:
+    except ModelResponseRemoteError as e:
         logger.error(
-            'Vector get profiles failed (remote)',
+            'User llm test failed (remote)',
             extra={'org_id': str(org_id), 'user_id': str(user_id)},
             exc_info=True
         )
@@ -41,7 +41,7 @@ async def get_vector_profiles(
         )
     except Exception as e:
         logger.error(
-            'Vector get profiles failed (unexpected)',
+            'User llm test failed (unexpected)',
             extra={'org_id': str(org_id), 'user_id': str(user_id)}
         )
         raise HTTPException(

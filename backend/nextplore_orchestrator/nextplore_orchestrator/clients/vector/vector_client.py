@@ -34,7 +34,7 @@ class VectorClient(BaseServiceClient):
         payload: VectorMetadataQuery
     ) -> List[VectorMetadata]:
         try:
-            url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/integrations/vectors/meta'
+            url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/datastores/vectors/meta'
             response = await self.post(url, payload.model_dump())
             response.raise_for_status()
             return [VectorMetadata(**item) for item in response.json()]
@@ -89,10 +89,10 @@ class VectorClient(BaseServiceClient):
         self,
         organization_id: UUID,
         user_id: UUID,
-        integration_id: UUID
+        datastore_id: UUID
     ) -> List[TableProfile]:
         try:
-            url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/integrations/{integration_id}/vectors/profiles'
+            url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/datastores/{datastore_id}/vectors/profiles'
             response = await self.get(url)
             response.raise_for_status()
             return [TableProfile(**item) for item in response.json()]

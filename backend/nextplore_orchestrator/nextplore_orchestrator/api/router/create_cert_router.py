@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/v1/nextplore-orchestrator', tags=['CreateCertificate'])
 
 
-@router.post('/integrations/certificates', status_code=status.HTTP_201_CREATED)
-async def create_integration(
+@router.post('/datastores/certificates', status_code=status.HTTP_201_CREATED)
+async def create_certificate(
     cert_create_request: CertCreateRequest,
     user_identity=Depends(get_active_user),
     integration_client=Depends(get_integration_client)

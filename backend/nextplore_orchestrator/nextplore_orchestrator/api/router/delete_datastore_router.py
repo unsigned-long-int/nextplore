@@ -2,7 +2,7 @@ import logging
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from nextplore_orchestrator.clients.integration import IntegrationDeleteRemoteError
+from nextplore_orchestrator.clients.integration import DataStoreDeleteRemoteError
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
 from nextplore_orchestrator.api.dependencies.microservices import get_integration_client
 from nextplore_orchestrator.api.dependencies.cache import get_orchestrator_cache_service
@@ -11,12 +11,12 @@ from nextplore_orchestrator.cache.orchestrator_cache import OrchestratorCacheSer
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix='/v1/nextplore-orchestrator', tags=['DeleteIntegration'])
+router = APIRouter(prefix='/v1/nextplore-orchestrator', tags=['DeleteDataStore'])
 
 
-@router.delete('/integrations/{integration_id}', status_code=status.HTTP_202_ACCEPTED)
+@router.delete('/datastores/{datastore_id}', status_code=status.HTTP_202_ACCEPTED)
 async def delete_integration(
-    integration_id: UUID,
+    datastore_id: UUID,
     user_identity=Depends(get_active_user),
     integration_client=Depends(get_integration_client),
     cache_service: OrchestratorCacheService = Depends(get_orchestrator_cache_service)
@@ -25,16 +25,16 @@ async def delete_integration(
     user_id = getattr(user_identity, 'user_id', None)
 
     try:
-        await integration_client.delete_integration(
+        await integration_client.delete_datastore(
             organization_id=org_id,
             user_id=user_id,
-            integration_id=integration_id
+            datastore_id=datastore_id
         )
         await cache_service.delete_user_stats(user_identity)
         return Response(status_code=status.HTTP_202_ACCEPTED)
-    except IntegrationDeleteRemoteError as e:
+    except DataStoreDeleteRemoteError as e:
         logger.error(
-            'Delete data_store failed (remote)',
+            'Delete data store failed (remote)',
             extra={'org_id': str(org_id), 'user_id': str(user_id)},
             exc_info=True
         )
@@ -44,7 +44,7 @@ async def delete_integration(
         )    
     except Exception as e:
         logger.error(
-            'Delete data_store failed (unexpected)',
+            'Delete data store failed (unexpected)',
             extra={'org_id': str(org_id), 'user_id': str(user_id)}
         )
         raise HTTPException(

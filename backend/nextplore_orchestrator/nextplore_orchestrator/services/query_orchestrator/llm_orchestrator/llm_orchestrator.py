@@ -43,7 +43,7 @@ class SimpleLlmOrchestrator(LlmOrchestrator):
     async def run(self, request: AIQueryRequest, user_identity: UserIdentity) -> AIQueryResponse:
         collection = await self.vector_search.search(request.prompt, user_identity)
         rag_context = build_rag_context(collection.vector_neighbours[:self.top_n])
-        llm_output_specs = llm_output_specs_dto_from_rag_context(pipeline.rag_context)
+        llm_output_specs = llm_output_specs_dto_from_rag_context(rag_context)
         orm_context = await self.model_gateway.get_orm_context(
             request=request,
             llm_output_specs=llm_output_specs,

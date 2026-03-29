@@ -1,32 +1,32 @@
-class IntegrationCrawlRemoteError(Exception):
+class DataStoreCrawlRemoteError(Exception):
     pass
 
 
-class IntegrationCreateRemoteError(Exception):
+class DataStoreCreateRemoteError(Exception):
     pass
 
 
-class IntegrationDeleteRemoteError(Exception):
+class DataStoreDeleteRemoteError(Exception):
     pass
 
 
-class IntegrationGetRemoteError(Exception):
+class DataStoreGetRemoteError(Exception):
     pass
 
 
-class IntegrationGetProfilesRemoteError(Exception):
+class DataStoreGetProfilesRemoteError(Exception):
     pass
 
 
-class IntegrationGetStatsRemoteError(Exception):
+class DataStoreGetStatsRemoteError(Exception):
     pass
 
 
-class IntegrationTestRemoteError(Exception):
+class DataStoreTestRemoteError(Exception):
     pass
 
 
-class IntegrationUpdateRemoteError(Exception):
+class DataStoreUpdateRemoteError(Exception):
     pass
 
 
@@ -35,4 +35,10 @@ class CertGetProfilesRemoteError(Exception):
 
 
 class CertCreateRemoteError(Exception):
+    pass
+
+class LlmCreateRemoteError(Exception):
+    pass
+
+class LlmGetProfilesRemoteError(Exception):
     pass

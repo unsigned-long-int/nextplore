@@ -3,8 +3,8 @@ from typing import List, Dict
 
 @dataclass(frozen=True)
 class RagContext:
-    integration_registry_repr: str
-    integrations_enum: List[str]
+    datastore_registry_repr: str
+    datastores_enum: List[str]
     schemas_enum: List[str]
     tables_enum: List[str]
     columns_enum: List[str]

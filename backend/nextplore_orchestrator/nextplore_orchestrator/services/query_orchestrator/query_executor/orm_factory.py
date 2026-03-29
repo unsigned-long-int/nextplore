@@ -19,12 +19,12 @@ logger = logging.getLogger(__name__)
 _dynamic_bases: Dict[str, registry] = {}
 
 
-def get_dynamic_base(integration_id: str):
-    if integration_id not in _dynamic_bases:
+def get_dynamic_base(datastore_id: str):
+    if datastore_id not in _dynamic_bases:
         reg = registry()
         base = declarative_base(metadata=reg.metadata)
-        _dynamic_bases[integration_id] = base
-    return _dynamic_bases[integration_id]
+        _dynamic_bases[datastore_id] = base
+    return _dynamic_bases[datastore_id]
 
 
 @dataclass
@@ -34,7 +34,7 @@ class ORMFactory:
     with schema_name, class_name, table_name and column_names
     which are most likely to provide the answer to user query
     """
-    integration_id: str
+    datastore_id: str
     schema_name: str
     class_name: str
     table_name: str
@@ -42,7 +42,7 @@ class ORMFactory:
     engine_manager: EngineManager
 
     async def generate_orm_class(self) -> type:
-        Base = get_dynamic_base(self.integration_id)
+        Base = get_dynamic_base(self.datastore_id)
 
         column_attrs: Dict[str, Column] = {}
 
@@ -52,11 +52,11 @@ class ORMFactory:
         reflected_columns = await asyncio.to_thread(self._fetch_reflected_columns, engine)
         elapsed = time.monotonic() - start
         logger.info(
-            'Reflected %s.%s in %.2fs (integration=%s)',
+            'Reflected %s.%s in %.2fs (data_store=%s)',
             self.schema_name,
             self.table_name,
             elapsed,
-            self.integration_id
+            self.datastore_id
         )
         if not any(col.get('primary_key') for col in reflected_columns):
             reflected_columns[0]['primary_key'] = True
@@ -97,7 +97,7 @@ async def get_orm(
     engine_manager: EngineManager
 ) -> type:
     orm_factory = ORMFactory(
-        integration_id=orm_request.integration,
+        datastore_id=orm_request.datastore,
         schema_name=orm_request.schema_name,
         class_name=orm_request.class_name,
         table_name=orm_request.table_name,

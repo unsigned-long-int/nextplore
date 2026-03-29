@@ -1,9 +1,8 @@
 from uuid import UUID
 from typing import Dict, Any, List
 
-
 from svc_vector_contracts.models import VectorMetadata, VectorSearchResult
-from svc_llm_inference_contracts.models import LlmOutputSpecs, IntegrationEntry, SchemaEntry
+from svc_llm_inference_contracts.models import LlmOutputSpecs, DataStoreEntry, SchemaEntry
 from nextplore_orchestrator.domain.models import (
     Organization,
     User,
@@ -53,7 +52,7 @@ def vector_neighbours_from_dto(vector_hits_meta: List[VectorMetadata], vector_hi
             id=vid,
             score=vector_hits_by_id[vid].score,
             orm_metadata=OrmMetadata(
-                integration_id=vector_meta_by_id[vid].integration_id,
+                datastore_id=vector_meta_by_id[vid].datastore_id,
                 schema_name=vector_meta_by_id[vid].schema_name,
                 table_name=vector_meta_by_id[vid].table_name,
                 column_names=vector_meta_by_id[vid].table_metadata.column_names
@@ -65,18 +64,18 @@ def vector_neighbours_from_dto(vector_hits_meta: List[VectorMetadata], vector_hi
 
 def llm_output_specs_dto_from_rag_context(rag_context: RagContext) -> LlmOutputSpecs:
     return LlmOutputSpecs(
-        integration_registry_repr=rag_context.integration_registry_repr,
-        integrations_enum=rag_context.integrations_enum,
+        datastore_registry_repr=rag_context.datastore_registry_repr,
+        datastores_enum=rag_context.datastores_enum,
         schemas_enum=rag_context.schemas_enum,
         tables_enum=rag_context.tables_enum,
         columns_enum=rag_context.columns_enum,
         filter_op_enum=rag_context.filter_op_enum,
         agg_funcs_enum=rag_context.agg_funcs_enum,
         table_columns_registry={
-            integration_id: IntegrationEntry(schemas={
+            datastore_id: DataStoreEntry(schemas={
                 schema_name: SchemaEntry(tables=tables)
                 for schema_name, tables in schemas.items()
             })
-            for integration_id, schemas in rag_context.table_columns_registry.items()
+            for datastore_id, schemas in rag_context.table_columns_registry.items()
         }
     )

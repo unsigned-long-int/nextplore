@@ -1,9 +1,8 @@
 import httpx 
 from json import JSONDecodeError
 
-from nextplore_orchestrator.clients.embedding.models.embedding_response import EmbeddingResponse
-from nextplore_orchestrator.clients.embedding.models.query_embedding_request import QueryEmbeddingRequest
 from nextplore_orchestrator.clients.base import BaseServiceClient
+from svc_embedding_contracts.models import EmbeddingResponse, QueryEmbeddingRequest
 from .exceptions import EmbeddingResponseRemoteError
 
 

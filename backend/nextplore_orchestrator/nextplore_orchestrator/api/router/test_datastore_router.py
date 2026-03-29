@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from nextplore_orchestrator.clients.integration import DataStoreTestRemoteError
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
 from nextplore_orchestrator.api.dependencies.microservices import get_integration_client
-from nextplore_orchestrator.api.models.integration_test_response import IntegrationTestResponse
 
+from svc_nextplore_orchestrator_contracts.models import DataStoreTestResponse
 from svc_integration_contracts.models import DataStoreCreateRequest
 
 logger = logging.getLogger(__name__)
@@ -23,8 +23,8 @@ async def test_datastore(
     user_id = getattr(user_identity, 'user_id', None)
     
     try:
-        await integration_client.test_integration(datastore_create_request)
-        return IntegrationTestResponse(success=True)
+        await integration_client.test_datastore(datastore_create_request)
+        return DataStoreTestResponse(success=True)
     except DataStoreTestRemoteError as e:
         logger.error(
             'Data store test failed (remote)',

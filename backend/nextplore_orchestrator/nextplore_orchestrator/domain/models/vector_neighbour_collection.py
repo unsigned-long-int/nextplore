@@ -5,7 +5,7 @@ from uuid import UUID
 
 @dataclass(frozen=True)
 class OrmMetadata:
-    integration_id: UUID
+    datastore_id: UUID
     schema_name: str
     table_name: str
     column_names: List[str]

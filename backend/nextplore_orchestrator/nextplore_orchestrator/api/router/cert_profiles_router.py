@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/v1/nextplore-orchestrator', tags=['CertProfiles'])
 
 
-@router.get('/integrations/certificates/profiles', response_model=List[CertProfile])
+@router.get('/datastores/certificates/profiles', response_model=List[CertProfile])
 async def get_cert_profiles(
     user_identity=Depends(get_active_user),
     integration_client=Depends(get_integration_client)

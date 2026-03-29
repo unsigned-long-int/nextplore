@@ -6,7 +6,7 @@ from nextplore_orchestrator.api.dependencies.authentication import get_active_us
 from nextplore_orchestrator.api.dependencies.microservices import get_integration_client, get_vector_client
 from nextplore_orchestrator.api.dependencies.cache import get_orchestrator_cache_service
 from nextplore_orchestrator.cache.orchestrator_cache import OrchestratorCacheService
-from nextplore_orchestrator.clients.integration import IntegrationGetStatsRemoteError
+from nextplore_orchestrator.clients.integration import DataStoreGetStatsRemoteError
 from nextplore_orchestrator.clients.vector import VectorGetStatsRemoteError
 from nextplore_orchestrator.api.models.user_stats import UserStats
 
@@ -31,7 +31,7 @@ async def get_user_stats(
         return cached
  
     try:
-        integration_stats, vector_stats = await asyncio.gather(
+        datastore_stats, vector_stats = await asyncio.gather(
             integration_client.get_stats(
                 organization_id=org_id,
                 user_id=user_id
@@ -43,12 +43,12 @@ async def get_user_stats(
         )
 
         response = UserStats(
-            integrations_number=integration_stats.integration_count, 
+            datastores_number=datastore_stats.datastore_count,
             vectors_number=vector_stats.vector_count
         )
         await cache_service.set_user_stats(user_identity, response, ttl=300)
         return response
-    except IntegrationGetStatsRemoteError as e:
+    except DataStoreGetStatsRemoteError as e:
         logger.error(
             'Integration get stats failed (remote)',
             extra={'org_id': str(org_id), 'user_id': str(user_id)},

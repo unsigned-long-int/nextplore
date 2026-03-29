@@ -14,7 +14,7 @@ def dictify(d):
 def build_rag_context(
     vector_neighbours: List[VectorNeighbour]
 ) -> RagContext:
-    integrations = {str(vn.orm_metadata.integration_id) for vn in vector_neighbours}
+    datastores = {str(vn.orm_metadata.datastore_id) for vn in vector_neighbours}
     schemas = {str(vn.orm_metadata.schema_name) for vn in vector_neighbours}
     tables = {str(vn.orm_metadata.table_name) for vn in vector_neighbours}
     columns = {
@@ -27,18 +27,18 @@ def build_rag_context(
     )
 
     for vn in vector_neighbours:
-        integration_id = str(vn.orm_metadata.integration_id)
+        datastore_id = str(vn.orm_metadata.datastore_id)
         schema_name = str(vn.orm_metadata.schema_name)
         table_name = str(vn.orm_metadata.table_name)
         column_names = vn.orm_metadata.column_names
         column_names = [str(col) for col in column_names]
 
-        registry[integration_id][schema_name][table_name] = column_names
+        registry[datastore_id][schema_name][table_name] = column_names
 
     clean_registry = dictify(registry)
     return RagContext(
-        integration_registry_repr=json.dumps(clean_registry, indent=2),
-        integrations_enum=list(integrations),
+        datastore_registry_repr=json.dumps(clean_registry, indent=2),
+        datastores_enum=list(datastores),
         schemas_enum=list(schemas),
         tables_enum=list(tables),
         columns_enum=list(columns),

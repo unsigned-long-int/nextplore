@@ -1,13 +1,14 @@
 from .exceptions import (
-    IntegrationCrawlRemoteError,
-    IntegrationCreateRemoteError,
-    IntegrationDeleteRemoteError,
-    IntegrationGetRemoteError,
-    IntegrationGetStatsRemoteError,
-    IntegrationGetProfilesRemoteError,
-    IntegrationTestRemoteError,
-    IntegrationUpdateRemoteError,
+    DataStoreCrawlRemoteError,
+    DataStoreCreateRemoteError,
+    DataStoreDeleteRemoteError,
+    DataStoreGetRemoteError,
+    DataStoreGetStatsRemoteError,
+    DataStoreGetProfilesRemoteError,
+    DataStoreTestRemoteError,
+    DataStoreUpdateRemoteError,
     CertGetProfilesRemoteError,
-    CertCreateRemoteError
+    CertCreateRemoteError,
+    LlmCreateRemoteError
 )
 from .integration_client import IntegrationClient

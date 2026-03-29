@@ -9,7 +9,7 @@ from nextplore_orchestrator.api.models.ai_query_response import AIQueryResponse
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
 from nextplore_orchestrator.clients.llm_inference import ModelResponseRemoteError
 from nextplore_orchestrator.clients.embedding import EmbeddingResponseRemoteError
-from nextplore_orchestrator.clients.integration import IntegrationGetRemoteError
+from nextplore_orchestrator.clients.integration import DataStoreGetRemoteError
 from nextplore_orchestrator.clients.vector import VectorSearchDBRemoteError, VectorGetMetasRemoteError
 from nextplore_orchestrator.services.query_orchestrator.exceptions import QueryRunError, LlmOrchestratorBootstrapError
 
@@ -36,7 +36,7 @@ async def ai_query(
     except (
         ModelResponseRemoteError, 
         EmbeddingResponseRemoteError, 
-        IntegrationGetRemoteError, 
+        DataStoreGetRemoteError,
         VectorSearchDBRemoteError,
         VectorGetMetasRemoteError
     ) as e:

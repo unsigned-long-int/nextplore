@@ -1,24 +1,23 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
+from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
 from nextplore_orchestrator.api.dependencies.microservices import get_integration_client
 from nextplore_orchestrator.api.dependencies.connector import get_backend_connector
 from nextplore_orchestrator.database.repositories import AuthRepository
 from nextplore_orchestrator.database.exceptions import KekIdNotFound, KekIdGetFailed
-from nextplore_orchestrator.clients.integration import DataStoreCreateRemoteError
+from nextplore_orchestrator.clients.integration import LlmCreateRemoteError
+from svc_integration_contracts.models import UserLlmCreateRequest
 
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from svc_integration_contracts.models import DataStoreCreateRequest
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix='/v1/nextplore-orchestrator', tags=['CreateDataStore'])
+router = APIRouter(prefix='/v1/nextplore-orchestrator', tags=['CreateLlmModel'])
 
-
-@router.post('/datastores', status_code=status.HTTP_201_CREATED)
-async def create_datastore(
-    datastore_create_request: DataStoreCreateRequest,
+@router.post('/llm', status_code=status.HTTP_201_CREATED)
+async def create_llm_model(
+    user_llm_create_request: UserLlmCreateRequest,
     user_identity=Depends(get_active_user),
     backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
     integration_client=Depends(get_integration_client)
@@ -30,16 +29,16 @@ async def create_datastore(
 
     try:
         kek_kid = await auth_repo.get_kek_kid(org_id)
-        enriched_datastore = datastore_create_request.model_copy(update={'kek_kid': kek_kid})
-        await integration_client.create_datastore(
+        enriched_llm = user_llm_create_request.model_copy(update={'kek_kid': kek_kid})
+        await integration_client.create_user_llm(
             organization_id=org_id,
             user_id=user_id,
-            payload=enriched_datastore
+            payload=enriched_llm
         )
         return Response(status_code=status.HTTP_201_CREATED)
-    except DataStoreCreateRemoteError as e:
+    except LlmCreateRemoteError as e:
         logger.error(
-            'Create data store failed (remote)',
+            'Create Llm model failed (remote)',
             extra={'org_id': org_id, 'user_id': user_id},
             exc_info=True
         )
@@ -49,7 +48,7 @@ async def create_datastore(
         )
     except (KekIdGetFailed, KekIdNotFound) as e:
         logger.error(
-            'Create data store failed (Kek ID not found)',
+            'Create llm model failed (Kek ID not found)',
             extra={'org_id': org_id, 'user_id': user_id},
             exc_info=True
         )
@@ -59,7 +58,7 @@ async def create_datastore(
         )
     except Exception as e:
         logger.error(
-            'Create data store failed (unexpected)',
+            'Create llm model failed (unexpected)',
             extra={'org_id': org_id, 'user_id': user_id}
         )
         raise HTTPException(
