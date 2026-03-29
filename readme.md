@@ -59,11 +59,17 @@ Use multi-query retrieval to broaden semantic coverage, combined with Reciprocal
 
 ![Pipeline Tracing](./docs/pipeline-trace-use-case.gif)
 
-**Integration Creation/Update/Delete**
+**Data Store Integration Creation/Update/Delete**
 
-Create and manage your integrations. Benefit from LLM help to generate vector-friendly integration description to boost RAG efficiency. 
+Create and manage your SQL data stores. Benefit from LLM help to generate vector-friendly integration description to boost RAG efficiency. 
 
 ![Integrations Use Case](./docs/integration-creation-use-case.gif)
+
+**2.600+ LLM across 140+ Providers Incl. Self-Hosted Models**
+
+Integrated with your own custom models, either self-hosted or private inference endpoints. 
+![Custom LLM Use Case](./docs/custom-llm-use-case.gif)
+
 
 **Vectors Metadata View**
 
@@ -726,7 +732,7 @@ CREATE AUTHENTICATION POLICY nextplore_auth
 
 ALTER USER NEXTPLORE_PWD
 ADD PROGRAMMATIC ACCESS TOKEN NEXTPLORE_PAT
-DAYS_TO_EXPIRY = 30; -- copy paste token and insert as password in your integration
+DAYS_TO_EXPIRY = 30; -- copy paste token and insert as password in your data_store
 ```
 
 ---
@@ -763,10 +769,14 @@ The image below provides the basic architecture of the application.
 - Logging provides json-formatted information on runtime state. It enables integrations with log analytics agents such as Datadog to collect, analyse and manage state of the application. 
 - API performance metrics are collected and analysed via [prometheus](https://prometheus.io/)
 
-**LLMs integrations**
+**LLM Integrations**
 
-- Integration microservice uses Hugging Face as inference provider solution to integrate with LLMs. 
-- Since Hugging Face supports creation and inference of own model, Nextplore will support usage of own models for natural language querying.
+- Curated default models shipped out of the box - no configuration required to run first queries
+- 2,600+ models across 140+ providers via a unified OpenAI-compatible abstraction layer - OpenAI, Anthropic, Google Gemini, Meta LLaMA, Mistral, Azure OpenAI, AWS Bedrock, Groq, Cohere and more
+- Self-hosted inference supported via Ollama, vLLM, TGI, or any OpenAI-compatible REST endpoint
+- Bring-your-own-key (BYOK) - per-user API credentials stored with envelope encryption (AES-256-GCM + RSA-OAEP) via Azure Key Vault
+- Model routing is runtime-configurable per datasource and per query - no redeployment required
+- User-hosted models registered via REST API with encrypted connection params and live connection validation before persistence
 
 **Microservice communication** 
 
