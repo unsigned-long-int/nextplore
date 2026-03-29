@@ -24,11 +24,11 @@ class CertCreateRequest(BaseModel):
     validity_in_months: int | None = Field(default=None, title="Validity In Months")
 
 
-class IntegrationTestResponse(BaseModel):
+class DataStoreTestResponse(BaseModel):
     success: bool = Field(..., title="Success")
 
 
-class IntegrationUpdateRequest(BaseModel):
+class DataStoreUpdateRequest(BaseModel):
     connection_name: str | None = Field(..., title="Connection Name")
     host: str | None = Field(..., title="Host")
     port: int | None = Field(..., title="Port")
@@ -52,12 +52,12 @@ class UserProfile(BaseModel):
 
 
 class UserStats(BaseModel):
-    integrations_number: int = Field(..., title="Integrations Number")
+    datastores_number: int = Field(..., title="Data Stores Number")
     vectors_number: int = Field(..., title="Vectors Number")
 
 
 class VectorProfileResponse(BaseModel):
-    integration_id: UUID4 = Field(..., title="Integration Id")
+    datastore_id: UUID4 = Field(..., title="Data Store Id")
     schema_name: str = Field(..., title="Schema Name")
     table_name: str = Field(..., title="Table Name")
     table_meta: str = Field(..., title="Table Meta")
@@ -137,7 +137,7 @@ class HTTPValidationError(BaseModel):
     detail: list[ValidationError] | None = Field(default=None, title="Detail")
 
 
-class IntegrationCreateRequest(BaseModel):
+class DataStoreCreateRequest(BaseModel):
     auth: Auth
     cloud: Cloud
     db: DB
@@ -167,7 +167,7 @@ class IntegrationCreateRequest(BaseModel):
     autosync_on: bool = Field(default=True, title="Autosync On")
 
 
-class IntegrationProfile(BaseModel):
+class DataStoreProfile(BaseModel):
     id: UUID4 = Field(..., title="Id")
     auth: Auth
     cloud: Cloud
@@ -180,11 +180,11 @@ class IntegrationProfile(BaseModel):
 
 
 class ResponseGetIntegrationProfilesV1NextploreOrchestratorIntegrationsProfilesGet(
-    RootModel[list[IntegrationProfile]]
+    RootModel[list[DataStoreProfile]]
 ):
-    root: list[IntegrationProfile] = Field(
+    root: list[DataStoreProfile] = Field(
         ...,
-        title="Response Get Integration Profiles V1 Nextplore Orchestrator Integrations Profiles Get",
+        title="Response Get Data Store Profiles V1 Nextplore Orchestrator Integrations Profiles Get",
     )
 
 

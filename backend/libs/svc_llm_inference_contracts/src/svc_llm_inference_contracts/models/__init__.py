@@ -3,7 +3,7 @@
 #   timestamp: 2026-03-08T17:50:55+00:00
 
 from pydantic import UUID4, BaseModel, Field, RootModel
-from typing import List, Dict
+from typing import List, Dict, Any
 
 
 class ModelInfo(BaseModel):
@@ -14,7 +14,7 @@ class ModelInfo(BaseModel):
 
 
 class ORMContextResponse(BaseModel):
-    integration: UUID4 = Field(..., title="Integration")
+    datastore: UUID4 = Field(..., title="Data Store")
     schema_name: str = Field(..., title="Schema Name")
     class_name: str = Field(..., title="Class Name")
     table_name: str = Field(..., title="Table Name")
@@ -25,18 +25,18 @@ class ORMContextResponse(BaseModel):
 class SchemaEntry(BaseModel):
     tables: Dict[str, List[str]]
 
-class IntegrationEntry(BaseModel):
+class DataStoreEntry(BaseModel):
     schemas: Dict[str, SchemaEntry]
 
 class LlmOutputSpecs(BaseModel):
-    integration_registry_repr: str = Field(..., title="Integration Registry Repr")
-    integrations_enum: list[str] = Field(..., title="Integrations Enum")
+    datastore_registry_repr: str = Field(..., title="Data Store Registry Repr")
+    datastores_enum: list[str] = Field(..., title="Data Stores Enum")
     schemas_enum: list[str] = Field(..., title="Schemas Enum")
     tables_enum: list[str] = Field(..., title="Tables Enum")
     columns_enum: list[str] = Field(..., title="Columns Enum")
     filter_op_enum: list[str] = Field(..., title="Filter Op Enum")
     agg_funcs_enum: list[str] = Field(..., title="Agg Funcs Enum")
-    table_columns_registry: Dict[str, IntegrationEntry] = Field(..., title="Table Columns Registry")
+    table_columns_registry: Dict[str, DataStoreEntry] = Field(..., title="Table Columns Registry")
 
 
 class ValidationError(BaseModel):
@@ -77,3 +77,12 @@ class PromptRequest(BaseModel):
 
 class PromptResponse(BaseModel):
     response: str = Field(..., title="Response")
+
+
+class UserLlmTestRequest(BaseModel):
+    model_id: str = Field(..., title="Model Id")
+    label: str = Field(..., title="Label")
+    api_base: str = Field(..., title="API Base URL")
+    connection_params: Dict[str, Any] = Field(..., title="Litellm Params")
+    max_tokens: int = Field(..., title="Max Tokens")
+

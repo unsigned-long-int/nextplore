@@ -5,7 +5,7 @@
 from enum import StrEnum
 
 from pydantic import UUID4, AwareDatetime, BaseModel, Field, RootModel, SecretStr
-
+from typing import Dict, Any
 
 class CertCreateRequest(BaseModel):
     purpose: str | None = Field(default=None, title="Purpose")
@@ -14,8 +14,8 @@ class CertCreateRequest(BaseModel):
 
 
 class CrawlResponse(BaseModel):
-    integration_registry_repr: str = Field(..., title="Integration Registry Repr")
-    integrations_enum: list[str] = Field(..., title="Integrations Enum")
+    datastore_registry_repr: str = Field(..., title="Data Store Registry Repr")
+    datastores_enum: list[str] = Field(..., title="Data Stores Enum")
     schemas_enum: list[str] = Field(..., title="Schemas Enum")
     tables_enum: list[str] = Field(..., title="Tables Enum")
     columns_enum: list[str] = Field(..., title="Columns Enum")
@@ -24,17 +24,17 @@ class CrawlResponse(BaseModel):
 
 
 class FilteredCrawlRequest(BaseModel):
-    integrations: list[UUID4] = Field(..., title="Integrations")
+    datastores: list[UUID4] = Field(..., title="Datastores")
     schemas: dict[str, list[str]] = Field(..., title="Schemas")
     tables: dict[str, list[str]] = Field(..., title="Tables")
 
 
-class IntegrationStatsResponse(BaseModel):
-    integration_ids: list[UUID4] = Field(..., title="Integration Ids")
-    integration_count: int = Field(..., title="Integration Count")
+class DataStoreStatsResponse(BaseModel):
+    datastore_ids: list[UUID4] = Field(..., title="Data Store Ids")
+    datastore_count: int = Field(..., title="Datastore Count")
 
 
-class IntegrationUpdateRequest(BaseModel):
+class DataStoreUpdateRequest(BaseModel):
     connection_name: str | None = Field(default=None, title="Connection Name")
     host: str | None = Field(default=None, title="Host")
     port: int | None = Field(default=None, title="Port")
@@ -99,7 +99,7 @@ class HTTPValidationError(BaseModel):
     detail: list[ValidationError] | None = Field(default=None, title="Detail")
 
 
-class IntegrationConnectionProfile(BaseModel):
+class DataStoreConnectionProfile(BaseModel):
     auth: Auth
     cloud: Cloud
     db: DB
@@ -122,7 +122,7 @@ class IntegrationConnectionProfile(BaseModel):
     region: str | None = Field(default=None, title="Region")
 
 
-class IntegrationCreateRequest(BaseModel):
+class DataStoreCreateRequest(BaseModel):
     auth: Auth
     cloud: Cloud
     db: DB
@@ -153,7 +153,7 @@ class IntegrationCreateRequest(BaseModel):
     autosync_on: bool = Field(default=True, title="Autosync On")
 
 
-class IntegrationProfile(BaseModel):
+class DataStoreProfile(BaseModel):
     id: UUID4 = Field(..., title="Id")
     auth: Auth
     cloud: Cloud
@@ -166,9 +166,9 @@ class IntegrationProfile(BaseModel):
 
 
 class ResponseGetProfilesV1IntegrationOrganizationsOrganizationIdUsersUserIdIntegrationsProfilesGet(
-    RootModel[list[IntegrationProfile]]
+    RootModel[list[DataStoreProfile]]
 ):
-    root: list[IntegrationProfile] = Field(
+    root: list[DataStoreProfile] = Field(
         ...,
         title="Response Get Profiles V1 Integration Organizations  Organization Id  Users  User Id  Integrations Profiles Get",
     )
@@ -181,3 +181,18 @@ class ResponseGetCertProfilesV1IntegrationOrganizationsOrganizationIdUsersUserId
         ...,
         title="Response Get Cert Profiles V1 Integration Organizations  Organization Id  Users  User Id  Integrations Certificates Profiles Get",
     )
+
+
+class UserLlmCreateRequest(BaseModel):
+    model_id: str = Field(..., title="Model Id")
+    label: str = Field(..., title="Label")
+    api_base: str = Field(..., title="API Base URL")
+    connection_params: Dict[str, Any] = Field(..., title="Litellm Params")
+    max_tokens: int = Field(..., title="Max Tokens")
+    kek_kid: str | None = Field(default=None, title="Kek Kid")
+
+class UserLlmProfile(BaseModel):
+    api_base: str = Field(..., title="API Base URL")
+    model_id: str = Field(..., title="Model Id")
+    label: str = Field(..., title="Label")
+    max_tokens: int = Field(..., title="Max Tokens")

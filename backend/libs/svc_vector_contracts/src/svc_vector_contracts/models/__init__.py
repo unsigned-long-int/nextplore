@@ -19,7 +19,7 @@ class VectorMetadataQuery(BaseModel):
 
 
 class TableProfile(BaseModel):
-    integration_id: UUID4 = Field(..., title="Integration Id")
+    datastore_id: UUID4 = Field(..., title="Datastore Id")
     schema_name: str = Field(..., title="Schema Name")
     table_name: str = Field(..., title="Table Name")
     table_meta: str = Field(..., title="Table Meta")
@@ -30,7 +30,7 @@ class VectorIndexStats(BaseModel):
 
 
 class TableMetadata(BaseModel):
-    integration_id: UUID4 = Field(..., title="Integration Id")
+    datastore_id: UUID4 = Field(..., title="Datastore Id")
     schema_name: str = Field(..., title="Schema Name")
     table_name: str = Field(..., title="Table Name")
     column_names: list[str] = Field(..., title="Column Names")
@@ -57,7 +57,7 @@ class HTTPValidationError(BaseModel):
 
 class VectorMetadata(BaseModel):
     vector_id: UUID4 = Field(..., title="Vector Id")
-    integration_id: UUID4 = Field(..., title="Integration Id")
+    datastore_id: UUID4 = Field(..., title="Datastore Id")
     schema_name: str = Field(..., title="Schema Name")
     table_name: str = Field(..., title="Table Name")
     table_metadata: TableMetadata
