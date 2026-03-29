@@ -37,7 +37,7 @@ class TestStatsRouter(unittest.TestCase):
             f'users/{user_id}/datastores/stats'
         )
 
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_returns_cached_stats(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -45,14 +45,14 @@ class TestStatsRouter(unittest.TestCase):
         get_current_identity_mock.return_value = user_identity_mock
 
         cached_stats = self.stats_response
-        self.cache_mock.get_stats.return_value = cached_stats
+        self.cache_mock.get_datastore_stats.return_value = cached_stats
 
         response = self.client.get(
             self._url(user_identity_mock.organization_id, user_identity_mock.user_id)
         )
 
         self.assertEqual(200, response.status_code)
-        self.cache_mock.get_stats.assert_awaited_once_with(
+        self.cache_mock.get_datastore_stats.assert_awaited_once_with(
             user_identity=user_identity_mock
         )
 
@@ -60,10 +60,10 @@ class TestStatsRouter(unittest.TestCase):
         self.assertEqual(response_data['datastore_count'], 3)
         self.assertEqual(len(response_data['datastore_ids']), 3)
 
-        self.cache_mock.set_stats.assert_not_awaited()
+        self.cache_mock.set_datastore_stats.assert_not_awaited()
 
-    @patch('integration_service.api.router.stats_router.DataStoreRepository')
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_fetches_and_caches_stats_when_cache_miss(
         self,
         get_current_identity_mock,
@@ -74,7 +74,7 @@ class TestStatsRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_stats.return_value = None
+        self.cache_mock.get_datastore_stats.return_value = None
 
         repo_instance = AsyncMock()
         repo_instance.get_user_datastore_ids.return_value = self.datastore_ids
@@ -86,7 +86,7 @@ class TestStatsRouter(unittest.TestCase):
 
         self.assertEqual(200, response.status_code)
 
-        self.cache_mock.get_stats.assert_awaited_once_with(
+        self.cache_mock.get_datastore_stats.assert_awaited_once_with(
             user_identity=user_identity_mock
         )
 
@@ -95,8 +95,8 @@ class TestStatsRouter(unittest.TestCase):
             organization_id=user_identity_mock.organization_id
         )
 
-        self.cache_mock.set_stats.assert_awaited_once()
-        cached_response = self.cache_mock.set_stats.call_args[1]['response']
+        self.cache_mock.set_datastore_stats.assert_awaited_once()
+        cached_response = self.cache_mock.set_datastore_stats.call_args[1]['response']
         self.assertEqual(cached_response.datastore_count, 3)
         self.assertEqual(len(cached_response.datastore_ids), 3)
 
@@ -104,7 +104,7 @@ class TestStatsRouter(unittest.TestCase):
         self.assertEqual(response_data['datastore_count'], 3)
         self.assertEqual(len(response_data['datastore_ids']), 3)
 
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_returns_forbidden_when_user_id_mismatch(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -120,9 +120,9 @@ class TestStatsRouter(unittest.TestCase):
         self.assertEqual(403, response.status_code)
         self.assertEqual('Forbidden', response.json()['detail']['message'])
 
-        self.cache_mock.get_stats.assert_not_awaited()
+        self.cache_mock.get_datastore_stats.assert_not_awaited()
 
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_returns_forbidden_when_org_id_mismatch(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -138,10 +138,10 @@ class TestStatsRouter(unittest.TestCase):
         self.assertEqual(403, response.status_code)
         self.assertEqual('Forbidden', response.json()['detail']['message'])
 
-        self.cache_mock.get_stats.assert_not_awaited()
+        self.cache_mock.get_datastore_stats.assert_not_awaited()
 
-    @patch('integration_service.api.router.stats_router.DataStoreRepository')
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_raises_exception_when_datastore_get_failed(
         self,
         get_current_identity_mock,
@@ -152,7 +152,7 @@ class TestStatsRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_stats.return_value = None
+        self.cache_mock.get_datastore_stats.return_value = None
 
         repo_instance = AsyncMock()
         repo_instance.get_user_datastore_ids.side_effect = DataStoreGetFailed(
@@ -170,10 +170,10 @@ class TestStatsRouter(unittest.TestCase):
             response.json()['detail']['message']
         )
 
-        self.cache_mock.set_stats.assert_not_awaited()
+        self.cache_mock.set_datastore_stats.assert_not_awaited()
 
-    @patch('integration_service.api.router.stats_router.DataStoreRepository')
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_raises_exception_when_generic_error(
         self,
         get_current_identity_mock,
@@ -184,7 +184,7 @@ class TestStatsRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_stats.return_value = None
+        self.cache_mock.get_datastore_stats.return_value = None
 
         repo_instance = AsyncMock()
         repo_instance.get_user_datastore_ids.side_effect = RuntimeError(
@@ -202,10 +202,10 @@ class TestStatsRouter(unittest.TestCase):
             response.json()['detail']['message']
         )
 
-        self.cache_mock.set_stats.assert_not_awaited()
+        self.cache_mock.set_datastore_stats.assert_not_awaited()
 
-    @patch('integration_service.api.router.stats_router.DataStoreRepository')
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_returns_zero_stats_when_no_datastores_exist(
         self,
         get_current_identity_mock,
@@ -216,7 +216,7 @@ class TestStatsRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_stats.return_value = None
+        self.cache_mock.get_datastore_stats.return_value = None
 
         repo_instance = AsyncMock()
         repo_instance.get_user_datastore_ids.return_value = []
@@ -232,13 +232,13 @@ class TestStatsRouter(unittest.TestCase):
         self.assertEqual(response_data['datastore_count'], 0)
         self.assertEqual(len(response_data['datastore_ids']), 0)
 
-        self.cache_mock.set_stats.assert_awaited_once()
-        cached_response = self.cache_mock.set_stats.call_args[1]['response']
+        self.cache_mock.set_datastore_stats.assert_awaited_once()
+        cached_response = self.cache_mock.set_datastore_stats.call_args[1]['response']
         self.assertEqual(cached_response.datastore_count, 0)
         self.assertEqual(len(cached_response.datastore_ids), 0)
 
-    @patch('integration_service.api.router.stats_router.DataStoreRepository')
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_datastore_count_matches_datastore_ids_length(
         self,
         get_current_identity_mock,
@@ -249,7 +249,7 @@ class TestStatsRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_stats.return_value = None
+        self.cache_mock.get_datastore_stats.return_value = None
 
         datastore_ids = [uuid4() for _ in range(7)]
         repo_instance = AsyncMock()
@@ -270,8 +270,8 @@ class TestStatsRouter(unittest.TestCase):
             len(response_data['datastore_ids'])
         )
 
-    @patch('integration_service.api.router.stats_router.DataStoreRepository')
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_returns_all_datastore_ids_in_response(
         self,
         get_current_identity_mock,
@@ -282,7 +282,7 @@ class TestStatsRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_stats.return_value = None
+        self.cache_mock.get_datastore_stats.return_value = None
 
         datastore_ids = [uuid4(), uuid4(), uuid4()]
         repo_instance = AsyncMock()
@@ -301,8 +301,8 @@ class TestStatsRouter(unittest.TestCase):
 
         self.assertEqual(set(response_ids), set(expected_ids))
 
-    @patch('integration_service.api.router.stats_router.DataStoreRepository')
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_uses_user_identity_credentials_for_repository_call(
         self,
         get_current_identity_mock,
@@ -313,7 +313,7 @@ class TestStatsRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_stats.return_value = None
+        self.cache_mock.get_datastore_stats.return_value = None
 
         repo_instance = AsyncMock()
         repo_instance.get_user_datastore_ids.return_value = []
@@ -330,8 +330,8 @@ class TestStatsRouter(unittest.TestCase):
             organization_id=user_identity_mock.organization_id
         )
 
-    @patch('integration_service.api.router.stats_router.DataStoreRepository')
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_caches_response_with_correct_user_identity(
         self,
         get_current_identity_mock,
@@ -342,7 +342,7 @@ class TestStatsRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_stats.return_value = None
+        self.cache_mock.get_datastore_stats.return_value = None
 
         repo_instance = AsyncMock()
         repo_instance.get_user_datastore_ids.return_value = self.datastore_ids
@@ -354,13 +354,13 @@ class TestStatsRouter(unittest.TestCase):
 
         self.assertEqual(200, response.status_code)
 
-        self.cache_mock.set_stats.assert_awaited_once()
-        call_kwargs = self.cache_mock.set_stats.call_args[1]
+        self.cache_mock.set_datastore_stats.assert_awaited_once()
+        call_kwargs = self.cache_mock.set_datastore_stats.call_args[1]
         self.assertEqual(call_kwargs['user_identity'], user_identity_mock)
         self.assertIsInstance(call_kwargs['response'], DataStoreStatsResponse)
 
-    @patch('integration_service.api.router.stats_router.DataStoreRepository')
-    @patch('integration_service.api.router.stats_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_stats_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_stats_router.get_current_identity')
     def test_handles_single_datastore(
         self,
         get_current_identity_mock,
@@ -371,7 +371,7 @@ class TestStatsRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_stats.return_value = None
+        self.cache_mock.get_datastore_stats.return_value = None
 
         single_datastore_id = [uuid4()]
         repo_instance = AsyncMock()

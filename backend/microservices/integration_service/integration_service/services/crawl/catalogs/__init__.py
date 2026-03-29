@@ -1,4 +1,4 @@
-from .integration_registry_catalog import IntegrationRegistryCatalog
-from .integration_catalog import IntegrationCatalog
+from .datastore_registry_catalog import DataStoreRegistryCatalog
+from .datastore_catalog import DataStoreCatalog
 from .schema_catalog import SchemaCatalog
 from .table_catalog import TableCatalog

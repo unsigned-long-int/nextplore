@@ -17,7 +17,7 @@ router = APIRouter(prefix='/v1/integration', tags=['CreateDataStore'])
     '/organizations/{organization_id}/users/{user_id}/datastores',
     status_code=status.HTTP_204_NO_CONTENT
 )
-async def create_integration(
+async def create_datastore(
     organization_id: UUID,
     user_id: UUID,
     payload: DataStoreCreateRequest,

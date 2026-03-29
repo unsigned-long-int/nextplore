@@ -1,1 +1,1 @@
-from .exceptions import CrawlIntegrationsFailed
+from .exceptions import CrawlDataStoresFailed

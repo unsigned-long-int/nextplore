@@ -1,2 +1,2 @@
 from .secret_type import SecretType
-from .integration_secret import IntegrationSecret
+from .datastore_secret import DataStoreSecret

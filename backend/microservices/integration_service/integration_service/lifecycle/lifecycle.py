@@ -9,11 +9,11 @@ from nextplore_sdk.logging.setup import setup_logger
 from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 from kafka_messaging.message_bus import get_kafka_message_bus
-from kafka_messaging.events.integration_service import IntegrationCreated
+from kafka_messaging.events.integration_service import DataStoreCreated
 
 from integration_service.cache import CacheService
-from integration_service.api.handlers import crawl_initial_integration_metadata
-from integration_service.database.repositories import IntegrationRepository
+from integration_service.api.handlers import crawl_initial_datastore_metadata
+from integration_service.database.repositories import DataStoreRepository, LlmRepository
 from _version import version, app_name
 
 DATABASE_URL = (
@@ -31,8 +31,13 @@ async def lifespan(app: FastAPI):
     backend_connector = DatabaseBackendConnector(DATABASE_URL)
     backend_connector.init()
     app.state.backend_connector = backend_connector
-    repo = IntegrationRepository(backend_connector)
-    app.state.repo = repo
+
+    data_store_repo = DataStoreRepository(backend_connector)
+    app.state.data_store_repo = data_store_repo
+
+    llm_repo = LlmRepository(backend_connector)
+    app.state.llm_repo = llm_repo
+
 
     cache = BaseCache(namespace='integration_service', version='v1')
     app.state.cache_service = CacheService(cache)
@@ -43,9 +48,9 @@ async def lifespan(app: FastAPI):
     kafka_message_bus = get_kafka_message_bus()
     await kafka_message_bus.start()
     await kafka_message_bus.subscribe(
-        event_cls=IntegrationCreated, handler=partial(
-            crawl_initial_integration_metadata,
-            repo=repo,
+        event_cls=DataStoreCreated, handler=partial(
+            crawl_initial_datastore_metadata,
+            repo=data_store_repo,
             engine_manager=engine_manager
         )
     )

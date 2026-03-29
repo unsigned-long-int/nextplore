@@ -35,10 +35,10 @@ class TestCreateCertificateRouter(unittest.TestCase):
     def _url(self, org_id, user_id) -> str:
         return (
             f'/v1/integration/organizations/{org_id}/'
-            f'users/{user_id}/integrations/certificates'
+            f'users/{user_id}/datastores/certificates'
         )
 
-    @patch('integration_service.api.router.create_certificate_router.IntegrationRepository')
+    @patch('integration_service.api.router.create_certificate_router.DataStoreRepository')
     @patch('integration_service.api.router.create_certificate_router.CertGenerator')
     @patch('integration_service.api.router.create_certificate_router.get_current_identity')
     def test_creates_certificate_successfully(
@@ -78,7 +78,7 @@ class TestCreateCertificateRouter(unittest.TestCase):
             cert=cert_mock
         )
 
-        self.cache_mock.delete_cert_profiles.assert_awaited_once_with(user_identity_mock)
+        self.cache_mock.delete_datastore_cert_profiles.assert_awaited_once_with(user_identity_mock)
 
     @patch('integration_service.api.router.create_certificate_router.get_current_identity')
     def test_returns_forbidden_when_org_id_mismatch(self, get_current_identity_mock):
@@ -114,7 +114,7 @@ class TestCreateCertificateRouter(unittest.TestCase):
         self.assertEqual(403, response.status_code)
         self.assertEqual('Forbidden', response.json()['detail']['message'])
 
-    @patch('integration_service.api.router.create_certificate_router.IntegrationRepository')
+    @patch('integration_service.api.router.create_certificate_router.DataStoreRepository')
     @patch('integration_service.api.router.create_certificate_router.CertGenerator')
     @patch('integration_service.api.router.create_certificate_router.get_current_identity')
     def test_raises_exception_when_azure_cert_creation_failed(
@@ -139,9 +139,9 @@ class TestCreateCertificateRouter(unittest.TestCase):
 
         self.assertEqual(424, response.status_code)
         self.assertIn('AKV Error: Azure vault error', response.json()['detail']['message'])
-        self.cache_mock.delete_cert_profiles.assert_not_awaited()
+        self.cache_mock.delete_datastore_cert_profiles.assert_not_awaited()
 
-    @patch('integration_service.api.router.create_certificate_router.IntegrationRepository')
+    @patch('integration_service.api.router.create_certificate_router.DataStoreRepository')
     @patch('integration_service.api.router.create_certificate_router.CertGenerator')
     @patch('integration_service.api.router.create_certificate_router.get_current_identity')
     def test_handles_cert_create_failed_exception(
@@ -170,9 +170,9 @@ class TestCreateCertificateRouter(unittest.TestCase):
         )
 
         self.assertEqual(204, response.status_code)
-        self.cache_mock.delete_cert_profiles.assert_not_awaited()
+        self.cache_mock.delete_datastore_cert_profiles.assert_not_awaited()
 
-    @patch('integration_service.api.router.create_certificate_router.IntegrationRepository')
+    @patch('integration_service.api.router.create_certificate_router.DataStoreRepository')
     @patch('integration_service.api.router.create_certificate_router.CertGenerator')
     @patch('integration_service.api.router.create_certificate_router.get_current_identity')
     def test_raises_exception_when_generic_error(
@@ -197,9 +197,9 @@ class TestCreateCertificateRouter(unittest.TestCase):
 
         self.assertEqual(500, response.status_code)
         self.assertIn('Unexpected error: Unexpected error', response.json()['detail']['message'])
-        self.cache_mock.delete_cert_profiles.assert_not_awaited()
+        self.cache_mock.delete_datastore_cert_profiles.assert_not_awaited()
 
-    @patch('integration_service.api.router.create_certificate_router.IntegrationRepository')
+    @patch('integration_service.api.router.create_certificate_router.DataStoreRepository')
     @patch('integration_service.api.router.create_certificate_router.CertGenerator')
     @patch('integration_service.api.router.create_certificate_router.get_current_identity')
     def test_uses_default_purpose_when_not_provided(

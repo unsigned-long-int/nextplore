@@ -3,12 +3,13 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, status, Depends
 from svc_integration_contracts.models import DataStoreStatsResponse
 
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 from integration_service.cache import CacheService, get_cache_service
-from integration_service.api.context import get_current_identity
 from integration_service.api.dependencies import get_backend_connector
 from integration_service.database.exceptions import DataStoreGetFailed
 from integration_service.database.repositories import DataStoreRepository
+from integration_service.api.context import get_current_identity
+
+from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 
 
 logger = logging.getLogger(__name__)

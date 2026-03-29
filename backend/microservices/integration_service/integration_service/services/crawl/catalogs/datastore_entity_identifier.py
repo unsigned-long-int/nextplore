@@ -3,5 +3,5 @@ from uuid import UUID
 
 
 @dataclass(frozen=True)
-class IntegrationEntityIdentifier:
-    integration_id: UUID
+class DataStoreEntityIdentifier:
+    datastore_id: UUID

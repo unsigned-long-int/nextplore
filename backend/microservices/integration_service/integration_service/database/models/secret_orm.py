@@ -4,17 +4,17 @@ from sqlalchemy.dialects.postgresql import UUID, BYTEA
 
 from integration_service.domain.models.secret import SecretType
 from .base import Base
-from .integration_orm import IntegrationORM
+from .datastore_orm import DataStoreORM
 
 
 class SecretORM(Base):
-    __tablename__ = 'secrets'
+    __tablename__ = 'datastore_secrets'
     __table_args__ = {'schema': 'integration'}
 
     id = Column(UUID(as_uuid=True),  primary_key=True, default=uuid.uuid4)
     organization_id = Column(UUID(as_uuid=True), nullable=False)
     user_id = Column(UUID(as_uuid=True), nullable=False)
-    integration_id = Column(UUID(as_uuid=True), ForeignKey(IntegrationORM.id), nullable=False)
+    datastore_id = Column(UUID(as_uuid=True), ForeignKey(DataStoreORM.id), nullable=False)
     secret_type = Column(
         Enum(
             SecretType,

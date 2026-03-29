@@ -26,7 +26,7 @@ router = APIRouter(prefix='/v1/integration', tags=['ConnectionProfile'])
     '/organizations/{organization_id}/users/{user_id}/datastores/{datastore_id}/connection-profile',
     response_model=DataStoreConnectionProfile
 )
-async def get_connection_profile(
+async def get_datastore_connection_profile(
     organization_id: UUID,
     user_id: UUID,
     datastore_id: UUID,
@@ -60,33 +60,33 @@ async def get_connection_profile(
                 organization_id=user_identity.organization_id,
                 datastore_id=datastore_id
             ),
-            integration_repo.get_secrets(
+            datastore_repo.get_secrets(
                 user_id=user_identity.user_id,
                 organization_id=user_identity.organization_id,
                 datastore_id=datastore_id
             )
         )
-        crypto_client = AzureCryptoClient(integration.kek_kid)
+        crypto_client = AzureCryptoClient(datastore.kek_kid)
 
         response = DataStoreConnectionProfile(
-            auth=integration.auth,
-            cloud=integration.cloud,
-            db=integration.db,
-            host=integration.host,
-            database_name=integration.database_name,
-            port=integration.port,
-            warehouse=integration.warehouse,
+            auth=datastore.auth,
+            cloud=datastore.cloud,
+            db=datastore.db,
+            host=datastore.host,
+            database_name=datastore.database_name,
+            port=datastore.port,
+            warehouse=datastore.warehouse,
             username=decrypt_secret(SecretType.USERNAME, secrets, crypto_client),
             password=decrypt_secret(SecretType.PASSWORD, secrets, crypto_client),
             client_secret=decrypt_secret(SecretType.CLIENT_SECRET, secrets, crypto_client),
             aws_external_id=decrypt_secret(SecretType.AWS_EXTERNAL_ID, secrets, crypto_client),
             aws_role_arn=decrypt_secret(SecretType.AWS_ROLE_ARN, secrets, crypto_client),
             snowflake_private_key=decrypt_secret(SecretType.SNOWFLAKE_PRIVATE_KEY, secrets, crypto_client),
-            azure_cert_kid=integration.azure_cert_kid,
-            azure_cert_name=integration.azure_cert_name,
-            tenant_id=integration.tenant_id,
-            client_id=integration.client_id,
-            region=integration.region
+            azure_cert_kid=datastore.azure_cert_kid,
+            azure_cert_name=datastore.azure_cert_name,
+            tenant_id=datastore.tenant_id,
+            client_id=datastore.client_id,
+            region=datastore.region
         )
 
         await cache_service.set_datastore_connection_profile(

@@ -7,7 +7,8 @@ from nextplore_sdk.encryptor.client.crypto_client_factory import get_crypto_clie
 
 
 from integration_service.database.repositories import DataStoreRepository, LlmRepository
-from integration_service.services.integration import DataStoreService, LlmService
+from integration_service.services.llm import LlmService
+from integration_service.services.data_store import DataStoreService
 
 from integration_service.api.dependencies.get_repo import get_data_stores_integration_repo, get_llm_integration_repo
 from integration_service.cache import CacheService, get_cache_service
@@ -29,9 +30,11 @@ def get_data_store_service(
 
 def get_llm_service(
     repo: LlmRepository = Depends(get_llm_integration_repo),
+    cache_service: CacheService = Depends(get_cache_service),
     crypto_client_factory: Callable[[str], CryptoClient] = Depends(get_crypto_client)
 ) -> LlmService:
     return LlmService(
         repo=repo,
+        cache_service=cache_service,
         crypto_client_factory=crypto_client_factory,
     )

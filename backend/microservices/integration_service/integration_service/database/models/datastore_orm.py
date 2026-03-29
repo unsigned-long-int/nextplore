@@ -6,9 +6,9 @@ from svc_integration_contracts.models import DB, Auth, Cloud
 from .base import Base
 
 
-class IntegrationORM(Base):
-    __tablename__ = 'integrations'
-    __table_args__ = {'schema': 'data_store'}
+class DataStoreORM(Base):
+    __tablename__ = 'datastores'
+    __table_args__ = {'schema': 'integration'}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organization_id = Column(UUID(as_uuid=True), nullable=False)
@@ -17,7 +17,7 @@ class IntegrationORM(Base):
         Enum(
             Auth,
             name='auth',
-            schema='data_store',
+            schema='integration',
             native_enum=True,
             create_type=False,
             validate_strings=True
@@ -28,7 +28,7 @@ class IntegrationORM(Base):
         Enum(
         Cloud,
             name='cloud',
-            schema='data_store',
+            schema='integration',
             native_enum=True,
             create_type=False,
             validate_strings=True
@@ -39,7 +39,7 @@ class IntegrationORM(Base):
         Enum(
         DB,
             name='db',
-            schema='data_store',
+            schema='integration',
             native_enum=True,
             create_type=False,
             validate_strings=True

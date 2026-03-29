@@ -8,7 +8,7 @@ from nextplore_sdk.encryptor.exc.exceptions import AzureCertCreationFailed
 
 from integration_service.api.context import get_current_identity
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.database.repositories import IntegrationRepository
+from integration_service.database.repositories import DataStoreRepository
 from integration_service.database.exceptions import CertCreateFailed
 from integration_service.domain.mappers.cert import cert_create_from_dto
 from integration_service.cache import CacheService, get_cache_service
@@ -19,7 +19,7 @@ router = APIRouter(prefix='/v1/integration', tags=['CreateCertificate'])
 
 
 @router.post(
-    '/organizations/{organization_id}/users/{user_id}/integrations/certificates',
+    '/organizations/{organization_id}/users/{user_id}/datastores/certificates',
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def create_certificate(
@@ -44,20 +44,20 @@ async def create_certificate(
     cert_create = cert_create_from_dto(payload)
     purpose = cert_create.purpose or 'general'
     cert_name = f'cert-{str(organization_id)}-{str(user_id)}-{purpose}'
-    integration_repo = IntegrationRepository(backend_connector)
+    datastore_repo = DataStoreRepository(backend_connector)
     try:
         cert_generator = CertGenerator(cert_name)
         cert = cert_generator.create_cert(
             key_size=cert_create.key_size,
             validity_in_months=cert_create.validity_in_months
         )
-        await integration_repo.create_cert(
+        await datastore_repo.create_cert(
             organization_id=organization_id,
             user_id=user_id,
             cert=cert
         )
 
-        await cache_service.delete_cert_profiles(user_identity)
+        await cache_service.delete_datastore_cert_profiles(user_identity)
     except AzureCertCreationFailed as e:
         logger.error(
             f'Create certificate failed in AKV: {str(e)}'

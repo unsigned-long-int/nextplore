@@ -8,11 +8,11 @@ from sqlalchemy.engine.interfaces import (
     ReflectedIndex,
     ReflectedTableComment
 )
-from .integration_entity_identifier import IntegrationEntityIdentifier
+from .datastore_entity_identifier import DataStoreEntityIdentifier
 
 
 @dataclass(frozen=True)
-class TableCatalog(IntegrationEntityIdentifier):
+class TableCatalog(DataStoreEntityIdentifier):
     name: str
     columns: Optional[List[ReflectedColumn]] = field(default_factory=list)
     primary_keys: Optional[ReflectedPrimaryKeyConstraint] = field(default=None)

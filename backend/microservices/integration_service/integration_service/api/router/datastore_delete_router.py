@@ -20,7 +20,7 @@ router = APIRouter(prefix='/v1/integration', tags=['DeleteDataStore'])
     '/organizations/{organization_id}/users/{user_id}/datastores/{datastore_id}',
     status_code=status.HTTP_204_NO_CONTENT
 )
-async def delete_integration(
+async def delete_datastore(
     organization_id: UUID,
     user_id: UUID,
     datastore_id: UUID,

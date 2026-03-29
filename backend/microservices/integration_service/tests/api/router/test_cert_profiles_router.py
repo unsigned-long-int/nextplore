@@ -43,7 +43,7 @@ class TestCertProfilesRouter(unittest.TestCase):
     def _url(self, org_id, user_id) -> str:
         return (
             f'/v1/integration/organizations/{org_id}/'
-            f'users/{user_id}/integrations/certificates/profiles'
+            f'users/{user_id}/datastores/certificates/profiles'
         )
 
     @patch('integration_service.api.router.cert_profiles_router.get_current_identity')
@@ -69,16 +69,16 @@ class TestCertProfilesRouter(unittest.TestCase):
                 revoked_at=None,
             )
         ]
-        self.cache_mock.get_cert_profiles.return_value = cached
+        self.cache_mock.get_datastore_cert_profiles.return_value = cached
 
         response = self.client.get(self._url(user_identity_mock.organization_id, user_identity_mock.user_id))
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json(), [item.model_dump(mode='json') for item in cached])
-        self.cache_mock.get_cert_profiles.assert_awaited_once_with(user_identity=user_identity_mock)
-        self.cache_mock.set_cert_profiles.assert_not_awaited()
+        self.cache_mock.get_datastore_cert_profiles.assert_awaited_once_with(user_identity=user_identity_mock)
+        self.cache_mock.set_datastore_cert_profiles.assert_not_awaited()
 
-    @patch('integration_service.api.router.cert_profiles_router.IntegrationRepository')
+    @patch('integration_service.api.router.cert_profiles_router.DataStoreRepository')
     @patch('integration_service.api.router.cert_profiles_router.get_current_identity')
     def test_requests_cert_profiles_and_sets_cache(
         self,
@@ -89,10 +89,10 @@ class TestCertProfilesRouter(unittest.TestCase):
         user_identity_mock.user_id = uuid4()
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
-        self.cache_mock.get_cert_profiles.return_value = None
+        self.cache_mock.get_datastore_cert_profiles.return_value = None
 
         integration_repo_instance = AsyncMock()
-        integration_repo_instance.get_cert_profiles.return_value = [self.domain_profile]
+        integration_repo_instance.get_datastore_cert_profiles.return_value = [self.domain_profile]
         integration_repo_cls_mock.return_value = integration_repo_instance
 
         expected_dto = CertProfile(
@@ -116,13 +116,13 @@ class TestCertProfilesRouter(unittest.TestCase):
         self.assertEqual(response.json(), [expected_dto.model_dump(mode='json')])
 
         integration_repo_cls_mock.assert_called_once_with(self.database_backend_connector_mock)
-        integration_repo_instance.get_cert_profiles.assert_awaited_once_with(
+        integration_repo_instance.get_datastore_cert_profiles.assert_awaited_once_with(
             organization_id=user_identity_mock.organization_id,
             user_id=user_identity_mock.user_id,
         )
 
-        self.cache_mock.set_cert_profiles.assert_awaited_once()
-        kwargs = self.cache_mock.set_cert_profiles.await_args.kwargs
+        self.cache_mock.set_datastore_cert_profiles.assert_awaited_once()
+        kwargs = self.cache_mock.set_datastore_cert_profiles.await_args.kwargs
         self.assertEqual(kwargs['user_identity'], user_identity_mock)
         self.assertEqual(kwargs['response'], [expected_dto])
 
@@ -137,9 +137,9 @@ class TestCertProfilesRouter(unittest.TestCase):
         self.assertEqual(403, response.status_code)
         self.assertEqual(response.json(), {'detail': {'message': 'Forbidden'}})
 
-        self.cache_mock.get_cert_profiles.assert_not_called()
+        self.cache_mock.get_datastore_cert_profiles.assert_not_called()
 
-    @patch('integration_service.api.router.cert_profiles_router.IntegrationRepository')
+    @patch('integration_service.api.router.cert_profiles_router.DataStoreRepository')
     @patch('integration_service.api.router.cert_profiles_router.get_current_identity')
     def test_db_error_returns_424(self, get_current_identity_mock, integration_repo_cls_mock):
         user_identity_mock = MagicMock()
@@ -147,9 +147,9 @@ class TestCertProfilesRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_cert_profiles.return_value = None
+        self.cache_mock.get_datastore_cert_profiles.return_value = None
         integration_repo_instance = AsyncMock()
-        integration_repo_instance.get_cert_profiles.side_effect = CertGetFailed('boom')
+        integration_repo_instance.get_datastore_cert_profiles.side_effect = CertGetFailed('boom')
         integration_repo_cls_mock.return_value = integration_repo_instance
 
         response = self.client.get(self._url(user_identity_mock.organization_id, user_identity_mock.user_id))
@@ -157,7 +157,7 @@ class TestCertProfilesRouter(unittest.TestCase):
         self.assertEqual(424, response.status_code)
         self.assertIn('Database error: boom', response.text)
 
-    @patch('integration_service.api.router.cert_profiles_router.IntegrationRepository')
+    @patch('integration_service.api.router.cert_profiles_router.DataStoreRepository')
     @patch('integration_service.api.router.cert_profiles_router.get_current_identity')
     def test_unexpected_error_returns_500(self, get_current_identity_mock, integration_repo_cls_mock):
         user_identity_mock = MagicMock()
@@ -165,9 +165,9 @@ class TestCertProfilesRouter(unittest.TestCase):
         user_identity_mock.organization_id = uuid4()
         get_current_identity_mock.return_value = user_identity_mock
 
-        self.cache_mock.get_cert_profiles.return_value = None
+        self.cache_mock.get_datastore_cert_profiles.return_value = None
         integration_repo_instance = AsyncMock()
-        integration_repo_instance.get_cert_profiles.side_effect = RuntimeError('explode')
+        integration_repo_instance.get_datastore_cert_profiles.side_effect = RuntimeError('explode')
         integration_repo_cls_mock.return_value = integration_repo_instance
 
         response = self.client.get(self._url(user_identity_mock.organization_id, user_identity_mock.user_id))

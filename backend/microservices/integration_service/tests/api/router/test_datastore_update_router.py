@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from svc_integration_contracts.models import DataStoreUpdateRequest
 
+import integration_service.api.router.datastore_update_router
 from integration_service.api.router.datastore_update_router import router
 from integration_service.api.dependencies.get_service import get_data_store_service
 from integration_service.database.exceptions import DataStoreUpdateFailed, KekKidGetFailed
@@ -36,7 +37,7 @@ class TestUpdateRouter(unittest.TestCase):
             f'users/{user_id}/datastores/{datastore_id}'
         )
 
-    @patch('integration_service.api.router.update_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_update_router.get_current_identity')
     def test_updates_datastore_successfully(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -62,7 +63,7 @@ class TestUpdateRouter(unittest.TestCase):
             payload=self.request
         )
 
-    @patch('integration_service.api.router.update_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_update_router.get_current_identity')
     def test_returns_forbidden_when_user_id_mismatch(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -82,7 +83,7 @@ class TestUpdateRouter(unittest.TestCase):
 
         self.datastore_service_mock.update_datastore.assert_not_awaited()
 
-    @patch('integration_service.api.router.update_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_update_router.get_current_identity')
     def test_returns_forbidden_when_org_id_mismatch(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -102,7 +103,7 @@ class TestUpdateRouter(unittest.TestCase):
 
         self.datastore_service_mock.update_datastore.assert_not_awaited()
 
-    @patch('integration_service.api.router.update_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_update_router.get_current_identity')
     def test_raises_exception_when_datastore_update_failed(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -130,7 +131,7 @@ class TestUpdateRouter(unittest.TestCase):
             response.json()['detail']['message']
         )
 
-    @patch('integration_service.api.router.update_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_update_router.get_current_identity')
     def test_raises_exception_when_kek_kid_get_failed(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -158,7 +159,7 @@ class TestUpdateRouter(unittest.TestCase):
             response.json()['detail']['message']
         )
 
-    @patch('integration_service.api.router.update_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_update_router.get_current_identity')
     def test_raises_exception_when_generic_error(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -186,7 +187,7 @@ class TestUpdateRouter(unittest.TestCase):
             response.json()['detail']['message']
         )
 
-    @patch('integration_service.api.router.update_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_update_router.get_current_identity')
     def test_passes_correct_parameters_to_service(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -217,7 +218,7 @@ class TestUpdateRouter(unittest.TestCase):
         self.assertEqual(call_kwargs['payload'].database_name, self.request.database_name)
         self.assertEqual(call_kwargs['payload'].autosync_on, self.request.autosync_on)
 
-    @patch('integration_service.api.router.update_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_update_router.get_current_identity')
     def test_validates_both_user_id_and_org_id_match(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -238,7 +239,7 @@ class TestUpdateRouter(unittest.TestCase):
         self.assertEqual(204, response.status_code)
         self.datastore_service_mock.update_datastore.assert_awaited_once()
 
-    @patch('integration_service.api.router.update_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_update_router.get_current_identity')
     def test_prevents_update_with_mismatched_credentials(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()

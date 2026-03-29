@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 from typing import List, Tuple
 
-from .integration_entity_identifier import IntegrationEntityIdentifier
+from .datastore_entity_identifier import DataStoreEntityIdentifier
 from .table_catalog import TableCatalog
 
 
 @dataclass(frozen=True)
-class SchemaCatalog(IntegrationEntityIdentifier):
+class SchemaCatalog(DataStoreEntityIdentifier):
     name: str
     tables: Tuple[TableCatalog, ...] = field(default_factory=tuple)
 

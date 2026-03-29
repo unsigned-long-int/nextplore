@@ -1,12 +1,19 @@
 from .exceptions import (
-    IntegrationDeleteFailed, 
-    IntegrationNotFound, 
-    IntegrationUpdateFailed,
-    IntegrationCreateFailed,
-    IntegrationGetFailed,
+    DataStoreDeleteFailed,
+    DataStoreNotFound,
+    DataStoreUpdateFailed,
+    DataStoreCreateFailed,
+    DataStoreGetFailed,
     SecretsCreateFailed,
     SecretsGetFailed,
     KekKidGetFailed,
     CertCreateFailed,
-    CertGetFailed
+    CertGetFailed,
+    UserLlmCreateFailed,
+    UserLlmGetFailed
 )
+
+__all__ = ['DataStoreDeleteFailed', 'DataStoreNotFound', 'DataStoreUpdateFailed',
+           'DataStoreCreateFailed', 'DataStoreGetFailed', 'SecretsCreateFailed',
+           'SecretsGetFailed', 'KekKidGetFailed', 'CertCreateFailed', 'CertGetFailed',
+           'UserLlmCreateFailed', 'UserLlmGetFailed']

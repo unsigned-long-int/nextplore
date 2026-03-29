@@ -13,7 +13,7 @@ from integration_service.services.crawl.catalogs import SchemaCatalog
 class TestBuildSchemasCatalog(unittest.TestCase):
 
     def setUp(self):
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
         self.mock_engine = MagicMock(spec=Engine)
         self.mock_connection = MagicMock(spec=Connection)
@@ -27,12 +27,12 @@ class TestBuildSchemasCatalog(unittest.TestCase):
 
         self.mock_schemas = [
             SchemaCatalog(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 name='schema1',
                 tables=[]
             ),
             SchemaCatalog(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 name='schema2',
                 tables=[]
             )
@@ -50,7 +50,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
 
         result = build_schemas_catalog(
             engine=self.mock_engine,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -72,7 +72,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
 
         build_schemas_catalog(
             engine=self.mock_engine,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -93,7 +93,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
 
         build_schemas_catalog(
             engine=self.mock_engine,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -112,14 +112,14 @@ class TestBuildSchemasCatalog(unittest.TestCase):
 
         build_schemas_catalog(
             engine=self.mock_engine,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
 
         mock_inspect_schemas.assert_called_once_with(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -136,7 +136,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
 
         result = build_schemas_catalog(
             engine=self.mock_engine,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -156,7 +156,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
 
         build_schemas_catalog(
             engine=self.mock_engine,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -176,7 +176,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             build_schemas_catalog(
                 engine=self.mock_engine,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_spec=self.mock_schema_spec,
                 table_spec=self.mock_table_spec
             )
@@ -198,7 +198,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             build_schemas_catalog(
                 engine=self.mock_engine,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_spec=self.mock_schema_spec,
                 table_spec=self.mock_table_spec
             )
@@ -217,7 +217,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             build_schemas_catalog(
                 engine=self.mock_engine,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_spec=self.mock_schema_spec,
                 table_spec=self.mock_table_spec
             )
@@ -236,7 +236,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             build_schemas_catalog(
                 engine=self.mock_engine,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 schema_spec=self.mock_schema_spec,
                 table_spec=self.mock_table_spec
             )
@@ -247,37 +247,37 @@ class TestBuildSchemasCatalog(unittest.TestCase):
 
     @patch('integration_service.services.crawl.catalog_builder.build_schemas_catalog.inspect_schemas')
     @patch('integration_service.services.crawl.catalog_builder.build_schemas_catalog.inspect')
-    def test_works_with_different_integration_ids(
+    def test_works_with_different_datastore_ids(
             self,
             mock_inspect,
             mock_inspect_schemas
     ):
-        integration_id_1 = uuid4()
-        integration_id_2 = uuid4()
+        datastore_id_1 = uuid4()
+        datastore_id_2 = uuid4()
 
         mock_inspect.return_value = self.mock_inspector
 
-        schemas_1 = [SchemaCatalog(integration_id=integration_id_1, name='schema1', tables=[])]
-        schemas_2 = [SchemaCatalog(integration_id=integration_id_2, name='schema2', tables=[])]
+        schemas_1 = [SchemaCatalog(datastore_id=datastore_id_1, name='schema1', tables=[])]
+        schemas_2 = [SchemaCatalog(datastore_id=datastore_id_2, name='schema2', tables=[])]
 
         mock_inspect_schemas.side_effect = [schemas_1, schemas_2]
 
         result_1 = build_schemas_catalog(
             engine=self.mock_engine,
-            integration_id=integration_id_1,
+            datastore_id=datastore_id_1,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
 
         result_2 = build_schemas_catalog(
             engine=self.mock_engine,
-            integration_id=integration_id_2,
+            datastore_id=datastore_id_2,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
 
-        self.assertEqual(result_1[0].integration_id, integration_id_1)
-        self.assertEqual(result_2[0].integration_id, integration_id_2)
+        self.assertEqual(result_1[0].datastore_id, datastore_id_1)
+        self.assertEqual(result_2[0].datastore_id, datastore_id_2)
         self.assertEqual(mock_inspect_schemas.call_count, 2)
 
     @patch('integration_service.services.crawl.catalog_builder.build_schemas_catalog.inspect_schemas')
@@ -288,9 +288,9 @@ class TestBuildSchemasCatalog(unittest.TestCase):
             mock_inspect_schemas
     ):
         ordered_schemas = [
-            SchemaCatalog(integration_id=self.integration_id, name='alpha', tables=[]),
-            SchemaCatalog(integration_id=self.integration_id, name='beta', tables=[]),
-            SchemaCatalog(integration_id=self.integration_id, name='gamma', tables=[]),
+            SchemaCatalog(datastore_id=self.datastore_id, name='alpha', tables=[]),
+            SchemaCatalog(datastore_id=self.datastore_id, name='beta', tables=[]),
+            SchemaCatalog(datastore_id=self.datastore_id, name='gamma', tables=[]),
         ]
 
         mock_inspect.return_value = self.mock_inspector
@@ -298,7 +298,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
 
         result = build_schemas_catalog(
             engine=self.mock_engine,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -312,7 +312,7 @@ class TestBuildSchemasCatalog(unittest.TestCase):
 class TestBuildSchemasCatalogIntegration(unittest.TestCase):
 
     def setUp(self):
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
         self.mock_schema_spec = MagicMock()
         self.mock_table_spec = MagicMock()
 
@@ -334,12 +334,12 @@ class TestBuildSchemasCatalogIntegration(unittest.TestCase):
 
         expected_schemas = [
             SchemaCatalog(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 name='public',
                 tables=[]
             ),
             SchemaCatalog(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 name='private',
                 tables=[]
             )
@@ -348,7 +348,7 @@ class TestBuildSchemasCatalogIntegration(unittest.TestCase):
 
         result = build_schemas_catalog(
             engine=mock_engine,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -357,7 +357,7 @@ class TestBuildSchemasCatalogIntegration(unittest.TestCase):
         mock_inspect.assert_called_once_with(mock_connection)
         mock_inspect_schemas.assert_called_once_with(
             crawler=mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )

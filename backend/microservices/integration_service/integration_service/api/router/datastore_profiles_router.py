@@ -25,7 +25,7 @@ async def get_datastore_profiles(
     user_id: UUID,
     backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
     cache_service: CacheService = Depends(get_cache_service)
-) -> List[IntegrationProfile]:
+) -> List[DataStoreProfile]:
     user_identity = get_current_identity()
     if user_identity.user_id != user_id or user_identity.organization_id != organization_id:
         logger.error(

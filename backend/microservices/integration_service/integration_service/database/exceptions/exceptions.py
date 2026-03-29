@@ -1,20 +1,20 @@
-class IntegrationUpdateFailed(Exception):
+class DataStoreUpdateFailed(Exception):
     pass
 
 
-class IntegrationDeleteFailed(Exception):
+class DataStoreDeleteFailed(Exception):
     pass
 
 
-class IntegrationNotFound(Exception):
+class DataStoreNotFound(Exception):
     pass
 
 
-class IntegrationCreateFailed(Exception):
+class DataStoreCreateFailed(Exception):
     pass
 
 
-class IntegrationGetFailed(Exception):
+class DataStoreGetFailed(Exception):
     pass
 
 
@@ -35,4 +35,11 @@ class CertCreateFailed(Exception):
 
 
 class CertGetFailed(Exception):
+    pass
+
+
+class UserLlmCreateFailed(Exception):
+    pass
+
+class UserLlmGetFailed(Exception):
     pass

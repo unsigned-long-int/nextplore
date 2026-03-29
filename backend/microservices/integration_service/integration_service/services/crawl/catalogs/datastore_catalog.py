@@ -6,7 +6,7 @@ from .schema_catalog import SchemaCatalog
 
 
 @dataclass(frozen=True)
-class IntegrationCatalog:
+class DataStoreCatalog:
     id: UUID
     schemas: Tuple[SchemaCatalog] = field(default_factory=tuple)
     

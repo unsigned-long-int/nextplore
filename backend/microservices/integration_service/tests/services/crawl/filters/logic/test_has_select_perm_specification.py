@@ -9,14 +9,14 @@ from uuid import uuid4
 class TestHasSelectPermissionSpec(unittest.TestCase):
 
     def setUp(self):
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
         self.schema_name = 'test_schema'
         self.mock_crawler = MagicMock()
         self.mock_conn = MagicMock()
         self.mock_crawler.bind = self.mock_conn
 
     def _make_candidate(self, name: str):
-        return TableCatalog(integration_id=self.integration_id, name=name)
+        return TableCatalog(datastore_id=self.datastore_id, name=name)
 
     def _make_result(self, table_names):
         return [(name,) for name in table_names]

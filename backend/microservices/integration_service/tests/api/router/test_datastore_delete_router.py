@@ -10,7 +10,7 @@ from integration_service.cache import get_cache_service
 from integration_service.database.exceptions import DataStoreDeleteFailed
 
 
-class TestDeleteRouter(unittest.TestCase):
+class TestDataStoreDeleteRouter(unittest.TestCase):
     def setUp(self):
         self.app = FastAPI()
         self.app.include_router(router)
@@ -31,9 +31,9 @@ class TestDeleteRouter(unittest.TestCase):
             f'users/{user_id}/datastores/{datastore_id}'
         )
 
-    @patch('integration_service.api.router.delete_router.get_kafka_message_bus')
-    @patch('integration_service.api.router.delete_router.DataStoreRepository')
-    @patch('integration_service.api.router.delete_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_delete_router.get_kafka_message_bus')
+    @patch('integration_service.api.router.datastore_delete_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_delete_router.get_current_identity')
     def test_deletes_datastore_successfully(
             self,
             get_current_identity_mock,
@@ -80,7 +80,7 @@ class TestDeleteRouter(unittest.TestCase):
             user_identity_mock.user_id
         )
 
-    @patch('integration_service.api.router.delete_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_delete_router.get_current_identity')
     def test_returns_forbidden_when_org_id_mismatch(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -97,7 +97,7 @@ class TestDeleteRouter(unittest.TestCase):
         self.assertEqual(403, response.status_code)
         self.assertEqual('Forbidden', response.json()['detail']['message'])
 
-    @patch('integration_service.api.router.delete_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_delete_router.get_current_identity')
     def test_returns_forbidden_when_user_id_mismatch(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -114,8 +114,8 @@ class TestDeleteRouter(unittest.TestCase):
         self.assertEqual(403, response.status_code)
         self.assertEqual('Forbidden', response.json()['detail']['message'])
 
-    @patch('integration_service.api.router.delete_router.DataStoreRepository')
-    @patch('integration_service.api.router.delete_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_delete_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_delete_router.get_current_identity')
     def test_raises_exception_when_datastore_delete_failed(
         self,
         get_current_identity_mock,
@@ -130,7 +130,7 @@ class TestDeleteRouter(unittest.TestCase):
 
         repo_instance = AsyncMock()
         repo_instance.delete_datastore.side_effect = DataStoreDeleteFailed(
-            'DataStore not found or already deleted'
+            'data store not found or already deleted'
         )
         datastore_repo_mock.return_value = repo_instance
 
@@ -149,8 +149,8 @@ class TestDeleteRouter(unittest.TestCase):
         )
         self.cache_mock.cache.delete_by_prefix.assert_not_awaited()
 
-    @patch('integration_service.api.router.delete_router.DataStoreRepository')
-    @patch('integration_service.api.router.delete_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_delete_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_delete_router.get_current_identity')
     def test_raises_exception_when_generic_error(
         self,
         get_current_identity_mock,
@@ -179,9 +179,9 @@ class TestDeleteRouter(unittest.TestCase):
         self.assertIn('Unexpected error: Connection timeout', response.json()['detail']['message'])
         self.cache_mock.cache.delete_by_prefix.assert_not_awaited()
 
-    @patch('integration_service.api.router.delete_router.get_kafka_message_bus')
-    @patch('integration_service.api.router.delete_router.DataStoreRepository')
-    @patch('integration_service.api.router.delete_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_delete_router.get_kafka_message_bus')
+    @patch('integration_service.api.router.datastore_delete_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_delete_router.get_current_identity')
     def test_does_not_publish_kafka_event_when_delete_fails(
         self,
         get_current_identity_mock,
@@ -216,9 +216,9 @@ class TestDeleteRouter(unittest.TestCase):
 
         kafka_bus_mock.publish.assert_not_awaited()
 
-    @patch('integration_service.api.router.delete_router.get_kafka_message_bus')
-    @patch('integration_service.api.router.delete_router.DataStoreRepository')
-    @patch('integration_service.api.router.delete_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_delete_router.get_kafka_message_bus')
+    @patch('integration_service.api.router.datastore_delete_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_delete_router.get_current_identity')
     def test_publishes_correct_datastore_id_in_kafka_event(
         self,
         get_current_identity_mock,
@@ -252,9 +252,9 @@ class TestDeleteRouter(unittest.TestCase):
         published_event = kafka_bus_mock.publish.call_args[0][0]
         self.assertEqual(published_event.datastore_id, datastore_id)
 
-    @patch('integration_service.api.router.delete_router.get_kafka_message_bus')
-    @patch('integration_service.api.router.delete_router.DataStoreRepository')
-    @patch('integration_service.api.router.delete_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_delete_router.get_kafka_message_bus')
+    @patch('integration_service.api.router.datastore_delete_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_delete_router.get_current_identity')
     def test_cache_invalidation_uses_correct_prefix_parameters(
             self,
             get_current_identity_mock,
@@ -289,9 +289,9 @@ class TestDeleteRouter(unittest.TestCase):
             user_identity_mock.user_id
         )
 
-    @patch('integration_service.api.router.delete_router.get_kafka_message_bus')
-    @patch('integration_service.api.router.delete_router.DataStoreRepository')
-    @patch('integration_service.api.router.delete_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_delete_router.get_kafka_message_bus')
+    @patch('integration_service.api.router.datastore_delete_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_delete_router.get_current_identity')
     def test_deletes_datastore_with_matching_credentials(
         self,
         get_current_identity_mock,

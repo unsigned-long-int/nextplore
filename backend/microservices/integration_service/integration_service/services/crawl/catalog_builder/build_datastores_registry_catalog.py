@@ -28,7 +28,7 @@ from integration_service.database.repositories import DataStoreRepository
 logger = logging.getLogger(__name__)
 
 
-async def build_datastore_registry_catalog(
+async def build_datastores_registry_catalog(
         repo: DataStoreRepository,
         engine_manager: EngineManager,
         user_id: UUID,

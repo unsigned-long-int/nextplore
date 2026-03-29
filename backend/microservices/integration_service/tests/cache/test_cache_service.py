@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, patch
 from svc_integration_contracts.models import (
     FilteredCrawlRequest,
     CrawlResponse,
-    IntegrationStatsResponse,
-    IntegrationConnectionProfile,
-    IntegrationProfile,
+    DataStoreStatsResponse,
+    DataStoreConnectionProfile,
+    DataStoreProfile,
     Auth,
     DB,
     Cloud,
@@ -29,19 +29,19 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             organization_id=uuid4()
         )
 
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
     @patch('integration_service.cache.cache_service.get_cache_key')
-    async def test_get_filtered_integration(self, get_cache_key_mock):
+    async def test_get_filtered_datastore(self, get_cache_key_mock):
         request = FilteredCrawlRequest(
-            integrations=[uuid4(), uuid4()],
+            datastores=[uuid4(), uuid4()],
             schemas={str(uuid4()): ['schema1', 'schema2']},
             tables={str(uuid4()): ['table1', 'table2']}
         )
 
         expected_response = CrawlResponse(
-            integration_registry_repr='test-integration',
-            integrations_enum=['integration1'],
+            datastore_registry_repr='test-data_store',
+            datastores_enum=['datastore1'],
             schemas_enum=['schema1'],
             tables_enum=['table1'],
             columns_enum=['column1'],
@@ -49,16 +49,16 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             agg_funcs_enum=['agg1']
         )
 
-        cache_key = 'filtered-crawl:test-key'
+        cache_key = 'datastore-filtered-crawl:test-key'
         get_cache_key_mock.return_value = cache_key
         self.cache_mock.get_one.return_value = expected_response
 
-        result = await self.cache_service.get_filtered_integration(
+        result = await self.cache_service.get_filtered_datastore(
             user_identity=self.user_identity,
             request=request
         )
 
-        get_cache_key_mock.assert_called_once_with(model=request, prefix='filtered-crawl')
+        get_cache_key_mock.assert_called_once_with(model=request, prefix='datastore-filtered-crawl')
         self.cache_mock.get_one.assert_awaited_once_with(
             self.user_identity.organization_id,
             self.user_identity.user_id,
@@ -68,16 +68,16 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, expected_response)
 
     @patch('integration_service.cache.cache_service.get_cache_key')
-    async def test_set_filtered_integration(self, get_cache_key_mock):
+    async def test_set_filtered_datastore(self, get_cache_key_mock):
         request = FilteredCrawlRequest(
-            integrations=[uuid4(), uuid4()],
+            datastores=[uuid4(), uuid4()],
             schemas={str(uuid4()): ['schema1', 'schema2']},
             tables={str(uuid4()): ['table1', 'table2']}
         )
 
         response = CrawlResponse(
-            integration_registry_repr='test-integration',
-            integrations_enum=['integration1'],
+            datastore_registry_repr='test-data_store',
+            datastores_enum=['datastore1'],
             schemas_enum=['schema1'],
             tables_enum=['table1'],
             columns_enum=['column1'],
@@ -85,16 +85,16 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             agg_funcs_enum=['agg1']
         )
 
-        cache_key = 'filtered-crawl:test-key'
+        cache_key = 'datastore-filtered-crawl:test-key'
         get_cache_key_mock.return_value = cache_key
 
-        await self.cache_service.set_filtered_integration(
+        await self.cache_service.set_filtered_datastore(
             user_identity=self.user_identity,
             request=request,
             response=response
         )
 
-        get_cache_key_mock.assert_called_once_with(model=request, prefix='filtered-crawl')
+        get_cache_key_mock.assert_called_once_with(model=request, prefix='datastore-filtered-crawl')
         self.cache_mock.set_one.assert_awaited_once_with(
             self.user_identity.organization_id,
             self.user_identity.user_id,
@@ -104,43 +104,43 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_get_stats(self, get_string_cache_key_mock):
-        expected_response = IntegrationStatsResponse(
-            integration_ids=[uuid4(), uuid4()],
-            integration_count=2
+        expected_response = DataStoreStatsResponse(
+            datastore_ids=[uuid4(), uuid4()],
+            datastore_count=2
         )
 
-        cache_key = 'stats:test-key'
+        cache_key = 'datastore-stats:test-key'
         get_string_cache_key_mock.return_value = cache_key
         self.cache_mock.get_one.return_value = expected_response
 
-        result = await self.cache_service.get_stats(
+        result = await self.cache_service.get_datastore_stats(
             user_identity=self.user_identity
         )
 
         expected_value = f'{str(self.user_identity.user_id)}{str(self.user_identity.organization_id)}'
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value,
-            prefix='stats'
+            prefix='datastore-stats'
         )
         self.cache_mock.get_one.assert_awaited_once_with(
             self.user_identity.organization_id,
             self.user_identity.user_id,
             cache_key,
-            model=IntegrationStatsResponse
+            model=DataStoreStatsResponse
         )
         self.assertEqual(result, expected_response)
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_set_stats(self, get_string_cache_key_mock):
-        response = IntegrationStatsResponse(
-            integration_ids=[uuid4(), uuid4()],
-            integration_count=2
+        response = DataStoreStatsResponse(
+            datastore_ids=[uuid4(), uuid4()],
+            datastore_count=2
         )
 
-        cache_key = 'stats:test-key'
+        cache_key = 'datastore-stats:test-key'
         get_string_cache_key_mock.return_value = cache_key
 
-        await self.cache_service.set_stats(
+        await self.cache_service.set_datastore_stats(
             user_identity=self.user_identity,
             response=response
         )
@@ -148,7 +148,7 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         expected_value = f'{str(self.user_identity.user_id)}{str(self.user_identity.organization_id)}'
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value,
-            prefix='stats'
+            prefix='datastore-stats'
         )
         self.cache_mock.set_one.assert_awaited_once_with(
             self.user_identity.organization_id,
@@ -159,8 +159,8 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_get_connection_profile(self, get_string_cache_key_mock):
-        expected_response = IntegrationConnectionProfile(
-            id=self.integration_id,
+        expected_response = DataStoreConnectionProfile(
+            id=self.datastore_id,
             auth=Auth.iam,
             cloud=Cloud.aws,
             db=DB.sqlserver,
@@ -172,35 +172,34 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             region=None
         )
 
-        cache_key = 'connection-profile:test-key'
+        cache_key = 'datastore-connection-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
         self.cache_mock.get_one.return_value = expected_response
 
-        result = await self.cache_service.get_connection_profile(
+        result = await self.cache_service.get_datastore_connection_profile(
             user_identity=self.user_identity,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
         get_string_cache_key_mock.assert_called_once_with(
-            value=str(self.integration_id),
-            prefix='connection-profile'
+            value=str(self.datastore_id),
+            prefix='datastore-connection-profile'
         )
         self.cache_mock.get_one.assert_awaited_once_with(
             self.user_identity.organization_id,
             self.user_identity.user_id,
             cache_key,
-            model=IntegrationConnectionProfile
+            model=DataStoreConnectionProfile
         )
         self.assertEqual(result, expected_response)
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_set_connection_profile(self, get_string_cache_key_mock):
-        response = IntegrationConnectionProfile(
-            id=self.integration_id,
+        response = DataStoreConnectionProfile(
+            id=self.datastore_id,
             auth=Auth.iam,
             cloud=Cloud.aws,
             db=DB.postgresql,
-            connection_name='test-connection',
             database_name='testdb',
             host='localhost',
             port=5432,
@@ -208,18 +207,18 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             region=None
         )
 
-        cache_key = 'connection-profile:test-key'
+        cache_key = 'datastore-connection-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
 
-        await self.cache_service.set_connection_profile(
+        await self.cache_service.set_datastore_connection_profile(
             user_identity=self.user_identity,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             response=response
         )
 
         get_string_cache_key_mock.assert_called_once_with(
-            value=str(self.integration_id),
-            prefix='connection-profile'
+            value=str(self.datastore_id),
+            prefix='datastore-connection-profile'
         )
         self.cache_mock.set_one.assert_awaited_once_with(
             self.user_identity.organization_id,
@@ -231,7 +230,7 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_get_profiles(self, get_string_cache_key_mock):
         expected_response = [
-            IntegrationProfile(
+            DataStoreProfile(
                 id=uuid4(),
                 auth=Auth.iam,
                 cloud=Cloud.gcp,
@@ -242,7 +241,7 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
                 port=5432,
                 autosync_on=True
             ),
-            IntegrationProfile(
+            DataStoreProfile(
                 id=uuid4(),
                 auth=Auth.password_native,
                 cloud=Cloud.azure,
@@ -259,27 +258,27 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         get_string_cache_key_mock.return_value = cache_key
         self.cache_mock.get_many.return_value = expected_response
 
-        result = await self.cache_service.get_profiles(
+        result = await self.cache_service.get_datastore_profiles(
             user_identity=self.user_identity
         )
 
         expected_value = f'{str(self.user_identity.user_id)}{str(self.user_identity.organization_id)}'
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value,
-            prefix='profile'
+            prefix='datastore-profile'
         )
         self.cache_mock.get_many.assert_awaited_once_with(
             self.user_identity.organization_id,
             self.user_identity.user_id,
             cache_key,
-            model=IntegrationProfile
+            model=DataStoreProfile
         )
         self.assertEqual(result, expected_response)
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_set_profiles(self, get_string_cache_key_mock):
         response = [
-            IntegrationProfile(
+            DataStoreProfile(
                 id=uuid4(),
                 auth=Auth.password_native,
                 cloud=Cloud.gcp,
@@ -292,10 +291,10 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             )
         ]
 
-        cache_key = 'profile:test-key'
+        cache_key = 'datastore-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
 
-        await self.cache_service.set_profiles(
+        await self.cache_service.set_datastore_profiles(
             user_identity=self.user_identity,
             response=response
         )
@@ -303,7 +302,7 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         expected_value = f'{str(self.user_identity.user_id)}{str(self.user_identity.organization_id)}'
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value,
-            prefix='profile'
+            prefix='datastore-profile'
         )
         self.cache_mock.set_many.assert_awaited_once_with(
             self.user_identity.organization_id,
@@ -344,18 +343,18 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             )
         ]
 
-        cache_key = 'cert-profile:test-key'
+        cache_key = 'datastore-cert-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
         self.cache_mock.get_many.return_value = expected_response
 
-        result = await self.cache_service.get_cert_profiles(
+        result = await self.cache_service.get_datastore_cert_profiles(
             user_identity=self.user_identity
         )
 
         expected_value = f'{str(self.user_identity.user_id)}{str(self.user_identity.organization_id)}'
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value,
-            prefix='cert-profile'
+            prefix='datastore-cert-profile'
         )
         self.cache_mock.get_many.assert_awaited_once_with(
             self.user_identity.organization_id,
@@ -384,10 +383,10 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             )
         ]
 
-        cache_key = 'cert-profile:test-key'
+        cache_key = 'datastore-cert-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
 
-        await self.cache_service.set_cert_profiles(
+        await self.cache_service.set_datastore_cert_profiles(
             user_identity=self.user_identity,
             response=response
         )
@@ -395,7 +394,7 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         expected_value = f'{str(self.user_identity.user_id)}{str(self.user_identity.organization_id)}'
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value,
-            prefix='cert-profile'
+            prefix='datastore-cert-profile'
         )
         self.cache_mock.set_many.assert_awaited_once_with(
             self.user_identity.organization_id,
@@ -406,17 +405,17 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_delete_cert_profiles(self, get_string_cache_key_mock):
-        cache_key = 'cert-profile:test-key'
+        cache_key = 'datastore-cert-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
 
-        await self.cache_service.delete_cert_profiles(
+        await self.cache_service.delete_datastore_cert_profiles(
             user_identity=self.user_identity
         )
 
         expected_value = f'{str(self.user_identity.user_id)}{str(self.user_identity.organization_id)}'
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value,
-            prefix='cert-profile'
+            prefix='datastore-cert-profile'
         )
         self.cache_mock.delete.assert_awaited_once_with(
             self.user_identity.organization_id,
@@ -426,11 +425,11 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_get_profiles_returns_empty_list(self, get_string_cache_key_mock):
-        cache_key = 'profile:test-key'
+        cache_key = 'datastore-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
         self.cache_mock.get_many.return_value = []
 
-        result = await self.cache_service.get_profiles(
+        result = await self.cache_service.get_datastore_profiles(
             user_identity=self.user_identity
         )
 
@@ -439,11 +438,11 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_get_cert_profiles_returns_empty_list(self, get_string_cache_key_mock):
-        cache_key = 'cert-profile:test-key'
+        cache_key = 'datastore-cert-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
         self.cache_mock.get_many.return_value = []
 
-        result = await self.cache_service.get_cert_profiles(
+        result = await self.cache_service.get_datastore_cert_profiles(
             user_identity=self.user_identity
         )
 
@@ -451,9 +450,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         self.cache_mock.get_many.assert_awaited_once()
 
     @patch('integration_service.cache.cache_service.get_cache_key')
-    async def test_get_filtered_integration_returns_none(self, get_cache_key_mock):
+    async def test_get_filtered_datastore_returns_none(self, get_cache_key_mock):
         request = FilteredCrawlRequest(
-            integrations=[uuid4()],
+            datastores=[uuid4()],
             schemas={},
             tables={}
         )
@@ -462,7 +461,7 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         get_cache_key_mock.return_value = cache_key
         self.cache_mock.get_one.return_value = None
 
-        result = await self.cache_service.get_filtered_integration(
+        result = await self.cache_service.get_filtered_datastore(
             user_identity=self.user_identity,
             request=request
         )
@@ -476,9 +475,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         get_string_cache_key_mock.return_value = cache_key
         self.cache_mock.get_one.return_value = None
 
-        result = await self.cache_service.get_connection_profile(
+        result = await self.cache_service.get_datastore_connection_profile(
             user_identity=self.user_identity,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
         self.assertIsNone(result)
@@ -489,35 +488,35 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         cache_key = 'stats:test-key'
         get_string_cache_key_mock.return_value = cache_key
 
-        await self.cache_service.get_stats(user_identity=self.user_identity)
+        await self.cache_service.get_datastore_stats(user_identity=self.user_identity)
 
         expected_value = f'{str(self.user_identity.user_id)}{str(self.user_identity.organization_id)}'
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value,
-            prefix='stats'
+            prefix='datastore-stats'
         )
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
-    async def test_connection_profile_cache_key_uses_integration_id(self, get_string_cache_key_mock):
+    async def test_connection_profile_cache_key_uses_datastore_id(self, get_string_cache_key_mock):
         cache_key = 'connection-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
 
-        await self.cache_service.get_connection_profile(
+        await self.cache_service.get_datastore_connection_profile(
             user_identity=self.user_identity,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
         get_string_cache_key_mock.assert_called_once_with(
-            value=str(self.integration_id),
-            prefix='connection-profile'
+            value=str(self.datastore_id),
+            prefix='datastore-connection-profile'
         )
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_set_profiles_with_empty_list(self, get_string_cache_key_mock):
-        cache_key = 'profile:test-key'
+        cache_key = 'datastore-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
 
-        await self.cache_service.set_profiles(
+        await self.cache_service.set_datastore_profiles(
             user_identity=self.user_identity,
             response=[]
         )
@@ -531,10 +530,10 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     @patch('integration_service.cache.cache_service.get_string_cache_key')
     async def test_set_cert_profiles_with_empty_list(self, get_string_cache_key_mock):
-        cache_key = 'cert-profile:test-key'
+        cache_key = 'datastore-cert-profile:test-key'
         get_string_cache_key_mock.return_value = cache_key
 
-        await self.cache_service.set_cert_profiles(
+        await self.cache_service.set_datastore_cert_profiles(
             user_identity=self.user_identity,
             response=[]
         )

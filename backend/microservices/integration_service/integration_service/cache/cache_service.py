@@ -3,10 +3,11 @@ from uuid import UUID
 from svc_integration_contracts.models import (
     FilteredCrawlRequest,
     CrawlResponse,
-    IntegrationStatsResponse,
-    IntegrationConnectionProfile,
-    IntegrationProfile,
-    CertProfile
+    DataStoreStatsResponse,
+    DataStoreConnectionProfile,
+    DataStoreProfile,
+    CertProfile,
+    UserLlmProfile
 )
 from nextplore_sdk.cache.utils.key_factory import get_cache_key, get_string_cache_key
 from nextplore_sdk.cache.client.interface import Cache
@@ -18,12 +19,12 @@ class CacheService:
     def __init__(self, cache: Cache) -> None:
         self.cache = cache
 
-    async def get_filtered_integration(
+    async def get_filtered_datastore(
         self, 
         user_identity: UserIdentity, 
         request: FilteredCrawlRequest
     ) -> CrawlResponse:
-        cache_key = get_cache_key(model=request, prefix='filtered-crawl')
+        cache_key = get_cache_key(model=request, prefix='datastore-filtered-crawl')
         return await self.cache.get_one(
             user_identity.organization_id,
             user_identity.user_id,
@@ -31,13 +32,13 @@ class CacheService:
             model=CrawlResponse
         )
     
-    async def set_filtered_integration(
+    async def set_filtered_datastore(
         self, 
         user_identity: UserIdentity,
         request: FilteredCrawlRequest, 
         response: CrawlResponse
     ) -> None:
-        cache_key = get_cache_key(model=request, prefix='filtered-crawl')
+        cache_key = get_cache_key(model=request, prefix='datastore-filtered-crawl')
         await self.cache.set_one(
             user_identity.organization_id,
             user_identity.user_id,
@@ -45,29 +46,29 @@ class CacheService:
             value=response
         )
     
-    async def get_stats(
+    async def get_datastore_stats(
         self, 
         user_identity: UserIdentity
-    ) -> IntegrationStatsResponse:
+    ) -> DataStoreStatsResponse:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.user_id)}{str(user_identity.organization_id)}',
-            prefix='stats'
+            prefix='datastore-stats'
         )
         return await self.cache.get_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key, 
-            model=IntegrationStatsResponse
+            model=DataStoreStatsResponse
         )
     
-    async def set_stats(
+    async def set_datastore_stats(
         self, 
         user_identity: UserIdentity,
-        response: IntegrationStatsResponse
+        response: DataStoreStatsResponse
     ) -> None:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.user_id)}{str(user_identity.organization_id)}',
-            prefix='stats'
+            prefix='datastore-stats'
         )
         await self.cache.set_one(
             user_identity.organization_id,
@@ -76,31 +77,31 @@ class CacheService:
             value=response
         )
 
-    async def get_connection_profile(
+    async def get_datastore_connection_profile(
         self, 
         user_identity: UserIdentity,
-        integration_id: UUID,
-    ) -> IntegrationConnectionProfile:
+        datastore_id: UUID,
+    ) -> DataStoreConnectionProfile:
         cache_key = get_string_cache_key(
-            value=str(integration_id),
-            prefix='connection-profile'
+            value=str(datastore_id),
+            prefix='datastore-connection-profile'
         )
         return await self.cache.get_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            model=IntegrationConnectionProfile
+            model=DataStoreConnectionProfile
         )
     
-    async def set_connection_profile(
+    async def set_datastore_connection_profile(
         self,
         user_identity: UserIdentity,
-        integration_id: UUID,
-        response: IntegrationConnectionProfile
+        datastore_id: UUID,
+        response: DataStoreConnectionProfile
     ) -> None:
         cache_key = get_string_cache_key(
-            value=str(integration_id),
-            prefix='connection-profile'
+            value=str(datastore_id),
+            prefix='datastore-connection-profile'
         )
         await self.cache.set_one(
             user_identity.organization_id,
@@ -109,29 +110,29 @@ class CacheService:
             value=response
         )
 
-    async def get_profiles(
+    async def get_datastore_profiles(
         self,
         user_identity: UserIdentity,
-    ) -> List[IntegrationProfile]:
+    ) -> List[DataStoreProfile]:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.user_id)}{str(user_identity.organization_id)}',
-            prefix='profile'
+            prefix='datastore-profile'
         )
         return await self.cache.get_many(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            model=IntegrationProfile
+            model=DataStoreProfile
         )
     
-    async def set_profiles(
+    async def set_datastore_profiles(
         self,
         user_identity: UserIdentity,
-        response: List[IntegrationProfile]
+        response: List[DataStoreProfile]
     ) -> None:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.user_id)}{str(user_identity.organization_id)}',
-            prefix='profile'
+            prefix='datastore-profile'
         )
         await self.cache.set_many(
             user_identity.organization_id,
@@ -140,13 +141,13 @@ class CacheService:
             value=response
         )
 
-    async def get_cert_profiles(
+    async def get_datastore_cert_profiles(
         self,
         user_identity: UserIdentity
     ) -> List[CertProfile]:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.user_id)}{str(user_identity.organization_id)}',
-            prefix='cert-profile'
+            prefix='datastore-cert-profile'
         )
         return await self.cache.get_many(
             user_identity.organization_id,
@@ -155,14 +156,14 @@ class CacheService:
             model=CertProfile
         )
 
-    async def set_cert_profiles(
+    async def set_datastore_cert_profiles(
         self,
         user_identity: UserIdentity,
         response: List[CertProfile]
     ) -> None:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.user_id)}{str(user_identity.organization_id)}',
-            prefix='cert-profile'
+            prefix='datastore-cert-profile'
         )
         await self.cache.set_many(
             user_identity.organization_id,
@@ -172,17 +173,62 @@ class CacheService:
         )
 
 
-    async def delete_cert_profiles(
+    async def delete_datastore_cert_profiles(
         self,
         user_identity: UserIdentity,
     ) -> None:
         cache_key = get_string_cache_key(
             value=f'{str(user_identity.user_id)}{str(user_identity.organization_id)}',
-            prefix='cert-profile'
+            prefix='datastore-cert-profile'
         )
 
         await self.cache.delete(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key
+        )
+
+    async def delete_user_llm_profiles(
+        self,
+        user_identity: UserIdentity,
+    ) -> None:
+        cache_key = get_string_cache_key(
+            value=f'{str(user_identity.user_id)}{str(user_identity.organization_id)}',
+            prefix='user-llm-profile'
+        )
+        await self.cache.delete(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key
+        )
+
+    async def get_user_llm_profiles(
+        self,
+        user_identity: UserIdentity
+    ) -> List[UserLlmProfile]:
+        cache_key = get_string_cache_key(
+            value=f'{str(user_identity.user_id)}{str(user_identity.organization_id)}',
+            prefix='user-llm-profile'
+        )
+        return await self.cache.get_many(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key,
+            model=CertProfile
+        )
+
+    async def set_user_llm_profiles(
+        self,
+        user_identity: UserIdentity,
+        response: List[UserLlmProfile]
+    ) -> None:
+        cache_key = get_string_cache_key(
+            value=f'{str(user_identity.user_id)}{str(user_identity.organization_id)}',
+            prefix='user-llm-profile'
+        )
+        await self.cache.set_many(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key,
+            value=response
         )

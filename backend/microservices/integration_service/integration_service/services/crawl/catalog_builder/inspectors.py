@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def inspect_tables(
     crawler: Inspector,
-    integration_id: UUID,
+    datastore_id: UUID,
     schema_name: str,
     table_spec: Specification
 ) -> Tuple[TableCatalog, ...]:
@@ -24,12 +24,12 @@ def inspect_tables(
     tables = []
 
     for table_name in table_names:
-        table_candidate = TableCatalog(integration_id=integration_id, name=table_name)
+        table_candidate = TableCatalog(datastore_id=datastore_id, name=table_name)
         if not table_spec.is_satisfied_by(table_candidate):
             continue
         try:
             table = TableCatalog(
-                integration_id=integration_id,
+                datastore_id=datastore_id,
                 name=table_name,
                 columns=crawler.get_columns(table_name=table_name, schema=schema_name),
                 primary_keys=crawler.get_pk_constraint(table_name=table_name, schema=schema_name),
@@ -46,7 +46,7 @@ def inspect_tables(
 
 def inspect_schemas(
     crawler: Inspector,
-    integration_id: UUID,
+    datastore_id: UUID,
     schema_spec: Specification,
     table_spec: Specification
 ) -> Tuple[SchemaCatalog, ...]:
@@ -54,7 +54,7 @@ def inspect_schemas(
     schemas = []
 
     for schema_name in schema_names:
-        schema_candidate = SchemaCatalog(integration_id=integration_id, name=schema_name)
+        schema_candidate = SchemaCatalog(datastore_id=datastore_id, name=schema_name)
         if not schema_spec.is_satisfied_by(schema_candidate):
             continue
         if (permission_specs := HasSelectPermissionSpec(crawler, schema_name)).is_empty():
@@ -62,11 +62,11 @@ def inspect_schemas(
             continue
         tables = inspect_tables(
             crawler=crawler,
-            integration_id=integration_id,
+            datastore_id=datastore_id,
             schema_name=schema_name,
             table_spec=table_spec & permission_specs
         )
         if tables:
-            schemas.append(SchemaCatalog(integration_id=integration_id, name=schema_name, tables=tables))
+            schemas.append(SchemaCatalog(datastore_id=datastore_id, name=schema_name, tables=tables))
 
     return tuple(schemas)

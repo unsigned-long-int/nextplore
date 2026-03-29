@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/v1/integration', tags=['CrawlDataStore'])
 
 
-@router.post('/organizations/{organization_id}/users/{user_id}/crawl', response_model=CrawlResponse)
+@router.post('/organizations/{organization_id}/users/{user_id}/datastores/crawl', response_model=CrawlResponse)
 async def craw_filtered_datastore(
     organization_id: UUID,
     user_id: UUID,

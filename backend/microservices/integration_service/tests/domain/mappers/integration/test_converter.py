@@ -2,33 +2,33 @@ import unittest
 from uuid import uuid4, UUID
 
 from svc_integration_contracts.models import (
-    IntegrationUpdateRequest,
-    IntegrationCreateRequest,
+    DataStoreUpdateRequest,
+    DataStoreCreateRequest,
     Auth,
     DB,
     Cloud
 )
 
-from integration_service.domain.models.integration import (
-    IntegrationUpdate,
-    IntegrationCreate,
-    IntegrationProfile,
-    Integration
+from integration_service.domain.models.datastore import (
+    DataStoreUpdate,
+    DataStoreCreate,
+    DataStoreProfile,
+    DataStore
 )
-from integration_service.database.models import IntegrationORM
-from integration_service.domain.mappers.integration import (
-    integration_update_from_dto,
-    integration_create_from_dto,
-    orm_from_integration_create,
-    integration_profile_from_orm,
-    integration_from_orm
+from integration_service.database.models import DataStoreORM
+from integration_service.domain.mappers.datastore import (
+    datastore_update_from_dto,
+    datastore_create_from_dto,
+    orm_from_datastore_create,
+    datastore_profile_from_orm,
+    datastore_from_orm
 )
 
 
-class TestIntegrationUpdateFromDTO(unittest.TestCase):
+class TestDataStoreUpdateFromDTO(unittest.TestCase):
 
     def test_converts_all_fields(self):
-        payload = IntegrationUpdateRequest(
+        payload = DataStoreUpdateRequest(
             connection_name='test_connection',
             host='localhost',
             port=5432,
@@ -36,9 +36,9 @@ class TestIntegrationUpdateFromDTO(unittest.TestCase):
             autosync_on=True
         )
 
-        result = integration_update_from_dto(payload)
+        result = datastore_update_from_dto(payload)
 
-        self.assertIsInstance(result, IntegrationUpdate)
+        self.assertIsInstance(result, DataStoreUpdate)
         self.assertEqual(result.connection_name, 'test_connection')
         self.assertEqual(result.host, 'localhost')
         self.assertEqual(result.port, 5432)
@@ -46,7 +46,7 @@ class TestIntegrationUpdateFromDTO(unittest.TestCase):
         self.assertEqual(result.autosync_on, True)
 
     def test_handles_optional_fields(self):
-        payload = IntegrationUpdateRequest(
+        payload = DataStoreUpdateRequest(
             connection_name='test',
             host=None,
             port=None,
@@ -54,7 +54,7 @@ class TestIntegrationUpdateFromDTO(unittest.TestCase):
             autosync_on=False
         )
 
-        result = integration_update_from_dto(payload)
+        result = datastore_update_from_dto(payload)
 
         self.assertIsNone(result.host)
         self.assertIsNone(result.port)
@@ -62,7 +62,7 @@ class TestIntegrationUpdateFromDTO(unittest.TestCase):
         self.assertFalse(result.autosync_on)
 
 
-class TestIntegrationCreateFromDTO(unittest.TestCase):
+class TestDataStoreCreateFromDTO(unittest.TestCase):
 
     def setUp(self):
         self.tenant_id = 'tenant'
@@ -70,7 +70,7 @@ class TestIntegrationCreateFromDTO(unittest.TestCase):
         self.kek_kid = 'kek_kid'
 
     def test_converts_all_required_fields(self):
-        payload = IntegrationCreateRequest(
+        payload = DataStoreCreateRequest(
             auth=Auth.iam,
             cloud=Cloud.azure,
             db=DB.postgresql,
@@ -91,9 +91,9 @@ class TestIntegrationCreateFromDTO(unittest.TestCase):
             autosync_on=True
         )
 
-        result = integration_create_from_dto(payload)
+        result = datastore_create_from_dto(payload)
 
-        self.assertIsInstance(result, IntegrationCreate)
+        self.assertIsInstance(result, DataStoreCreate)
         self.assertEqual(result.auth, Auth.iam)
         self.assertEqual(result.cloud, Cloud.azure)
         self.assertEqual(result.db, DB.postgresql)
@@ -113,7 +113,7 @@ class TestIntegrationCreateFromDTO(unittest.TestCase):
         self.assertTrue(result.autosync_on)
 
     def test_handles_minimal_payload(self):
-        payload = IntegrationCreateRequest(
+        payload = DataStoreCreateRequest(
             auth=Auth.password_native,
             cloud=Cloud.aws,
             db=DB.mysql,
@@ -134,7 +134,7 @@ class TestIntegrationCreateFromDTO(unittest.TestCase):
             autosync_on=False
         )
 
-        result = integration_create_from_dto(payload)
+        result = datastore_create_from_dto(payload)
 
         self.assertEqual(result.auth, Auth.password_native)
         self.assertEqual(result.connection_name, 'minimal')
@@ -143,7 +143,7 @@ class TestIntegrationCreateFromDTO(unittest.TestCase):
         self.assertFalse(result.autosync_on)
 
 
-class TestORMFromIntegrationCreate(unittest.TestCase):
+class TestORMFromDataStoreCreate(unittest.TestCase):
 
     def setUp(self):
         self.organization_id = uuid4()
@@ -153,7 +153,7 @@ class TestORMFromIntegrationCreate(unittest.TestCase):
         self.kek_kid = 'kek_kid'
 
     def test_converts_to_orm_with_all_fields(self):
-        integration_create = IntegrationCreate(
+        datastore_create = DataStoreCreate(
             auth=Auth.cert,
             cloud=Cloud.gcp,
             db=DB.sqlserver,
@@ -174,13 +174,13 @@ class TestORMFromIntegrationCreate(unittest.TestCase):
             autosync_on=True
         )
 
-        result = orm_from_integration_create(
+        result = orm_from_datastore_create(
             self.organization_id,
             self.user_id,
-            integration_create
+            datastore_create
         )
 
-        self.assertIsInstance(result, IntegrationORM)
+        self.assertIsInstance(result, DataStoreORM)
         self.assertEqual(result.organization_id, self.organization_id)
         self.assertEqual(result.user_id, self.user_id)
         self.assertEqual(result.auth, Auth.cert)
@@ -202,7 +202,7 @@ class TestORMFromIntegrationCreate(unittest.TestCase):
         self.assertTrue(result.autosync_on)
 
     def test_preserves_types(self):
-        integration_create = IntegrationCreate(
+        datastore_create = DataStoreCreate(
             auth=Auth.password_proxy,
             cloud=Cloud.gcp,
             db=DB.postgresql,
@@ -223,10 +223,10 @@ class TestORMFromIntegrationCreate(unittest.TestCase):
             autosync_on=False
         )
 
-        result = orm_from_integration_create(
+        result = orm_from_datastore_create(
             self.organization_id,
             self.user_id,
-            integration_create
+            datastore_create
         )
 
         self.assertIsInstance(result.organization_id, UUID)
@@ -236,12 +236,12 @@ class TestORMFromIntegrationCreate(unittest.TestCase):
         self.assertIsInstance(result.kek_kid, str)
 
 
-class TestIntegrationProfileFromORM(unittest.TestCase):
+class TestDataStoreProfileFromORM(unittest.TestCase):
 
     def test_converts_orm_to_profile(self):
-        integration_id = uuid4()
-        integration_orm = IntegrationORM(
-            id=integration_id,
+        datastore_id = uuid4()
+        datastore_orm = DataStoreORM(
+            id=datastore_id,
             organization_id=uuid4(),
             user_id=uuid4(),
             auth=Auth.password_proxy,
@@ -259,10 +259,10 @@ class TestIntegrationProfileFromORM(unittest.TestCase):
             kek_kid=uuid4()
         )
 
-        result = integration_profile_from_orm(integration_orm)
+        result = datastore_profile_from_orm(datastore_orm)
 
-        self.assertIsInstance(result, IntegrationProfile)
-        self.assertEqual(result.id, integration_id)
+        self.assertIsInstance(result, DataStoreProfile)
+        self.assertEqual(result.id, datastore_id)
         self.assertEqual(result.auth, Auth.password_proxy)
         self.assertEqual(result.cloud, Cloud.snowflake_managed)
         self.assertEqual(result.db, DB.snowflake)
@@ -273,7 +273,7 @@ class TestIntegrationProfileFromORM(unittest.TestCase):
         self.assertTrue(result.autosync_on)
 
     def test_only_includes_profile_fields(self):
-        integration_orm = IntegrationORM(
+        datastore_orm = DataStoreORM(
             id=uuid4(),
             organization_id=uuid4(),
             user_id=uuid4(),
@@ -290,7 +290,7 @@ class TestIntegrationProfileFromORM(unittest.TestCase):
             tenant_id=uuid4()
         )
 
-        result = integration_profile_from_orm(integration_orm)
+        result = datastore_profile_from_orm(datastore_orm)
 
         self.assertFalse(hasattr(result, 'kek_kid'))
         self.assertFalse(hasattr(result, 'warehouse'))
@@ -298,10 +298,10 @@ class TestIntegrationProfileFromORM(unittest.TestCase):
         self.assertFalse(hasattr(result, 'user_id'))
 
 
-class TestIntegrationFromORM(unittest.TestCase):
+class TestDataStoreFromORM(unittest.TestCase):
 
     def setUp(self):
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
         self.organization_id = uuid4()
         self.user_id = uuid4()
         self.tenant_id = 'tenant_id'
@@ -309,14 +309,14 @@ class TestIntegrationFromORM(unittest.TestCase):
         self.kek_kid = 'kek_kid'
 
     def test_converts_all_orm_fields(self):
-        integration_orm = IntegrationORM(
-            id=self.integration_id,
+        datastore_orm = DataStoreORM(
+            id=self.datastore_id,
             organization_id=self.organization_id,
             user_id=self.user_id,
             auth=Auth.password_native,
             cloud=Cloud.aws,
             db=DB.mysql,
-            connection_name='full_integration',
+            connection_name='full_datastore',
             host='prod.example.com',
             database_name='prod_db',
             kek_kid=self.kek_kid,
@@ -332,16 +332,16 @@ class TestIntegrationFromORM(unittest.TestCase):
             autosync_on=True
         )
 
-        result = integration_from_orm(integration_orm)
+        result = datastore_from_orm(datastore_orm)
 
-        self.assertIsInstance(result, Integration)
-        self.assertEqual(result.id, self.integration_id)
+        self.assertIsInstance(result, DataStore)
+        self.assertEqual(result.id, self.datastore_id)
         self.assertEqual(result.organization_id, self.organization_id)
         self.assertEqual(result.user_id, self.user_id)
         self.assertEqual(result.auth, Auth.password_native)
         self.assertEqual(result.cloud, Cloud.aws)
         self.assertEqual(result.db, DB.mysql)
-        self.assertEqual(result.connection_name, 'full_integration')
+        self.assertEqual(result.connection_name, 'full_datastore')
         self.assertEqual(result.host, 'prod.example.com')
         self.assertEqual(result.database_name, 'prod_db')
         self.assertEqual(result.kek_kid, self.kek_kid)
@@ -357,8 +357,8 @@ class TestIntegrationFromORM(unittest.TestCase):
         self.assertTrue(result.autosync_on)
 
     def test_preserves_types(self):
-        integration_orm = IntegrationORM(
-            id=self.integration_id,
+        datastore_orm = DataStoreORM(
+            id=self.datastore_id,
             organization_id=self.organization_id,
             user_id=self.user_id,
             auth=Auth.password_proxy,
@@ -380,7 +380,7 @@ class TestIntegrationFromORM(unittest.TestCase):
             autosync_on=False
         )
 
-        result = integration_from_orm(integration_orm)
+        result = datastore_from_orm(datastore_orm)
 
         self.assertIsInstance(result.id, UUID)
         self.assertIsInstance(result.organization_id, UUID)
@@ -390,8 +390,8 @@ class TestIntegrationFromORM(unittest.TestCase):
         self.assertIsInstance(result.client_id, str)
 
     def test_handles_optional_fields(self):
-        integration_orm = IntegrationORM(
-            id=self.integration_id,
+        datastore_orm = DataStoreORM(
+            id=self.datastore_id,
             organization_id=self.organization_id,
             user_id=self.user_id,
             auth=Auth.password_native,
@@ -413,7 +413,7 @@ class TestIntegrationFromORM(unittest.TestCase):
             autosync_on=False
         )
 
-        result = integration_from_orm(integration_orm)
+        result = datastore_from_orm(datastore_orm)
 
         self.assertIsNone(result.warehouse)
         self.assertIsNone(result.region)
@@ -433,7 +433,7 @@ class TestConversionRoundTrip(unittest.TestCase):
         client_id = 'client_id'
         kek_kid = 'kek_kid'
 
-        original_dto = IntegrationCreateRequest(
+        original_dto = DataStoreCreateRequest(
             auth=Auth.cert,
             cloud=Cloud.azure,
             db=DB.sqlserver,
@@ -454,9 +454,9 @@ class TestConversionRoundTrip(unittest.TestCase):
             autosync_on=True
         )
 
-        domain = integration_create_from_dto(original_dto)
-        orm = orm_from_integration_create(organization_id, user_id, domain)
-        result = integration_from_orm(orm)
+        domain = datastore_create_from_dto(original_dto)
+        orm = orm_from_datastore_create(organization_id, user_id, domain)
+        result = datastore_from_orm(orm)
 
         self.assertEqual(result.auth, original_dto.auth)
         self.assertEqual(result.cloud, original_dto.cloud)

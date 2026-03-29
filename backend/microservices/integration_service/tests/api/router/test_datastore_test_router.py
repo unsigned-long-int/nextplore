@@ -80,10 +80,10 @@ class TestTestRouter(unittest.TestCase):
     def _url(self) -> str:
         return '/v1/integration/datastores/test'
 
-    @patch('integration_service.api.router.test_router.to_domain_db')
-    @patch('integration_service.api.router.test_router.to_domain_auth')
-    @patch('integration_service.api.router.test_router.to_domain_cloud')
-    @patch('integration_service.api.router.test_router.ConnectionProfile')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_db')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_auth')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_cloud')
+    @patch('integration_service.api.router.datastore_test_router.ConnectionProfile')
     def test_tests_postgres_datastore_successfully(
         self,
         connection_profile_mock,
@@ -134,10 +134,10 @@ class TestTestRouter(unittest.TestCase):
 
         connection_mock.execute.assert_called_once()
 
-    @patch('integration_service.api.router.test_router.to_domain_db')
-    @patch('integration_service.api.router.test_router.to_domain_auth')
-    @patch('integration_service.api.router.test_router.to_domain_cloud')
-    @patch('integration_service.api.router.test_router.ConnectionProfile')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_db')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_auth')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_cloud')
+    @patch('integration_service.api.router.datastore_test_router.ConnectionProfile')
     def test_tests_snowflake_datastore_with_certificate(
         self,
         connection_profile_mock,
@@ -176,10 +176,10 @@ class TestTestRouter(unittest.TestCase):
         self.assertEqual(call_kwargs['tenant_id'], 'tenant-123')
         self.assertEqual(call_kwargs['client_id'], 'client-123')
 
-    @patch('integration_service.api.router.test_router.to_domain_db')
-    @patch('integration_service.api.router.test_router.to_domain_auth')
-    @patch('integration_service.api.router.test_router.to_domain_cloud')
-    @patch('integration_service.api.router.test_router.ConnectionProfile')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_db')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_auth')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_cloud')
+    @patch('integration_service.api.router.datastore_test_router.ConnectionProfile')
     def test_tests_aws_datastore_with_role(
         self,
         connection_profile_mock,
@@ -219,10 +219,10 @@ class TestTestRouter(unittest.TestCase):
         self.assertEqual(call_kwargs['aws_role_arn'], 'arn:aws:iam::123456789012:role/MyRole')
         self.assertEqual(call_kwargs['region'], 'us-east-1')
 
-    @patch('integration_service.api.router.test_router.to_domain_db')
-    @patch('integration_service.api.router.test_router.to_domain_auth')
-    @patch('integration_service.api.router.test_router.to_domain_cloud')
-    @patch('integration_service.api.router.test_router.ConnectionProfile')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_db')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_auth')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_cloud')
+    @patch('integration_service.api.router.datastore_test_router.ConnectionProfile')
     def test_raises_exception_when_connection_fails(
         self,
         connection_profile_mock,
@@ -251,10 +251,10 @@ class TestTestRouter(unittest.TestCase):
         self.assertEqual(424, response.status_code)
         self.assertIn('Database error:', response.json()['detail']['message'])
 
-    @patch('integration_service.api.router.test_router.to_domain_db')
-    @patch('integration_service.api.router.test_router.to_domain_auth')
-    @patch('integration_service.api.router.test_router.to_domain_cloud')
-    @patch('integration_service.api.router.test_router.ConnectionProfile')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_db')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_auth')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_cloud')
+    @patch('integration_service.api.router.datastore_test_router.ConnectionProfile')
     def test_raises_exception_when_query_execution_fails(
         self,
         connection_profile_mock,
@@ -286,10 +286,10 @@ class TestTestRouter(unittest.TestCase):
         self.assertEqual(424, response.status_code)
         self.assertIn('Database error: Query execution failed', response.json()['detail']['message'])
 
-    @patch('integration_service.api.router.test_router.to_domain_db')
-    @patch('integration_service.api.router.test_router.to_domain_auth')
-    @patch('integration_service.api.router.test_router.to_domain_cloud')
-    @patch('integration_service.api.router.test_router.ConnectionProfile')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_db')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_auth')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_cloud')
+    @patch('integration_service.api.router.datastore_test_router.ConnectionProfile')
     def test_raises_exception_when_generic_error(
         self,
         connection_profile_mock,
@@ -311,10 +311,10 @@ class TestTestRouter(unittest.TestCase):
         self.assertEqual(500, response.status_code)
         self.assertIn('Unexpected error: Unexpected error', response.json()['detail']['message'])
 
-    @patch('integration_service.api.router.test_router.to_domain_db')
-    @patch('integration_service.api.router.test_router.to_domain_auth')
-    @patch('integration_service.api.router.test_router.to_domain_cloud')
-    @patch('integration_service.api.router.test_router.ConnectionProfile')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_db')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_auth')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_cloud')
+    @patch('integration_service.api.router.datastore_test_router.ConnectionProfile')
     def test_extracts_secret_values_from_secret_str_fields(
         self,
         connection_profile_mock,
@@ -356,10 +356,10 @@ class TestTestRouter(unittest.TestCase):
         self.assertIsInstance(call_kwargs['username'], str)
         self.assertIsInstance(call_kwargs['password'], str)
 
-    @patch('integration_service.api.router.test_router.to_domain_db')
-    @patch('integration_service.api.router.test_router.to_domain_auth')
-    @patch('integration_service.api.router.test_router.to_domain_cloud')
-    @patch('integration_service.api.router.test_router.ConnectionProfile')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_db')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_auth')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_cloud')
+    @patch('integration_service.api.router.datastore_test_router.ConnectionProfile')
     def test_handles_optional_fields_as_none(
         self,
         connection_profile_mock,
@@ -412,11 +412,11 @@ class TestTestRouter(unittest.TestCase):
         self.assertIsNone(call_kwargs['aws_role_arn'])
         self.assertIsNone(call_kwargs['snowflake_private_key'])
 
-    @patch('integration_service.api.router.test_router.text')
-    @patch('integration_service.api.router.test_router.to_domain_db')
-    @patch('integration_service.api.router.test_router.to_domain_auth')
-    @patch('integration_service.api.router.test_router.to_domain_cloud')
-    @patch('integration_service.api.router.test_router.ConnectionProfile')
+    @patch('integration_service.api.router.datastore_test_router.text')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_db')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_auth')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_cloud')
+    @patch('integration_service.api.router.datastore_test_router.ConnectionProfile')
     def test_executes_select_1_test_query(
         self,
         connection_profile_mock,
@@ -453,10 +453,10 @@ class TestTestRouter(unittest.TestCase):
         text_mock.assert_called_once_with('SELECT 1')
         connection_mock.execute.assert_called_once_with('SELECT 1')
 
-    @patch('integration_service.api.router.test_router.to_domain_db')
-    @patch('integration_service.api.router.test_router.to_domain_auth')
-    @patch('integration_service.api.router.test_router.to_domain_cloud')
-    @patch('integration_service.api.router.test_router.ConnectionProfile')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_db')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_auth')
+    @patch('integration_service.api.router.datastore_test_router.to_domain_cloud')
+    @patch('integration_service.api.router.datastore_test_router.ConnectionProfile')
     def test_uses_context_manager_for_connection(
         self,
         connection_profile_mock,

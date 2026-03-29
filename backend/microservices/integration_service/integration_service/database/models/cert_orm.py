@@ -4,18 +4,18 @@ from sqlalchemy.dialects.postgresql import UUID
 from svc_integration_contracts.models import CertState
 
 from .base import Base
-from .integration_orm import IntegrationORM
+from .datastore_orm import DataStoreORM
 
 
 
 class CertORM(Base):
-    __tablename__ = 'certificates'
+    __tablename__ = 'datastore_certificates'
     __table_args__ = {'schema': 'integration'}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organization_id = Column(UUID(as_uuid=True), nullable=False)
     user_id = Column(UUID(as_uuid=True), nullable=False)
-    integration_id = Column(UUID(as_uuid=True), ForeignKey(IntegrationORM.id), nullable=True)
+    datastore_id = Column(UUID(as_uuid=True), ForeignKey(DataStoreORM.id), nullable=True)
     state = Column(
         Enum(
             CertState,

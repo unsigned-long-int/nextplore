@@ -60,11 +60,11 @@ class TestConnectionProfileRouter(unittest.TestCase):
 
     def _url(self, org_id=None, user_id=None, datastore_id=None) -> str:
         return (
-            f'/v1/integrations/organizations/{org_id or self.org_id}/'
+            f'/v1/integration/organizations/{org_id or self.org_id}/'
             f'users/{user_id or self.user_id}/datastores/{datastore_id or self.datastore_id}/connection-profile'
         )
 
-    @patch('integration_service.api.router.connection_profile_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_connection_profile_router.get_current_identity')
     def test_returns_cached_profile(self, get_current_identity_mock):
         identity = MagicMock()
         identity.organization_id = self.org_id
@@ -90,22 +90,22 @@ class TestConnectionProfileRouter(unittest.TestCase):
             client_id=self.datastore.client_id,
             region=self.datastore.region,
         )
-        self.cache_mock.get_connection_profile.return_value = cached
+        self.cache_mock.get_datastore_connection_profile.return_value = cached
 
         resp = self.client.get(self._url())
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json(), cached.model_dump(mode='json'))
 
-        self.cache_mock.get_connection_profile.assert_awaited_once_with(
+        self.cache_mock.get_datastore_connection_profile.assert_awaited_once_with(
             user_identity=identity, datastore_id=self.datastore_id
         )
-        self.cache_mock.set_connection_profile.assert_not_awaited()
+        self.cache_mock.set_datastore_connection_profile.assert_not_awaited()
 
 
-    @patch('integration_service.api.router.connection_profile_router.AzureCryptoClient')
-    @patch('integration_service.api.router.connection_profile_router.decrypt_secret')
-    @patch('integration_service.api.router.connection_profile_router.DataStoreRepository')
-    @patch('integration_service.api.router.connection_profile_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_connection_profile_router.AzureCryptoClient')
+    @patch('integration_service.api.router.datastore_connection_profile_router.decrypt_secret')
+    @patch('integration_service.api.router.datastore_connection_profile_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_connection_profile_router.get_current_identity')
     def test_loads_from_repo_decrypts_and_sets_cache(
         self,
         get_current_identity_mock,
@@ -117,7 +117,7 @@ class TestConnectionProfileRouter(unittest.TestCase):
         identity.organization_id = self.org_id
         identity.user_id = self.user_id
         get_current_identity_mock.return_value = identity
-        self.cache_mock.get_connection_profile.return_value = None
+        self.cache_mock.get_datastore_connection_profile.return_value = None
 
         repo_instance = AsyncMock()
         repo_instance.get_datastore.return_value = self.datastore
@@ -179,8 +179,8 @@ class TestConnectionProfileRouter(unittest.TestCase):
         )
         self.assertEqual(resp.json(), expected.model_dump(mode='json'))
 
-        self.cache_mock.set_connection_profile.assert_awaited_once()
-        kwargs = self.cache_mock.set_connection_profile.await_args.kwargs
+        self.cache_mock.set_datastore_connection_profile.assert_awaited_once()
+        kwargs = self.cache_mock.set_datastore_connection_profile.await_args.kwargs
         self.assertIs(kwargs['user_identity'], identity)
         self.assertEqual(kwargs['datastore_id'], self.datastore_id)
         self.assertIsInstance(kwargs['response'], DataStoreConnectionProfile)
@@ -194,7 +194,7 @@ class TestConnectionProfileRouter(unittest.TestCase):
             self.assertIs(args[2], azure_client_instance)
 
 
-    @patch('integration_service.api.router.connection_profile_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_connection_profile_router.get_current_identity')
     def test_forbidden_when_identity_mismatch(self, get_current_identity_mock):
         identity = MagicMock()
         identity.organization_id = uuid4()
@@ -204,17 +204,17 @@ class TestConnectionProfileRouter(unittest.TestCase):
         resp = self.client.get(self._url())
         self.assertEqual(resp.status_code, 403)
         self.assertEqual(resp.json(), {'detail': {'message': 'Forbidden'}})
-        self.cache_mock.get_connection_profile.assert_not_called()
+        self.cache_mock.get_datastore_connection_profile.assert_not_called()
 
 
-    @patch('integration_service.api.router.connection_profile_router.DataStoreRepository')
-    @patch('integration_service.api.router.connection_profile_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_connection_profile_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_connection_profile_router.get_current_identity')
     def test_datastore_get_failed_returns_424(self, get_current_identity_mock, repo_cls_mock):
         identity = MagicMock()
         identity.organization_id = self.org_id
         identity.user_id = self.user_id
         get_current_identity_mock.return_value = identity
-        self.cache_mock.get_connection_profile.return_value = None
+        self.cache_mock.get_datastore_connection_profile.return_value = None
 
         repo_instance = AsyncMock()
         repo_instance.get_datastore.side_effect = DataStoreGetFailed('nope')
@@ -225,14 +225,14 @@ class TestConnectionProfileRouter(unittest.TestCase):
         self.assertEqual(resp.status_code, 424)
         self.assertIn('Database error: nope', resp.text)
 
-    @patch('integration_service.api.router.connection_profile_router.DataStoreRepository')
-    @patch('integration_service.api.router.connection_profile_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_connection_profile_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_connection_profile_router.get_current_identity')
     def test_secrets_get_failed_returns_424(self, get_current_identity_mock, repo_cls_mock):
         identity = MagicMock()
         identity.organization_id = self.org_id
         identity.user_id = self.user_id
         get_current_identity_mock.return_value = identity
-        self.cache_mock.get_connection_profile.return_value = None
+        self.cache_mock.get_datastore_connection_profile.return_value = None
 
         repo_instance = AsyncMock()
         repo_instance.get_datastore.return_value = self.datastore
@@ -243,14 +243,14 @@ class TestConnectionProfileRouter(unittest.TestCase):
         self.assertEqual(resp.status_code, 424)
         self.assertIn('Database error: no-secrets', resp.text)
 
-    @patch('integration_service.api.router.connection_profile_router.DataStoreRepository')
-    @patch('integration_service.api.router.connection_profile_router.get_current_identity')
+    @patch('integration_service.api.router.datastore_connection_profile_router.DataStoreRepository')
+    @patch('integration_service.api.router.datastore_connection_profile_router.get_current_identity')
     def test_unexpected_error_returns_500(self, get_current_identity_mock, repo_cls_mock):
         identity = MagicMock()
         identity.organization_id = self.org_id
         identity.user_id = self.user_id
         get_current_identity_mock.return_value = identity
-        self.cache_mock.get_connection_profile.return_value = None
+        self.cache_mock.get_datastore_connection_profile.return_value = None
 
         repo_instance = AsyncMock()
         repo_instance.get_datastore.side_effect = RuntimeError('boom')

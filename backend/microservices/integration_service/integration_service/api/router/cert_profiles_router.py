@@ -7,7 +7,7 @@ from nextplore_sdk.database.backend.database_backend_connector import DatabaseBa
 
 from integration_service.api.context import get_current_identity
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.database.repositories import IntegrationRepository
+from integration_service.database.repositories import DataStoreRepository
 from integration_service.database.exceptions import CertGetFailed
 from integration_service.cache import get_cache_service, CacheService
 
@@ -17,7 +17,7 @@ router = APIRouter(prefix='/v1/integration', tags=['CertProfiles'])
 
 
 @router.get(
-    '/organizations/{organization_id}/users/{user_id}/integrations/certificates/profiles',
+    '/organizations/{organization_id}/users/{user_id}/datastores/certificates/profiles',
     response_model=List[CertProfile]
 )
 async def get_cert_profiles(
@@ -38,14 +38,14 @@ async def get_cert_profiles(
             detail={'message': 'Forbidden'}
         )
     try:
-        cached = await cache_service.get_cert_profiles(
+        cached = await cache_service.get_datastore_cert_profiles(
             user_identity=user_identity
         )
         if cached:
             return cached
 
-        integration_repo = IntegrationRepository(backend_connector)
-        cert_profiles = await integration_repo.get_cert_profiles(
+        data_store_repo = DataStoreRepository(backend_connector)
+        cert_profiles = await data_store_repo.get_datastore_cert_profiles(
             organization_id=user_identity.organization_id,
             user_id=user_identity.user_id
         )
@@ -66,7 +66,7 @@ async def get_cert_profiles(
             )
             for profile in cert_profiles
         ]
-        await cache_service.set_cert_profiles(
+        await cache_service.set_datastore_cert_profiles(
             user_identity=user_identity,
             response=response
         )

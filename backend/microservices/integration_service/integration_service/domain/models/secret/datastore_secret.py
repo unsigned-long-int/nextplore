@@ -6,10 +6,10 @@ from nextplore_sdk.encryptor.client.crypto_client import CryptoClient
 
 
 @dataclass(frozen=True)
-class IntegrationSecret:
+class DataStoreSecret:
     organization_id: UUID
     user_id: UUID
-    integration_id: UUID
+    datastore_id: UUID
     ciphertext: bytes
     nonce: bytes
     tag: bytes
@@ -24,7 +24,7 @@ class IntegrationSecret:
             aad={
                 'organization_id': self.organization_id,
                 'user_id': self.user_id,
-                'integration_id': self.integration_id
+                'datastore_id': self.datastore_id
             },
             nonce=self.nonce,
             ciphertext=self.ciphertext,

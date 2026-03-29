@@ -4,15 +4,15 @@ from uuid import uuid4, UUID
 from pydantic import SecretStr, BaseModel, Field
 
 from svc_integration_contracts.models import (
-    IntegrationUpdateRequest,
-    IntegrationCreateRequest,
+    DataStoreUpdateRequest,
+    DataStoreCreateRequest,
     Auth,
     DB,
     Cloud
 )
 
 from integration_service.database.models import SecretORM
-from integration_service.domain.models.secret import IntegrationSecret
+from integration_service.domain.models.secret import DataStoreSecret
 from integration_service.domain.mappers.secret import (
     secrets_from_dto,
     secrets_from_orm,
@@ -21,7 +21,7 @@ from integration_service.domain.mappers.secret import (
 from nextplore_sdk.encryptor.client.crypto_client import CryptoClient
 
 
-class MockIntegrationUpdateRequest(BaseModel):
+class MockDataStoreUpdateRequest(BaseModel):
     connection_name: str | None = Field(..., title="Connection Name")
     host: str | None = Field(..., title="Host")
     port: int | None = Field(..., title="Port")
@@ -33,13 +33,13 @@ class TestSecretsFromDTO(unittest.TestCase):
     def setUp(self):
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
         self.mock_crypto_client = Mock(spec=CryptoClient)
 
-        self.mock_encrypted_secret = IntegrationSecret(
+        self.mock_encrypted_secret = DataStoreSecret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             ciphertext=b'encrypted_data',
             nonce=b'nonce_12345',
             tag=b'tag_67890',
@@ -53,7 +53,7 @@ class TestSecretsFromDTO(unittest.TestCase):
     def test_extracts_secret_fields_from_update_request(self, mock_encrypt):
         mock_encrypt.return_value = self.mock_encrypted_secret
 
-        payload = MockIntegrationUpdateRequest(
+        payload = MockDataStoreUpdateRequest(
             connection_name='test',
             host='localhost',
             port=5432,
@@ -65,7 +65,7 @@ class TestSecretsFromDTO(unittest.TestCase):
         result = secrets_from_dto(
             self.organization_id,
             self.user_id,
-            self.integration_id,
+            self.datastore_id,
             self.mock_crypto_client,
             payload
         )
@@ -79,7 +79,7 @@ class TestSecretsFromDTO(unittest.TestCase):
         first_call = mock_encrypt.call_args_list[0]
         self.assertEqual(first_call[1]['organization_id'], self.organization_id)
         self.assertEqual(first_call[1]['user_id'], self.user_id)
-        self.assertEqual(first_call[1]['integration_id'], self.integration_id)
+        self.assertEqual(first_call[1]['datastore_id'], self.datastore_id)
         self.assertEqual(first_call[1]['plaintext'], 'secret')
         self.assertEqual(first_call[1]['crypto_client'], self.mock_crypto_client)
 
@@ -91,7 +91,7 @@ class TestSecretsFromDTO(unittest.TestCase):
         client_id = 'client_id'
         kek_kid = 'kek_id'
 
-        payload = IntegrationCreateRequest(
+        payload = DataStoreCreateRequest(
             auth=Auth.password_native,
             cloud=Cloud.aws,
             db=DB.postgresql,
@@ -118,7 +118,7 @@ class TestSecretsFromDTO(unittest.TestCase):
         result = secrets_from_dto(
             self.organization_id,
             self.user_id,
-            self.integration_id,
+            self.datastore_id,
             self.mock_crypto_client,
             payload
         )
@@ -136,7 +136,7 @@ class TestSecretsFromDTO(unittest.TestCase):
         client_id = 'client_id'
         kek_kid = 'kek_id'
 
-        payload = IntegrationCreateRequest(
+        payload = DataStoreCreateRequest(
             auth=Auth.password_native,
             cloud=Cloud.aws,
             db=DB.postgresql,
@@ -163,7 +163,7 @@ class TestSecretsFromDTO(unittest.TestCase):
         result = secrets_from_dto(
             self.organization_id,
             self.user_id,
-            self.integration_id,
+            self.datastore_id,
             self.mock_crypto_client,
             payload
         )
@@ -174,7 +174,7 @@ class TestSecretsFromDTO(unittest.TestCase):
 
     @patch('integration_service.domain.mappers.secret.converter.encrypt_secret')
     def test_handles_payload_with_no_secrets(self, mock_encrypt):
-        payload = IntegrationUpdateRequest(
+        payload = DataStoreUpdateRequest(
             connection_name='test',
             host='localhost',
             port=5432,
@@ -185,7 +185,7 @@ class TestSecretsFromDTO(unittest.TestCase):
         result = secrets_from_dto(
             self.organization_id,
             self.user_id,
-            self.integration_id,
+            self.datastore_id,
             self.mock_crypto_client,
             payload
         )
@@ -202,7 +202,7 @@ class TestSecretsFromDTO(unittest.TestCase):
         client_id = 'client_id'
         kek_kid = 'kek_id'
 
-        payload = IntegrationCreateRequest(
+        payload = DataStoreCreateRequest(
             auth=Auth.password_native,
             cloud=Cloud.aws,
             db=DB.postgresql,
@@ -232,7 +232,7 @@ class TestSecretsFromDTO(unittest.TestCase):
         result = secrets_from_dto(
             self.organization_id,
             self.user_id,
-            self.integration_id,
+            self.datastore_id,
             self.mock_crypto_client,
             payload,
             extra_kwarg1=extra_kwarg1,
@@ -248,7 +248,7 @@ class TestSecretsFromDTO(unittest.TestCase):
     def test_returns_dict_with_correct_secret_types(self, mock_encrypt):
         mock_encrypt.return_value = self.mock_encrypted_secret
 
-        payload = IntegrationUpdateRequest(
+        payload = DataStoreUpdateRequest(
             connection_name='test',
             host='localhost',
             port=5432,
@@ -261,17 +261,17 @@ class TestSecretsFromDTO(unittest.TestCase):
         result = secrets_from_dto(
             self.organization_id,
             self.user_id,
-            self.integration_id,
+            self.datastore_id,
             self.mock_crypto_client,
             payload
         )
 
         for key, value in result.items():
             self.assertIsInstance(key, str)
-            self.assertIsInstance(value, IntegrationSecret)
+            self.assertIsInstance(value, DataStoreSecret)
             self.assertEqual(value.organization_id, self.organization_id)
             self.assertEqual(value.user_id, self.user_id)
-            self.assertEqual(value.integration_id, self.integration_id)
+            self.assertEqual(value.datastore_id, self.datastore_id)
 
 
 class TestSecretsFromORM(unittest.TestCase):
@@ -279,14 +279,14 @@ class TestSecretsFromORM(unittest.TestCase):
     def setUp(self):
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
     def test_converts_single_secret_orm_to_domain(self):
         secret_orm = SecretORM(
             id=uuid4(),
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             secret_type='password',
             ciphertext=b'encrypted_password',
             nonce=b'nonce_abc',
@@ -304,10 +304,10 @@ class TestSecretsFromORM(unittest.TestCase):
         self.assertIn('password', result)
 
         secret = result['password']
-        self.assertIsInstance(secret, IntegrationSecret)
+        self.assertIsInstance(secret, DataStoreSecret)
         self.assertEqual(secret.organization_id, self.organization_id)
         self.assertEqual(secret.user_id, self.user_id)
-        self.assertEqual(secret.integration_id, self.integration_id)
+        self.assertEqual(secret.datastore_id, self.datastore_id)
         self.assertEqual(secret.ciphertext, b'encrypted_password')
         self.assertEqual(secret.nonce, b'nonce_abc')
         self.assertEqual(secret.tag, b'tag_xyz')
@@ -322,7 +322,7 @@ class TestSecretsFromORM(unittest.TestCase):
                 id=uuid4(),
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 secret_type='password',
                 ciphertext=b'enc_password',
                 nonce=b'nonce1',
@@ -336,7 +336,7 @@ class TestSecretsFromORM(unittest.TestCase):
                 id=uuid4(),
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 secret_type='api_key',
                 ciphertext=b'enc_api_key',
                 nonce=b'nonce2',
@@ -350,7 +350,7 @@ class TestSecretsFromORM(unittest.TestCase):
                 id=uuid4(),
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 secret_type='client_secret',
                 ciphertext=b'enc_client_secret',
                 nonce=b'nonce3',
@@ -370,7 +370,7 @@ class TestSecretsFromORM(unittest.TestCase):
         self.assertIn('client_secret', result)
 
         for secret_type, secret in result.items():
-            self.assertIsInstance(secret, IntegrationSecret)
+            self.assertIsInstance(secret, DataStoreSecret)
             self.assertEqual(secret.organization_id, self.organization_id)
 
     def test_handles_empty_list(self):
@@ -384,7 +384,7 @@ class TestSecretsFromORM(unittest.TestCase):
             id=uuid4(),
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             secret_type='password',
             ciphertext=b'encrypted',
             nonce=b'nonce',
@@ -400,7 +400,7 @@ class TestSecretsFromORM(unittest.TestCase):
         secret = result['password']
         self.assertIsInstance(secret.organization_id, UUID)
         self.assertIsInstance(secret.user_id, UUID)
-        self.assertIsInstance(secret.integration_id, UUID)
+        self.assertIsInstance(secret.datastore_id, UUID)
 
 
 class TestORMFromSecrets(unittest.TestCase):
@@ -408,14 +408,14 @@ class TestORMFromSecrets(unittest.TestCase):
     def setUp(self):
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
     def test_converts_single_secret_to_orm(self):
         secrets = {
-            'password': IntegrationSecret(
+            'password': DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'encrypted_password',
                 nonce=b'nonce_abc',
                 tag=b'tag_xyz',
@@ -435,7 +435,7 @@ class TestORMFromSecrets(unittest.TestCase):
         self.assertIsInstance(secret_orm, SecretORM)
         self.assertEqual(secret_orm.organization_id, self.organization_id)
         self.assertEqual(secret_orm.user_id, self.user_id)
-        self.assertEqual(secret_orm.integration_id, self.integration_id)
+        self.assertEqual(secret_orm.datastore_id, self.datastore_id)
         self.assertEqual(secret_orm.secret_type, 'password')
         self.assertEqual(secret_orm.ciphertext, b'encrypted_password')
         self.assertEqual(secret_orm.nonce, b'nonce_abc')
@@ -447,10 +447,10 @@ class TestORMFromSecrets(unittest.TestCase):
 
     def test_converts_multiple_secrets_to_orm(self):
         secrets = {
-            'password': IntegrationSecret(
+            'password': DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'enc_pwd',
                 nonce=b'nonce1',
                 tag=b'tag1',
@@ -459,10 +459,10 @@ class TestORMFromSecrets(unittest.TestCase):
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
             ),
-            'api_key': IntegrationSecret(
+            'api_key': DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'enc_key',
                 nonce=b'nonce2',
                 tag=b'tag2',
@@ -471,10 +471,10 @@ class TestORMFromSecrets(unittest.TestCase):
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
             ),
-            'client_secret': IntegrationSecret(
+            'client_secret': DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'enc_client',
                 nonce=b'nonce3',
                 tag=b'tag3',
@@ -496,7 +496,7 @@ class TestORMFromSecrets(unittest.TestCase):
             self.assertIsInstance(secret_orm, SecretORM)
             self.assertEqual(secret_orm.organization_id, self.organization_id)
             self.assertEqual(secret_orm.user_id, self.user_id)
-            self.assertEqual(secret_orm.integration_id, self.integration_id)
+            self.assertEqual(secret_orm.datastore_id, self.datastore_id)
 
     def test_handles_empty_dict(self):
         result = orm_from_secrets({})
@@ -510,14 +510,14 @@ class TestSecretConversionRoundTrip(unittest.TestCase):
     def setUp(self):
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
     def test_domain_to_orm_to_domain_round_trip(self):
         original_secrets = {
-            'password': IntegrationSecret(
+            'password': DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'encrypted_password',
                 nonce=b'nonce_abc123',
                 tag=b'tag_xyz789',
@@ -526,10 +526,10 @@ class TestSecretConversionRoundTrip(unittest.TestCase):
                 wrap_alg='RSA-OAEP',
                 encoding='base64',
             ),
-            'api_key': IntegrationSecret(
+            'api_key': DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'encrypted_api_key',
                 nonce=b'nonce_def456',
                 tag=b'tag_uvw012',
@@ -551,7 +551,7 @@ class TestSecretConversionRoundTrip(unittest.TestCase):
 
             self.assertEqual(result.organization_id, original.organization_id)
             self.assertEqual(result.user_id, original.user_id)
-            self.assertEqual(result.integration_id, original.integration_id)
+            self.assertEqual(result.datastore_id, original.datastore_id)
             self.assertEqual(result.ciphertext, original.ciphertext)
             self.assertEqual(result.nonce, original.nonce)
             self.assertEqual(result.tag, original.tag)

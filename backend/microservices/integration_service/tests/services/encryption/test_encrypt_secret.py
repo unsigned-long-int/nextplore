@@ -1,10 +1,13 @@
 import unittest
-from unittest.mock import Mock, patch
+import json
+from unittest.mock import Mock, patch, MagicMock
 from uuid import UUID, uuid4
 
-from integration_service.domain.models.secret import IntegrationSecret
-from integration_service.services.encryption import encrypt_secret
+from integration_service.domain.models.secret import DataStoreSecret
+from integration_service.services.encryption import encrypt_secret, encrypt_conn_params
 from nextplore_sdk.encryptor.client.crypto_client import CryptoClient
+from nextplore_sdk.encryptor.client.encrypted_secret import EncryptedSecret
+
 
 
 class TestEncryptSecret(unittest.TestCase):
@@ -12,7 +15,7 @@ class TestEncryptSecret(unittest.TestCase):
     def setUp(self):
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
         self.plaintext = 'my_secret_password'
 
         self.mock_crypto_client = Mock(spec=CryptoClient)
@@ -29,15 +32,15 @@ class TestEncryptSecret(unittest.TestCase):
         result = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=self.plaintext,
             crypto_client=self.mock_crypto_client
         )
 
-        self.assertIsInstance(result, IntegrationSecret)
+        self.assertIsInstance(result, DataStoreSecret)
         self.assertEqual(result.organization_id, self.organization_id)
         self.assertEqual(result.user_id, self.user_id)
-        self.assertEqual(result.integration_id, self.integration_id)
+        self.assertEqual(result.datastore_id, self.datastore_id)
         self.assertEqual(result.ciphertext, b'encrypted_data')
         self.assertEqual(result.nonce, b'random_nonce')
         self.assertEqual(result.tag, b'auth_tag')
@@ -47,7 +50,7 @@ class TestEncryptSecret(unittest.TestCase):
         encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=self.plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -57,7 +60,7 @@ class TestEncryptSecret(unittest.TestCase):
             aad={
                 'organization_id': self.organization_id,
                 'user_id': self.user_id,
-                'integration_id': self.integration_id
+                'datastore_id': self.datastore_id
             }
         )
 
@@ -68,14 +71,14 @@ class TestEncryptSecret(unittest.TestCase):
             'expires_at': '2025-12-31'
         }
 
-        with patch('integration_service.services.encryption.encrypt_secret.IntegrationSecret') as mock_secret_class:
+        with patch('integration_service.services.encryption.encrypt_secret.DataStoreSecret') as mock_secret_class:
             mock_secret_instance = Mock()
             mock_secret_class.return_value = mock_secret_instance
 
             _ = encrypt_secret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 plaintext=self.plaintext,
                 crypto_client=self.mock_crypto_client,
                 **additional_kwargs
@@ -84,7 +87,7 @@ class TestEncryptSecret(unittest.TestCase):
             mock_secret_class.assert_called_once_with(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=self.mock_encrypted_result.ciphertext,
                 nonce=self.mock_encrypted_result.nonce,
                 tag=self.mock_encrypted_result.tag,
@@ -100,7 +103,7 @@ class TestEncryptSecret(unittest.TestCase):
         _ = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=empty_plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -115,7 +118,7 @@ class TestEncryptSecret(unittest.TestCase):
         _ = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=special_plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -129,7 +132,7 @@ class TestEncryptSecret(unittest.TestCase):
         _ = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=unicode_plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -143,7 +146,7 @@ class TestEncryptSecret(unittest.TestCase):
         _ = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=long_plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -155,7 +158,7 @@ class TestEncryptSecret(unittest.TestCase):
         encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=self.plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -167,16 +170,16 @@ class TestEncryptSecret(unittest.TestCase):
         self.assertEqual(len(aad), 3)
         self.assertIn('organization_id', aad)
         self.assertIn('user_id', aad)
-        self.assertIn('integration_id', aad)
+        self.assertIn('datastore_id', aad)
         self.assertIsInstance(aad['organization_id'], UUID)
         self.assertIsInstance(aad['user_id'], UUID)
-        self.assertIsInstance(aad['integration_id'], UUID)
+        self.assertIsInstance(aad['datastore_id'], UUID)
 
     def test_encrypt_secret_preserves_uuid_objects_in_aad(self):
         encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=self.plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -186,7 +189,7 @@ class TestEncryptSecret(unittest.TestCase):
 
         self.assertIs(aad['organization_id'], self.organization_id)
         self.assertIs(aad['user_id'], self.user_id)
-        self.assertIs(aad['integration_id'], self.integration_id)
+        self.assertIs(aad['datastore_id'], self.datastore_id)
 
     def test_encrypt_secret_crypto_client_exception_propagates(self):
         self.mock_crypto_client.encrypt_secret.side_effect = Exception('Encryption failed')
@@ -195,7 +198,7 @@ class TestEncryptSecret(unittest.TestCase):
             encrypt_secret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 plaintext=self.plaintext,
                 crypto_client=self.mock_crypto_client
             )
@@ -208,7 +211,7 @@ class TestEncryptSecret(unittest.TestCase):
         _ = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=whitespace_plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -216,38 +219,38 @@ class TestEncryptSecret(unittest.TestCase):
         call_args = self.mock_crypto_client.encrypt_secret.call_args
         self.assertEqual(call_args[1]['plaintext'], whitespace_plaintext)
 
-    def test_encrypt_secret_returns_integration_secret_instance(self):
+    def test_encrypt_secret_returns_datastore_secret_instance(self):
         result = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=self.plaintext,
             crypto_client=self.mock_crypto_client
         )
 
-        self.assertIsInstance(result, IntegrationSecret)
+        self.assertIsInstance(result, DataStoreSecret)
 
     def test_encrypt_secret_different_uuids_for_different_entities(self):
         org_id_1 = uuid4()
         org_id_2 = uuid4()
         user_id_1 = uuid4()
-        integration_id_1 = uuid4()
+        datastore_id_1 = uuid4()
 
         self.assertNotEqual(org_id_1, org_id_2)
         self.assertNotEqual(org_id_1, user_id_1)
-        self.assertNotEqual(user_id_1, integration_id_1)
+        self.assertNotEqual(user_id_1, datastore_id_1)
 
         result = encrypt_secret(
             organization_id=org_id_1,
             user_id=user_id_1,
-            integration_id=integration_id_1,
+            datastore_id=datastore_id_1,
             plaintext=self.plaintext,
             crypto_client=self.mock_crypto_client
         )
 
         self.assertEqual(result.organization_id, org_id_1)
         self.assertEqual(result.user_id, user_id_1)
-        self.assertEqual(result.integration_id, integration_id_1)
+        self.assertEqual(result.datastore_id, datastore_id_1)
 
     def test_encrypt_secret_with_multiple_kwargs(self):
         kwargs = {
@@ -258,14 +261,14 @@ class TestEncryptSecret(unittest.TestCase):
             'metadata': {'key': 'value'}
         }
 
-        with patch('integration_service.services.encryption.encrypt_secret.IntegrationSecret') as mock_secret_class:
+        with patch('integration_service.services.encryption.encrypt_secret.DataStoreSecret') as mock_secret_class:
             mock_secret_instance = Mock()
             mock_secret_class.return_value = mock_secret_instance
 
             _ = encrypt_secret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 plaintext=self.plaintext,
                 crypto_client=self.mock_crypto_client,
                 **kwargs
@@ -279,21 +282,21 @@ class TestEncryptSecret(unittest.TestCase):
             self.assertEqual(call_kwargs['metadata'], {'key': 'value'})
 
     def test_encrypt_secret_without_kwargs(self):
-        with patch('integration_service.services.encryption.encrypt_secret.IntegrationSecret') as mock_secret_class:
+        with patch('integration_service.services.encryption.encrypt_secret.DataStoreSecret') as mock_secret_class:
             mock_secret_instance = Mock()
             mock_secret_class.return_value = mock_secret_instance
 
             _ = encrypt_secret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 plaintext=self.plaintext,
                 crypto_client=self.mock_crypto_client
             )
 
             call_kwargs = mock_secret_class.call_args[1]
             required_keys = {
-                'organization_id', 'user_id', 'integration_id',
+                'organization_id', 'user_id', 'datastore_id',
                 'ciphertext', 'nonce', 'tag', 'wrapped_dek'
             }
             self.assertEqual(set(call_kwargs.keys()), required_keys)
@@ -312,7 +315,7 @@ class TestEncryptSecret(unittest.TestCase):
         result = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=self.plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -326,7 +329,7 @@ class TestEncryptSecret(unittest.TestCase):
         encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=self.plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -339,7 +342,7 @@ class TestEncryptSecret(unittest.TestCase):
         _ = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=plaintext_with_formatting,
             crypto_client=self.mock_crypto_client
         )
@@ -353,7 +356,7 @@ class TestEncryptSecret(unittest.TestCase):
         _ = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=json_plaintext,
             crypto_client=self.mock_crypto_client
         )
@@ -362,12 +365,12 @@ class TestEncryptSecret(unittest.TestCase):
         self.assertEqual(call_args[1]['plaintext'], json_plaintext)
 
 
-class TestEncryptSecretIntegration(unittest.TestCase):
+class TestEncryptSecretDataStore(unittest.TestCase):
 
     def setUp(self):
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
         self.mock_crypto_client = Mock(spec=CryptoClient)
 
     def test_encrypt_secret_end_to_end_flow(self):
@@ -384,15 +387,15 @@ class TestEncryptSecretIntegration(unittest.TestCase):
         result = encrypt_secret(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             plaintext=plaintext,
             crypto_client=self.mock_crypto_client
         )
 
-        self.assertIsInstance(result, IntegrationSecret)
+        self.assertIsInstance(result, DataStoreSecret)
         self.assertEqual(result.organization_id, self.organization_id)
         self.assertEqual(result.user_id, self.user_id)
-        self.assertEqual(result.integration_id, self.integration_id)
+        self.assertEqual(result.datastore_id, self.datastore_id)
         self.assertEqual(result.ciphertext, b'\x00\x01\x02\x03')
         self.assertEqual(result.nonce, b'\x04\x05\x06')
         self.assertEqual(result.tag, b'\x07\x08')
@@ -403,6 +406,108 @@ class TestEncryptSecretIntegration(unittest.TestCase):
             aad={
                 'organization_id': self.organization_id,
                 'user_id': self.user_id,
-                'integration_id': self.integration_id
+                'datastore_id': self.datastore_id
             }
         )
+
+
+
+def make_encrypted_secret() -> EncryptedSecret:
+    return MagicMock(spec=EncryptedSecret)
+
+
+class TestEncryptConnParams(unittest.TestCase):
+
+    def setUp(self):
+        self.organization_id = uuid4()
+        self.user_id = uuid4()
+        self.api_base = 'https://router.huggingface.co/v1'
+        self.model_id = 'openai/meta-llama/Llama-3.1-8B-Instruct'
+        self.conn_params = {'api_key': 'hf-test-key', 'extra_param': 'value'}
+        self.mock_crypto_client = MagicMock(spec=CryptoClient)
+        self.mock_crypto_client.encrypt_secret.return_value = make_encrypted_secret()
+
+    def _call(self, **overrides):
+        defaults = {
+            'organization_id': self.organization_id,
+            'user_id': self.user_id,
+            'api_base': self.api_base,
+            'model_id': self.model_id,
+            'crypto_client': self.mock_crypto_client,
+            'conn_params': self.conn_params,
+        }
+        return encrypt_conn_params(**{**defaults, **overrides})
+
+    def test_returns_encrypted_secret(self):
+        result = self._call()
+        self.assertIsInstance(result, MagicMock)
+        self.assertIs(result, self.mock_crypto_client.encrypt_secret.return_value)
+
+    def test_calls_encrypt_secret_once(self):
+        self._call()
+        self.mock_crypto_client.encrypt_secret.assert_called_once()
+
+    def test_serializes_conn_params_as_json(self):
+        self._call()
+        call_kwargs = self.mock_crypto_client.encrypt_secret.call_args.kwargs
+        self.assertEqual(call_kwargs['plaintext'], json.dumps(self.conn_params))
+
+    def test_passes_organization_id_in_aad(self):
+        self._call()
+        aad = self.mock_crypto_client.encrypt_secret.call_args.kwargs['aad']
+        self.assertEqual(aad['organization_id'], self.organization_id)
+
+    def test_passes_user_id_in_aad(self):
+        self._call()
+        aad = self.mock_crypto_client.encrypt_secret.call_args.kwargs['aad']
+        self.assertEqual(aad['user_id'], self.user_id)
+
+    def test_passes_api_base_in_aad(self):
+        self._call()
+        aad = self.mock_crypto_client.encrypt_secret.call_args.kwargs['aad']
+        self.assertEqual(aad['api_base'], self.api_base)
+
+    def test_passes_model_id_in_aad(self):
+        self._call()
+        aad = self.mock_crypto_client.encrypt_secret.call_args.kwargs['aad']
+        self.assertEqual(aad['model_id'], self.model_id)
+
+    def test_aad_contains_exactly_four_keys(self):
+        self._call()
+        aad = self.mock_crypto_client.encrypt_secret.call_args.kwargs['aad']
+        self.assertSetEqual(
+            set(aad.keys()),
+            {'organization_id', 'user_id', 'api_base', 'model_id'}
+        )
+
+    def test_empty_conn_params_serialized_as_empty_json_object(self):
+        self._call(conn_params={})
+        call_kwargs = self.mock_crypto_client.encrypt_secret.call_args.kwargs
+        self.assertEqual(call_kwargs['plaintext'], json.dumps({}))
+
+    def test_nested_conn_params_serialized_correctly(self):
+        nested = {'api_key': 'key', 'nested': {'a': 1, 'b': 2}}
+        self._call(conn_params=nested)
+        call_kwargs = self.mock_crypto_client.encrypt_secret.call_args.kwargs
+        self.assertEqual(call_kwargs['plaintext'], json.dumps(nested))
+
+    def test_different_org_ids_produce_different_aad(self):
+        org_1 = uuid4()
+        org_2 = uuid4()
+
+        self._call(organization_id=org_1)
+        aad_1 = self.mock_crypto_client.encrypt_secret.call_args.kwargs['aad']
+
+        self.mock_crypto_client.reset_mock()
+
+        self._call(organization_id=org_2)
+        aad_2 = self.mock_crypto_client.encrypt_secret.call_args.kwargs['aad']
+
+        self.assertNotEqual(aad_1['organization_id'], aad_2['organization_id'])
+
+    def test_crypto_client_error_propagates(self):
+        self.mock_crypto_client.encrypt_secret.side_effect = RuntimeError('vault unreachable')
+
+        with self.assertRaises(RuntimeError):
+            self._call()
+

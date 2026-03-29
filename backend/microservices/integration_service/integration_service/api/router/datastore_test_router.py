@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/v1/integration', tags=['TestDataStore'])
 
 
-@router.post('datastores/test', status_code=status.HTTP_204_NO_CONTENT)
+@router.post('/datastores/test', status_code=status.HTTP_204_NO_CONTENT)
 async def test_datastore(
     payload: DataStoreCreateRequest,
     engine_manager: EngineManager = Depends(get_engine_manager)
@@ -52,7 +52,7 @@ async def test_datastore(
 
     except SQLAlchemyError as e:
         logger.error(
-            f'Test data_store failed with DB error: {e}',
+            f'Test data store failed with DB error: {e}',
             exc_info=True
         )
         raise HTTPException(
@@ -61,7 +61,7 @@ async def test_datastore(
         )
     except Exception as e:
         logger.error(
-            f'Unexpected test data_store error: {e}',
+            f'Unexpected test data store error: {e}',
             exc_info=True
         )
         raise HTTPException(

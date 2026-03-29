@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 from sqlalchemy import quoted_name
 from sqlalchemy.engine.reflection import Inspector
@@ -17,7 +17,7 @@ from integration_service.services.crawl.catalogs import (
 class TestInspectTables(unittest.TestCase):
 
     def setUp(self):
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
         self.schema_name = 'test_schema'
 
         self.mock_inspector = MagicMock(spec=Inspector)
@@ -39,7 +39,7 @@ class TestInspectTables(unittest.TestCase):
 
         result = inspect_tables(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name=self.schema_name,
             table_spec=self.mock_table_spec
         )
@@ -52,7 +52,7 @@ class TestInspectTables(unittest.TestCase):
 
         inspect_tables(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name=self.schema_name,
             table_spec=self.mock_table_spec
         )
@@ -72,7 +72,7 @@ class TestInspectTables(unittest.TestCase):
 
         result = inspect_tables(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name=self.schema_name,
             table_spec=self.mock_table_spec
         )
@@ -95,7 +95,7 @@ class TestInspectTables(unittest.TestCase):
 
         result = inspect_tables(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name=self.schema_name,
             table_spec=self.mock_table_spec
         )
@@ -114,14 +114,14 @@ class TestInspectTables(unittest.TestCase):
 
         result = inspect_tables(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name=self.schema_name,
             table_spec=self.mock_table_spec
         )
 
         table = result[0]
         self.assertIsInstance(table, TableCatalog)
-        self.assertEqual(table.integration_id, self.integration_id)
+        self.assertEqual(table.datastore_id, self.datastore_id)
         self.assertEqual(table.name, 'users')
         self.assertEqual(table.columns, self.mock_columns)
         self.assertEqual(table.primary_keys, self.mock_pk_constraint)
@@ -140,7 +140,7 @@ class TestInspectTables(unittest.TestCase):
 
         inspect_tables(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name=self.schema_name,
             table_spec=self.mock_table_spec
         )
@@ -168,7 +168,7 @@ class TestInspectTables(unittest.TestCase):
 
         result = inspect_tables(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name=self.schema_name,
             table_spec=self.mock_table_spec
         )
@@ -198,7 +198,7 @@ class TestInspectTables(unittest.TestCase):
 
         result = inspect_tables(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name=self.schema_name,
             table_spec=self.mock_table_spec
         )
@@ -217,7 +217,7 @@ class TestInspectTables(unittest.TestCase):
 
         result = inspect_tables(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name=self.schema_name,
             table_spec=self.mock_table_spec
         )
@@ -229,7 +229,7 @@ class TestInspectTables(unittest.TestCase):
 class TestInspectSchemas(unittest.TestCase):
 
     def setUp(self):
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
         self.mock_inspector = MagicMock(spec=Inspector)
 
@@ -241,8 +241,8 @@ class TestInspectSchemas(unittest.TestCase):
         self.mock_table_spec.__and__ = MagicMock(return_value=self.mock_table_spec)
 
         self.mock_tables = (
-            TableCatalog(integration_id=self.integration_id, name='table1'),
-            TableCatalog(integration_id=self.integration_id, name='table2')
+            TableCatalog(datastore_id=self.datastore_id, name='table1'),
+            TableCatalog(datastore_id=self.datastore_id, name='table2')
         )
 
     def _make_permission_spec(self, is_empty=False, accessible=None):
@@ -259,7 +259,7 @@ class TestInspectSchemas(unittest.TestCase):
 
         result = inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -275,7 +275,7 @@ class TestInspectSchemas(unittest.TestCase):
 
         result = inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -295,7 +295,7 @@ class TestInspectSchemas(unittest.TestCase):
 
         result = inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -318,7 +318,7 @@ class TestInspectSchemas(unittest.TestCase):
 
         result = inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -336,7 +336,7 @@ class TestInspectSchemas(unittest.TestCase):
 
         inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -349,13 +349,13 @@ class TestInspectSchemas(unittest.TestCase):
         mock_perm_spec_cls.return_value = self._make_permission_spec(is_empty=False)
         self.mock_inspector.get_schema_names.return_value = ['schema1', 'schema2', 'schema3']
 
-        mock_inspect_tables.side_effect = lambda crawler, integration_id, schema_name, table_spec: (
+        mock_inspect_tables.side_effect = lambda crawler, datastore_id, schema_name, table_spec: (
             () if schema_name == 'schema2' else self.mock_tables
         )
 
         result = inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -376,7 +376,7 @@ class TestInspectSchemas(unittest.TestCase):
 
         inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -384,7 +384,7 @@ class TestInspectSchemas(unittest.TestCase):
         self.mock_table_spec.__and__.assert_called_once_with(perm_spec)
         mock_inspect_tables.assert_called_once_with(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_name='schema1',
             table_spec=combined_spec
         )
@@ -398,7 +398,7 @@ class TestInspectSchemas(unittest.TestCase):
 
         inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -417,14 +417,14 @@ class TestInspectSchemas(unittest.TestCase):
 
         result = inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
 
         schema = result[0]
         self.assertIsInstance(schema, SchemaCatalog)
-        self.assertEqual(schema.integration_id, self.integration_id)
+        self.assertEqual(schema.datastore_id, self.datastore_id)
         self.assertEqual(schema.name, 'public')
         self.assertEqual(schema.tables, self.mock_tables)
 
@@ -437,7 +437,7 @@ class TestInspectSchemas(unittest.TestCase):
 
         result = inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -454,7 +454,7 @@ class TestInspectSchemas(unittest.TestCase):
 
         result = inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -474,7 +474,7 @@ class TestInspectSchemas(unittest.TestCase):
 
         inspect_schemas(
             crawler=self.mock_inspector,
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             schema_spec=self.mock_schema_spec,
             table_spec=self.mock_table_spec
         )
@@ -483,12 +483,12 @@ class TestInspectSchemas(unittest.TestCase):
         self.assertIn('performance_schema', mock_logger.info.call_args[0][0])
 
 
-class TestInspectorsIntegration(unittest.TestCase):
+class TestInspectorsDataStore(unittest.TestCase):
 
     @patch('integration_service.services.crawl.catalog_builder.inspectors.HasSelectPermissionSpec')
     @patch('integration_service.services.crawl.catalog_builder.inspectors.inspect_tables')
     def test_full_workflow(self, mock_inspect_tables, mock_perm_spec_cls):
-        integration_id = uuid4()
+        datastore_id = uuid4()
         mock_inspector = MagicMock(spec=Inspector)
         mock_schema_spec = MagicMock()
         mock_table_spec = MagicMock()
@@ -504,18 +504,18 @@ class TestInspectorsIntegration(unittest.TestCase):
         mock_inspector.get_schema_names.return_value = ['public', 'private']
 
         public_tables = (
-            TableCatalog(integration_id=integration_id, name='users'),
-            TableCatalog(integration_id=integration_id, name='posts'),
+            TableCatalog(datastore_id=datastore_id, name='users'),
+            TableCatalog(datastore_id=datastore_id, name='posts'),
         )
         private_tables = (
-            TableCatalog(integration_id=integration_id, name='credentials'),
+            TableCatalog(datastore_id=datastore_id, name='credentials'),
         )
 
         mock_inspect_tables.side_effect = [public_tables, private_tables]
 
         result = inspect_schemas(
             crawler=mock_inspector,
-            integration_id=integration_id,
+            datastore_id=datastore_id,
             schema_spec=mock_schema_spec,
             table_spec=mock_table_spec
         )
@@ -529,13 +529,13 @@ class TestInspectorsIntegration(unittest.TestCase):
         self.assertEqual(mock_inspect_tables.call_count, 2)
         mock_inspect_tables.assert_any_call(
             crawler=mock_inspector,
-            integration_id=integration_id,
+            datastore_id=datastore_id,
             schema_name='public',
             table_spec=combined_spec
         )
         mock_inspect_tables.assert_any_call(
             crawler=mock_inspector,
-            integration_id=integration_id,
+            datastore_id=datastore_id,
             schema_name='private',
             table_spec=combined_spec
         )

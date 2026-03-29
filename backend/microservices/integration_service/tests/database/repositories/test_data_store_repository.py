@@ -6,20 +6,20 @@ from sqlalchemy.exc import SQLAlchemyError
 from svc_integration_contracts.models import Auth, DB, Cloud, CertState
 
 from integration_service.database.repositories import DataStoreRepository
-from integration_service.domain.models.integration import (
-    IntegrationUpdate,
-    IntegrationCreate,
-    IntegrationProfile,
-    Integration
+from integration_service.domain.models.datastore import (
+    DataStoreUpdate,
+    DataStoreCreate,
+    DataStoreProfile,
+    DataStore
 )
-from integration_service.domain.models.secret import IntegrationSecret, SecretType
+from integration_service.domain.models.secret import DataStoreSecret, SecretType
 from integration_service.domain.models.cert import CertProfile
 from integration_service.database.exceptions import (
-    IntegrationDeleteFailed,
-    IntegrationNotFound,
-    IntegrationUpdateFailed,
-    IntegrationCreateFailed,
-    IntegrationGetFailed,
+    DataStoreDeleteFailed,
+    DataStoreNotFound,
+    DataStoreUpdateFailed,
+    DataStoreCreateFailed,
+    DataStoreGetFailed,
     SecretsCreateFailed,
     SecretsGetFailed,
     KekKidGetFailed,
@@ -39,51 +39,51 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
 
         self.user_id = uuid4()
         self.organization_id = uuid4()
-        self.integration_id = uuid4()
+        self.datastore_id = uuid4()
 
-    async def test_get_user_integration_ids_returns_list_of_ids(self):
-        integration_ids = [uuid4(), uuid4(), uuid4()]
+    async def test_get_user_datastore_ids_returns_list_of_ids(self):
+        datastore_ids = [uuid4(), uuid4(), uuid4()]
 
         result_mock = MagicMock()
-        result_mock.all.return_value = [(id,) for id in integration_ids]
+        result_mock.all.return_value = [(id,) for id in datastore_ids]
         self.session_mock.execute.return_value = result_mock
 
-        result = await self.repository.get_user_integration_ids(
+        result = await self.repository.get_user_datastore_ids(
             user_id=self.user_id,
             organization_id=self.organization_id
         )
 
-        self.assertEqual(result, integration_ids)
+        self.assertEqual(result, datastore_ids)
         self.session_mock.execute.assert_awaited_once()
 
-    async def test_get_user_integration_ids_returns_empty_list(self):
+    async def test_get_user_datastore_ids_returns_empty_list(self):
         result_mock = MagicMock()
         result_mock.all.return_value = []
         self.session_mock.execute.return_value = result_mock
 
-        result = await self.repository.get_user_integration_ids(
+        result = await self.repository.get_user_datastore_ids(
             user_id=self.user_id,
             organization_id=self.organization_id
         )
 
         self.assertEqual(result, [])
 
-    async def test_get_user_integration_ids_raises_exception_on_database_error(self):
+    async def test_get_user_datastore_ids_raises_exception_on_database_error(self):
         self.session_mock.execute.side_effect = SQLAlchemyError('Database error')
 
-        with self.assertRaises(IntegrationGetFailed) as context:
-            await self.repository.get_user_integration_ids(
+        with self.assertRaises(DataStoreGetFailed) as context:
+            await self.repository.get_user_datastore_ids(
                 user_id=self.user_id,
                 organization_id=self.organization_id
             )
 
-        self.assertIn('Get data_store IDs failed', str(context.exception))
+        self.assertIn('Get datastore IDs failed', str(context.exception))
 
-    @patch('integration_service.database.repositories.integration_repository.integration_from_orm')
-    async def test_get_integration_returns_integration(self, integration_from_orm_mock):
-        integration_orm_mock = MagicMock()
-        expected_integration = Integration(
-            id=self.integration_id,
+    @patch('integration_service.database.repositories.data_store_repository.datastore_from_orm')
+    async def test_get_datastore_returns_datastore(self, datastore_from_orm_mock):
+        datastore_orm_mock = MagicMock()
+        expected_datastore = DataStore(
+            id=self.datastore_id,
             auth=Auth.password_proxy,
             cloud=Cloud.gcp,
             db=DB.postgresql,
@@ -98,51 +98,51 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         )
 
         result_mock = MagicMock()
-        result_mock.scalar_one_or_none.return_value = integration_orm_mock
+        result_mock.scalar_one_or_none.return_value = datastore_orm_mock
         self.session_mock.execute.return_value = result_mock
 
-        integration_from_orm_mock.return_value = expected_integration
+        datastore_from_orm_mock.return_value = expected_datastore
 
-        result = await self.repository.get_integration(
+        result = await self.repository.get_datastore(
             user_id=self.user_id,
             organization_id=self.organization_id,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
-        self.assertEqual(result, expected_integration)
-        integration_from_orm_mock.assert_called_once_with(integration_orm_mock)
+        self.assertEqual(result, expected_datastore)
+        datastore_from_orm_mock.assert_called_once_with(datastore_orm_mock)
 
-    async def test_get_integration_raises_not_found_when_none(self):
+    async def test_get_datastore_raises_not_found_when_none(self):
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
         self.session_mock.execute.return_value = result_mock
 
-        with self.assertRaises(IntegrationNotFound) as context:
-            await self.repository.get_integration(
+        with self.assertRaises(DataStoreNotFound) as context:
+            await self.repository.get_datastore(
                 user_id=self.user_id,
                 organization_id=self.organization_id,
-                integration_id=self.integration_id
+                datastore_id=self.datastore_id
             )
 
-        self.assertIn('No data_store found', str(context.exception))
+        self.assertIn('No datastore found', str(context.exception))
 
-    async def test_get_integration_raises_exception_on_database_error(self):
+    async def test_get_datastore_raises_exception_on_database_error(self):
         self.session_mock.execute.side_effect = SQLAlchemyError('Database error')
 
-        with self.assertRaises(IntegrationGetFailed) as context:
-            await self.repository.get_integration(
+        with self.assertRaises(DataStoreGetFailed) as context:
+            await self.repository.get_datastore(
                 user_id=self.user_id,
                 organization_id=self.organization_id,
-                integration_id=self.integration_id
+                datastore_id=self.datastore_id
             )
 
-        self.assertIn('Get data_store', str(context.exception))
+        self.assertIn('Get datastore', str(context.exception))
 
-    @patch('integration_service.database.repositories.integration_repository.integration_from_orm')
-    async def test_get_integration_by_id_returns_integration(self, integration_from_orm_mock):
-        integration_orm_mock = MagicMock()
-        expected_integration = Integration(
-            id=self.integration_id,
+    @patch('integration_service.database.repositories.data_store_repository.datastore_from_orm')
+    async def test_get_datastore_by_id_returns_datastore(self, datastore_from_orm_mock):
+        datastore_orm_mock = MagicMock()
+        expected_datastore = DataStore(
+            id=self.datastore_id,
             organization_id=self.organization_id,
             user_id=self.user_id,
             kek_kid='kek_kid',
@@ -157,34 +157,34 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         )
 
         result_mock = MagicMock()
-        result_mock.scalar_one_or_none.return_value = integration_orm_mock
+        result_mock.scalar_one_or_none.return_value = datastore_orm_mock
         self.session_mock.execute.return_value = result_mock
 
-        integration_from_orm_mock.return_value = expected_integration
+        datastore_from_orm_mock.return_value = expected_datastore
 
-        result = await self.repository.get_integration_by_id(
+        result = await self.repository.get_datastore_by_id(
             user_id=self.user_id,
             organization_id=self.organization_id,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
-        self.assertEqual(result, expected_integration)
+        self.assertEqual(result, expected_datastore)
 
-    async def test_get_integration_by_id_raises_not_found_when_none(self):
+    async def test_get_datastore_by_id_raises_not_found_when_none(self):
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
         self.session_mock.execute.return_value = result_mock
 
-        with self.assertRaises(IntegrationNotFound):
-            await self.repository.get_integration_by_id(
+        with self.assertRaises(DataStoreNotFound):
+            await self.repository.get_datastore_by_id(
                 user_id=self.user_id,
                 organization_id=self.organization_id,
-                integration_id=self.integration_id
+                datastore_id=self.datastore_id
             )
 
-    @patch('integration_service.database.repositories.integration_repository.orm_from_integration_create')
-    async def test_create_integration_returns_integration_id(self, orm_from_integration_create_mock):
-        integration_create = IntegrationCreate(
+    @patch('integration_service.database.repositories.data_store_repository.orm_from_datastore_create')
+    async def test_create_datastore_returns_datastore_id(self, orm_from_datastore_create_mock):
+        datastore_create = DataStoreCreate(
             auth=Auth.iam,
             cloud=Cloud.snowflake_managed,
             db=DB.snowflake,
@@ -196,23 +196,23 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
             kek_kid='kek_kid',
         )
 
-        integration_orm_mock = MagicMock()
-        integration_orm_mock.id = self.integration_id
-        orm_from_integration_create_mock.return_value = integration_orm_mock
+        datastore_orm_mock = MagicMock()
+        datastore_orm_mock.id = self.datastore_id
+        orm_from_datastore_create_mock.return_value = datastore_orm_mock
 
-        result = await self.repository.create_integration(
+        result = await self.repository.create_datastore(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_create=integration_create
+            datastore_create=datastore_create
         )
 
-        self.assertEqual(result, self.integration_id)
-        self.session_mock.add.assert_called_once_with(integration_orm_mock)
+        self.assertEqual(result, self.datastore_id)
+        self.session_mock.add.assert_called_once_with(datastore_orm_mock)
         self.session_mock.flush.assert_awaited_once()
 
-    @patch('integration_service.database.repositories.integration_repository.orm_from_integration_create')
-    async def test_create_integration_raises_exception_on_database_error(self, orm_from_integration_create_mock):
-        integration_create = IntegrationCreate(
+    @patch('integration_service.database.repositories.data_store_repository.orm_from_datastore_create')
+    async def test_create_datastore_raises_exception_on_database_error(self, orm_from_datastore_create_mock):
+        datastore_create = DataStoreCreate(
             auth=Auth.iam,
             cloud=Cloud.aws,
             db=DB.sqlserver,
@@ -224,65 +224,65 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
             kek_kid='kek_kid'
         )
 
-        integration_orm_mock = MagicMock()
-        orm_from_integration_create_mock.return_value = integration_orm_mock
+        datastore_orm_mock = MagicMock()
+        orm_from_datastore_create_mock.return_value = datastore_orm_mock
 
         self.session_mock.flush.side_effect = SQLAlchemyError('Database error')
 
-        with self.assertRaises(IntegrationCreateFailed) as context:
-            await self.repository.create_integration(
+        with self.assertRaises(DataStoreCreateFailed) as context:
+            await self.repository.create_datastore(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_create=integration_create
+                datastore_create=datastore_create
             )
 
-        self.assertIn('Create data_store failed', str(context.exception))
+        self.assertIn('Create datastore failed', str(context.exception))
 
-    async def test_delete_integration_succeeds(self):
+    async def test_delete_datastore_succeeds(self):
         result_mock = MagicMock()
         result_mock.rowcount = 1
         self.session_mock.execute.return_value = result_mock
 
-        await self.repository.delete_integration(
+        await self.repository.delete_datastore(
             user_id=self.user_id,
             organization_id=self.organization_id,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
         self.session_mock.execute.assert_awaited_once()
 
-    async def test_delete_integration_raises_exception_when_not_found(self):
+    async def test_delete_datastore_raises_exception_when_not_found(self):
         result_mock = MagicMock()
         result_mock.rowcount = 0
         self.session_mock.execute.return_value = result_mock
 
-        with self.assertRaises(IntegrationDeleteFailed) as context:
-            await self.repository.delete_integration(
+        with self.assertRaises(DataStoreDeleteFailed) as context:
+            await self.repository.delete_datastore(
                 user_id=self.user_id,
                 organization_id=self.organization_id,
-                integration_id=self.integration_id
+                datastore_id=self.datastore_id
             )
 
-        self.assertIn('Integration not found', str(context.exception))
+        self.assertIn('Data store not found', str(context.exception))
 
-    async def test_delete_integration_raises_exception_on_database_error(self):
+    async def test_delete_datastore_raises_exception_on_database_error(self):
         self.session_mock.execute.side_effect = SQLAlchemyError('Database error')
 
-        with self.assertRaises(IntegrationDeleteFailed) as context:
-            await self.repository.delete_integration(
+        with self.assertRaises(DataStoreDeleteFailed) as context:
+            await self.repository.delete_datastore(
                 user_id=self.user_id,
                 organization_id=self.organization_id,
-                integration_id=self.integration_id
+                datastore_id=self.datastore_id
             )
 
-        self.assertIn('Delete data_store failed', str(context.exception))
+        self.assertIn('Delete data store failed', str(context.exception))
 
-    @patch('integration_service.database.repositories.integration_repository.integration_profile_from_orm')
-    async def test_get_integration_profiles_returns_list(self, integration_profile_from_orm_mock):
-        integration_orm_1 = MagicMock()
-        integration_orm_2 = MagicMock()
+    @patch('integration_service.database.repositories.data_store_repository.datastore_profile_from_orm')
+    async def test_get_datastore_profiles_returns_list(self, datastore_profile_from_orm_mock):
+        datastore_orm_1 = MagicMock()
+        datastore_orm_2 = MagicMock()
 
-        profile_1 = IntegrationProfile(
+        profile_1 = DataStoreProfile(
             id=uuid4(),
             auth=Auth.iam,
             cloud=Cloud.aws,
@@ -293,7 +293,7 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
             port=5432,
             autosync_on=True
         )
-        profile_2 = IntegrationProfile(
+        profile_2 = DataStoreProfile(
             id=uuid4(),
             auth=Auth.password_native,
             cloud=Cloud.azure,
@@ -306,12 +306,12 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         )
 
         result_mock = MagicMock()
-        result_mock.scalars.return_value.all.return_value = [integration_orm_1, integration_orm_2]
+        result_mock.scalars.return_value.all.return_value = [datastore_orm_1, datastore_orm_2]
         self.session_mock.execute.return_value = result_mock
 
-        integration_profile_from_orm_mock.side_effect = [profile_1, profile_2]
+        datastore_profile_from_orm_mock.side_effect = [profile_1, profile_2]
 
-        result = await self.repository.get_integration_profiles(
+        result = await self.repository.get_datastore_profiles(
             user_id=self.user_id,
             organization_id=self.organization_id
         )
@@ -320,34 +320,34 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result[0], profile_1)
         self.assertEqual(result[1], profile_2)
 
-    async def test_get_integration_profiles_returns_empty_list(self):
+    async def test_get_datastore_profiles_returns_empty_list(self):
         result_mock = MagicMock()
         result_mock.scalars.return_value.all.return_value = []
         self.session_mock.execute.return_value = result_mock
 
-        result = await self.repository.get_integration_profiles(
+        result = await self.repository.get_datastore_profiles(
             user_id=self.user_id,
             organization_id=self.organization_id
         )
 
         self.assertEqual(result, [])
 
-    async def test_get_integration_profiles_raises_exception_on_database_error(self):
+    async def test_get_datastore_profiles_raises_exception_on_database_error(self):
         self.session_mock.execute.side_effect = SQLAlchemyError('Database error')
 
-        with self.assertRaises(IntegrationGetFailed):
-            await self.repository.get_integration_profiles(
+        with self.assertRaises(DataStoreGetFailed):
+            await self.repository.get_datastore_profiles(
                 user_id=self.user_id,
                 organization_id=self.organization_id
             )
 
-    @patch('integration_service.database.repositories.integration_repository.orm_from_secrets')
+    @patch('integration_service.database.repositories.data_store_repository.orm_from_secrets')
     async def test_create_secrets_succeeds(self, orm_from_secrets_mock):
         secrets = {
-            SecretType.PASSWORD: IntegrationSecret(
+            SecretType.PASSWORD: DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'encrypted',
                 nonce=b'nonce',
                 tag=b'tag',
@@ -367,13 +367,13 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         self.session_mock.add_all.assert_called_once_with(secrets_orm)
         self.session_mock.flush.assert_awaited_once()
 
-    @patch('integration_service.database.repositories.integration_repository.orm_from_secrets')
+    @patch('integration_service.database.repositories.data_store_repository.orm_from_secrets')
     async def test_create_secrets_raises_exception_on_database_error(self, orm_from_secrets_mock):
         secrets = {
-            SecretType.PASSWORD: IntegrationSecret(
+            SecretType.PASSWORD: DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'encrypted',
                 nonce=b'nonce',
                 tag=b'tag',
@@ -393,13 +393,13 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
                 secrets=secrets
             )
 
-    @patch('integration_service.database.repositories.integration_repository.secrets_from_orm')
+    @patch('integration_service.database.repositories.data_store_repository.secrets_from_orm')
     async def test_get_secrets_returns_secrets_dict(self, secrets_from_orm_mock):
         expected_secrets = {
-            SecretType.PASSWORD: IntegrationSecret(
+            SecretType.PASSWORD: DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'encrypted',
                 nonce=b'nonce',
                 tag=b'tag',
@@ -417,7 +417,7 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         result = await self.repository.get_secrets(
             organization_id=self.organization_id,
             user_id=self.user_id,
-            integration_id=self.integration_id
+            datastore_id=self.datastore_id
         )
 
         self.assertEqual(result, expected_secrets)
@@ -430,7 +430,7 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
             await self.repository.get_secrets(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id
+                datastore_id=self.datastore_id
             )
 
     async def test_get_kek_kid_returns_kek_kid(self):
@@ -441,7 +441,7 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         self.session_mock.execute.return_value = result_mock
 
         result = await self.repository.get_kek_kid(
-            integration_id=self.integration_id,
+            datastore_id=self.datastore_id,
             user_id=self.user_id,
             organization_id=self.organization_id
         )
@@ -454,14 +454,14 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
 
         with self.assertRaises(KekKidGetFailed) as context:
             await self.repository.get_kek_kid(
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 user_id=self.user_id,
                 organization_id=self.organization_id
             )
 
         self.assertIn('Get kek_kid failed', str(context.exception))
 
-    @patch('integration_service.database.repositories.integration_repository.orm_from_cert')
+    @patch('integration_service.database.repositories.data_store_repository.orm_from_cert')
     async def test_create_cert_succeeds(self, orm_from_cert_mock):
         cert = Cert(
             cert_kid='cert-kid-123',
@@ -489,7 +489,7 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         self.session_mock.add.assert_called_once_with(cert_orm)
         self.session_mock.flush.assert_awaited_once()
 
-    @patch('integration_service.database.repositories.integration_repository.orm_from_cert')
+    @patch('integration_service.database.repositories.data_store_repository.orm_from_cert')
     async def test_create_cert_raises_exception_on_database_error(self, orm_from_cert_mock):
         cert = Cert(
             cert_kid='cert-kid-123',
@@ -514,8 +514,8 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
 
         self.assertIn('Create certificate failed', str(context.exception))
 
-    @patch('integration_service.database.repositories.integration_repository.cert_profile_from_orm')
-    async def test_get_cert_profiles_returns_list(self, cert_profile_from_orm_mock):
+    @patch('integration_service.database.repositories.data_store_repository.cert_profile_from_orm')
+    async def test_get_datastore_cert_profiles_returns_list(self, cert_profile_from_orm_mock):
         cert_orm_1 = MagicMock()
         cert_orm_2 = MagicMock()
 
@@ -549,7 +549,7 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
 
         cert_profile_from_orm_mock.side_effect = [profile_1, profile_2]
 
-        result = await self.repository.get_cert_profiles(
+        result = await self.repository.get_datastore_cert_profiles(
             organization_id=self.organization_id,
             user_id=self.user_id
         )
@@ -558,12 +558,12 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result[0], profile_1)
         self.assertEqual(result[1], profile_2)
 
-    async def test_get_cert_profiles_returns_only_pending_certs(self):
+    async def test_get_datastore_cert_profiles_returns_only_pending_certs(self):
         result_mock = MagicMock()
         result_mock.scalars.return_value.all.return_value = []
         self.session_mock.execute.return_value = result_mock
 
-        result = await self.repository.get_cert_profiles(
+        result = await self.repository.get_datastore_cert_profiles(
             organization_id=self.organization_id,
             user_id=self.user_id
         )
@@ -571,20 +571,20 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, [])
         self.session_mock.execute.assert_awaited_once()
 
-    async def test_get_cert_profiles_raises_exception_on_database_error(self):
+    async def test_get_datastore_cert_profiles_raises_exception_on_database_error(self):
         self.session_mock.execute.side_effect = SQLAlchemyError('Database error')
 
         with self.assertRaises(CertGetFailed) as context:
-            await self.repository.get_cert_profiles(
+            await self.repository.get_datastore_cert_profiles(
                 organization_id=self.organization_id,
                 user_id=self.user_id
             )
 
         self.assertIn('Get certificate profiles failed', str(context.exception))
 
-    @patch('integration_service.database.repositories.integration_repository.orm_from_secrets')
-    async def test_update_integration_succeeds(self, orm_from_secrets_mock):
-        integration_update = IntegrationUpdate(
+    @patch('integration_service.database.repositories.data_store_repository.orm_from_secrets')
+    async def test_update_datastore_succeeds(self, orm_from_secrets_mock):
+        datastore_update = DataStoreUpdate(
             connection_name='updated-connection',
             port=5433,
             host='updated-host',
@@ -593,10 +593,10 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         )
 
         secrets = {
-            SecretType.PASSWORD: IntegrationSecret(
+            SecretType.PASSWORD: DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'encrypted',
                 nonce=b'nonce',
                 tag=b'tag',
@@ -621,11 +621,11 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
             version_result_mock
         ]
 
-        await self.repository.update_integration(
-            integration_id=self.integration_id,
+        await self.repository.update_datastore(
+            datastore_id=self.datastore_id,
             user_id=self.user_id,
             organization_id=self.organization_id,
-            integration_update=integration_update,
+            datastore_update=datastore_update,
             secrets=secrets
         )
 
@@ -635,8 +635,8 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         self.session_mock.add_all.assert_called_once_with(secrets_orm)
         self.session_mock.flush.assert_awaited_once()
 
-    async def test_update_integration_raises_exception_when_not_found(self):
-        integration_update = IntegrationUpdate(
+    async def test_update_datastore_raises_exception_when_not_found(self):
+        datastore_update = DataStoreUpdate(
             connection_name='updated-connection',
             port=5433,
             host='updated-host',
@@ -656,19 +656,19 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
             update_result_mock
         ]
 
-        with self.assertRaises(IntegrationUpdateFailed) as context:
-            await self.repository.update_integration(
-                integration_id=self.integration_id,
+        with self.assertRaises(DataStoreUpdateFailed) as context:
+            await self.repository.update_datastore(
+                datastore_id=self.datastore_id,
                 user_id=self.user_id,
                 organization_id=self.organization_id,
-                integration_update=integration_update,
+                datastore_update=datastore_update,
                 secrets=secrets
             )
 
-        self.assertIn('No data_store found', str(context.exception))
+        self.assertIn('No data store found', str(context.exception))
 
-    async def test_update_integration_raises_exception_on_database_error(self):
-        integration_update = IntegrationUpdate(
+    async def test_update_datastore_raises_exception_on_database_error(self):
+        datastore_update = DataStoreUpdate(
             connection_name='updated-connection',
             port=5433,
             host='updated-host',
@@ -680,20 +680,20 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
 
         self.session_mock.execute.side_effect = SQLAlchemyError('Database error')
 
-        with self.assertRaises(IntegrationUpdateFailed) as context:
-            await self.repository.update_integration(
-                integration_id=self.integration_id,
+        with self.assertRaises(DataStoreUpdateFailed) as context:
+            await self.repository.update_datastore(
+                datastore_id=self.datastore_id,
                 user_id=self.user_id,
                 organization_id=self.organization_id,
-                integration_update=integration_update,
+                datastore_update=datastore_update,
                 secrets=secrets
             )
 
-        self.assertIn('Update data_store failed', str(context.exception))
+        self.assertIn('Update data store failed', str(context.exception))
 
-    @patch('integration_service.database.repositories.integration_repository.orm_from_secrets')
-    async def test_update_integration_acquires_advisory_lock(self, orm_from_secrets_mock):
-        integration_update = IntegrationUpdate(
+    @patch('integration_service.database.repositories.data_store_repository.orm_from_secrets')
+    async def test_update_datastore_acquires_advisory_lock(self, orm_from_secrets_mock):
+        datastore_update = DataStoreUpdate(
             connection_name='updated-connection',
             port=5433,
             host='updated-host',
@@ -716,20 +716,20 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
             version_result_mock
         ]
 
-        await self.repository.update_integration(
-            integration_id=self.integration_id,
+        await self.repository.update_datastore(
+            datastore_id=self.datastore_id,
             user_id=self.user_id,
             organization_id=self.organization_id,
-            integration_update=integration_update,
+            datastore_update=datastore_update,
             secrets=secrets
         )
 
         first_call = self.session_mock.execute.await_args_list[0]
         self.assertIsNotNone(first_call)
 
-    @patch('integration_service.database.repositories.integration_repository.orm_from_secrets')
-    async def test_update_integration_increments_version_correctly(self, orm_from_secrets_mock):
-        integration_update = IntegrationUpdate(
+    @patch('integration_service.database.repositories.data_store_repository.orm_from_secrets')
+    async def test_update_datastore_increments_version_correctly(self, orm_from_secrets_mock):
+        datastore_update = DataStoreUpdate(
             connection_name='updated-connection',
             port=5433,
             host='updated-host',
@@ -738,10 +738,10 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         )
 
         secrets = {
-            SecretType.PASSWORD: IntegrationSecret(
+            SecretType.PASSWORD: DataStoreSecret(
                 organization_id=self.organization_id,
                 user_id=self.user_id,
-                integration_id=self.integration_id,
+                datastore_id=self.datastore_id,
                 ciphertext=b'encrypted',
                 nonce=b'nonce',
                 tag=b'tag',
@@ -766,11 +766,11 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
             version_result_mock
         ]
 
-        await self.repository.update_integration(
-            integration_id=self.integration_id,
+        await self.repository.update_datastore(
+            datastore_id=self.datastore_id,
             user_id=self.user_id,
             organization_id=self.organization_id,
-            integration_update=integration_update,
+            datastore_update=datastore_update,
             secrets=secrets
         )
 
@@ -781,7 +781,7 @@ class TestDataStoreRepository(unittest.IsolatedAsyncioTestCase):
         result_mock.all.return_value = []
         self.session_mock.execute.return_value = result_mock
 
-        await self.repository.get_user_integration_ids(
+        await self.repository.get_user_datastore_ids(
             user_id=self.user_id,
             organization_id=self.organization_id
         )

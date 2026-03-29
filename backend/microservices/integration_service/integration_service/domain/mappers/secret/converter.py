@@ -2,28 +2,28 @@ import logging
 from uuid import UUID
 from typing import Dict, Any, List
 from pydantic import SecretStr
-from svc_integration_contracts.models import (
-    IntegrationUpdateRequest,
-    IntegrationCreateRequest
-)
+
 
 from integration_service.database.models import SecretORM
 from integration_service.services.encryption import encrypt_secret
+from integration_service.domain.models.secret import DataStoreSecret, SecretType
 from nextplore_sdk.encryptor.client.crypto_client import CryptoClient
-from integration_service.domain.models.secret import IntegrationSecret, SecretType
-
+from svc_integration_contracts.models import (
+    DataStoreUpdateRequest,
+    DataStoreCreateRequest
+)
 
 logger = logging.getLogger(__name__)
 
 def secrets_from_dto(
     organization_id: UUID,
     user_id: UUID,
-    integration_id: UUID,
+    datastore_id: UUID,
     crypto_client: CryptoClient,
-    payload: IntegrationUpdateRequest | IntegrationCreateRequest,
+    payload: DataStoreUpdateRequest | DataStoreCreateRequest,
     **kwargs: Any
-) -> Dict[SecretType, IntegrationSecret]:
-    secrets: Dict[SecretType, IntegrationSecret] = {}
+) -> Dict[SecretType, DataStoreSecret]:
+    secrets: Dict[SecretType, DataStoreSecret] = {}
 
     for name, val in payload.model_dump().items():
         if not isinstance(val, SecretStr):
@@ -37,7 +37,7 @@ def secrets_from_dto(
         encrypted_secret = encrypt_secret(
             organization_id=organization_id,
             user_id=user_id,
-            integration_id=integration_id,
+            datastore_id=datastore_id,
             plaintext=val.get_secret_value(),
             crypto_client=crypto_client,
             **kwargs
@@ -46,12 +46,12 @@ def secrets_from_dto(
     return secrets
 
 
-def secrets_from_orm(secrets_orm: List[SecretORM]) -> Dict[SecretType, IntegrationSecret]:
+def secrets_from_orm(secrets_orm: List[SecretORM]) -> Dict[SecretType, DataStoreSecret]:
     return {
-        s.secret_type: IntegrationSecret(
+        s.secret_type: DataStoreSecret(
                 organization_id=s.organization_id,
                 user_id=s.user_id,
-                integration_id=s.integration_id,
+                datastore_id=s.datastore_id,
                 ciphertext=s.ciphertext,
                 nonce=s.nonce,
                 tag=s.tag,
@@ -64,12 +64,12 @@ def secrets_from_orm(secrets_orm: List[SecretORM]) -> Dict[SecretType, Integrati
     }
 
 
-def orm_from_secrets(secrets: Dict[SecretType, IntegrationSecret], version: int = 1) -> List[SecretORM]:
+def orm_from_secrets(secrets: Dict[SecretType, DataStoreSecret], version: int = 1) -> List[SecretORM]:
     return [
         SecretORM(
             organization_id=secret.organization_id,
             user_id=secret.user_id,
-            integration_id=secret.integration_id,
+            datastore_id=secret.datastore_id,
             secret_type=secret_type,
             ciphertext=secret.ciphertext,
             nonce=secret.nonce,
