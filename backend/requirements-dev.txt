@@ -34,3 +34,4 @@ SQLAlchemy>=2.0.38
 torch>=2.7.1
 transformers>=4.54.1
 uvicorn>=0.34.2
+litellm>=1.82.6
