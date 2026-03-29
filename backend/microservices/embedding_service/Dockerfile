@@ -18,7 +18,7 @@ WORKDIR /app
 
 COPY microservices/embedding_service /app/
 COPY schemas /app/schemas/
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -c constraints.txt -r requirements.txt
 
 USER embedding-service
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
