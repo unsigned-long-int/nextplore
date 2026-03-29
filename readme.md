@@ -62,13 +62,13 @@ Use multi-query retrieval to broaden semantic coverage, combined with Reciprocal
 
 ![Pipeline Tracing](./docs/pipeline-trace-use-case.gif)
 
-**Data Store Integration Creation/Update/Delete**
+**SQL Data Stores Integration**
 
 Create and manage your SQL data stores. Benefit from LLM help to generate vector-friendly integration description to boost RAG efficiency. 
 
 ![Integrations Use Case](./docs/integration-creation-use-case.gif)
 
-**2.600+ LLM across 140+ Providers Incl. Self-Hosted Models**
+**Integration of 2.600+ LLM across 140+ Providers Incl. Self-Hosted Models**
 
 Integrated with your own custom models, either self-hosted or private inference endpoints. 
 ![Custom LLM Use Case](./docs/custom-llm-use-case.gif)
