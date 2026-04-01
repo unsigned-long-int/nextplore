@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from svc_llm_inference_contracts.models import ORMContextResponse, ORMContextRequest
 
 from llm_inference_service.api.context import get_current_identity
+from llm_inference_service.domain.mappers.model_gateway_params import resolve_llm_provider_params
 from llm_inference_service.services.models_gateway.models_registry import get_models_registry, ModelsRegistry
 from llm_inference_service.services.models_gateway.provider_factory import dispatch_provider_factory
 from llm_inference_service.services.rag_pipeline.ai_adapter import adapt_llm_response
@@ -44,8 +45,11 @@ async def get_orm_context(
         if cached:
             return cached
 
-        model_meta = models_registry.get_model(payload.provider, payload.model_id)
-        provider_factory = dispatch_provider_factory(payload.provider, model_meta)
+        llm_provider_params = resolve_llm_provider_params(
+            payload=payload,
+            models_registry=models_registry,
+        )
+        provider_factory = dispatch_provider_factory(llm_provider_params)
         provider = provider_factory.create()
         model_response = await provider.execute_structured_query(payload)
         orm_context = adapt_llm_response(model_response)

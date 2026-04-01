@@ -4,7 +4,7 @@ from fastapi import APIRouter, status, HTTPException
 
 from llm_inference_service.services.models_gateway.provider_factory import dispatch_provider_factory
 from llm_inference_service.api.context import get_current_identity
-from llm_inference_service.domain.mappers.model_gateway_params import user_llm_from_dto
+from llm_inference_service.domain.mappers.model_gateway_params import user_llm_params_from_dto
 from llm_inference_service.services.models_gateway.exceptions import InvalidModelResponse
 from svc_llm_inference_contracts.models import UserLlmTestRequest
 
@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix='/v1/llm-inference', tags=['LlmTest'])
 
-USER_LLM_PROVIDER = 'custom'
 
 @router.post('/organizations/{organization_id}/users/{user_id}/llm/test', status_code=status.HTTP_204_NO_CONTENT)
 async def test_user_llm(
@@ -33,15 +32,13 @@ async def test_user_llm(
             detail={'message': 'Forbidden'}
         )
     try:
-        user_llm = user_llm_from_dto(payload)
-        provider_factory = dispatch_provider_factory(
-            provider=USER_LLM_PROVIDER,
-            model_meta={'model': user_llm}
-        )
+
+        params = user_llm_params_from_dto(payload)
+        provider_factory = dispatch_provider_factory(params)
         provider = provider_factory.create()
         response = await provider.prompt_model('Hi!', max_tokens=1)
         if not response:
-            msg = f'Test custom llm failed for model: {user_llm.model_id}'
+            msg = f'Test custom llm failed for model: {params.model_id}'
             logger.error(
                 msg,
                 extra={

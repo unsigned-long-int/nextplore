@@ -1,11 +1,11 @@
 from typing import Dict, Any
 
-from llm_inference_service.domain.models.model_gateway_params import UserLlm
+from llm_inference_service.domain.models.model_gateway_params import UserLlmParams
 from llm_inference_service.services.models_gateway.model_providers.lite_llm_provider import LiteLlmProvider
 
 
 class UserLlmProvider(LiteLlmProvider):
-    def __init__(self, model: UserLlm) -> None:
+    def __init__(self, model: UserLlmParams) -> None:
         super().__init__()
         self.model = model
 

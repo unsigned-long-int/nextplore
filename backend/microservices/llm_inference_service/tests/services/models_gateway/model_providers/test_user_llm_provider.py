@@ -1,11 +1,11 @@
 import unittest
 
-from llm_inference_service.domain.models.model_gateway_params import UserLlm
+from llm_inference_service.domain.models.model_gateway_params import UserLlmParams
 from llm_inference_service.services.models_gateway.model_providers.user_llm_provider import UserLlmProvider
 from llm_inference_service.services.models_gateway.model_providers.lite_llm_provider import LiteLlmProvider
 
 
-def make_model(**overrides) -> UserLlm:
+def make_model(**overrides) -> UserLlmParams:
     defaults = {
         'model_id': 'meta-llama/Llama-3.1-8B-Instruct',
         'max_tokens': 4096,
@@ -14,7 +14,7 @@ def make_model(**overrides) -> UserLlm:
             'api_key': 'test-key',
         },
     }
-    return UserLlm(**{**defaults, **overrides})
+    return UserLlmParams(**{**defaults, **overrides})
 
 
 class TestUserProviderModelPath(unittest.TestCase):
