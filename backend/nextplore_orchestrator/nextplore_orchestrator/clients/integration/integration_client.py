@@ -15,7 +15,8 @@ from svc_integration_contracts.models import (
     CertProfile,
     CertCreateRequest,
     UserLlmCreateRequest,
-    UserLlmProfile
+    UserLlmProfile,
+    UserLlmConfig
 )
 from .exceptions import (
     DataStoreCrawlRemoteError,
@@ -29,7 +30,8 @@ from .exceptions import (
     CertGetProfilesRemoteError,
     CertCreateRemoteError,
     LlmCreateRemoteError,
-    LlmGetProfilesRemoteError
+    LlmGetProfilesRemoteError,
+    LlmGetConfigRemoteError
 )
 
 
@@ -257,6 +259,27 @@ class IntegrationClient(BaseServiceClient):
                     detail = e.response.json().get('detail', {})
                     message = detail.get('message', 'Get llm profiles failed')
                 except (JSONDecodeError, KeyError, TypeError):
-                    message = 'Get llm failed and error response could not be parsed'
+                    message = 'Get llm profiles failed and error response could not be parsed'
                 raise LlmGetProfilesRemoteError(message)
+            raise
+
+    async def get_user_llm_config(
+        self,
+        organization_id: UUID,
+        user_id: UUID,
+        model_id: UUID
+    ) -> UserLlmConfig:
+        try:
+            url = f'/v1/integration/organizations/{organization_id}/users/{user_id}/llm/{model_id}/config'
+            response = await self.get(url)
+            response.raise_for_status()
+            return UserLlmConfig(**response.json())
+        except httpx.HTTPStatusError as e:
+            if e.response is not None and e.response.status_code in (424, 403):
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Get llm config failed')
+                except (JSONDecodeError, KeyError, TypeError):
+                    message = 'Get llm config failed and error response could not be parsed'
+                raise LlmGetConfigRemoteError(message)
             raise

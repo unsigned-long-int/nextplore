@@ -1,15 +1,20 @@
 from uuid import UUID
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
-from svc_vector_contracts.models import VectorMetadata, VectorSearchResult
-from svc_llm_inference_contracts.models import LlmOutputSpecs, DataStoreEntry, SchemaEntry
+from nextplore_orchestrator.api.models.ai_query_request import AIQueryRequest
 from nextplore_orchestrator.domain.models import (
     Organization,
     User,
     OrmMetadata,
     VectorNeighbour,
-    RagContext
+    RagContext,
+    LlmSpec
 )
+
+from svc_nextplore_orchestrator_contracts.models import LlmProfile, LlmSource
+from svc_integration_contracts.models import UserLlmProfile
+from svc_vector_contracts.models import VectorMetadata, VectorSearchResult
+from svc_llm_inference_contracts.models import LlmOutputSpecs, DataStoreEntry, SchemaEntry, ModelInfo, UserLlmConfig
 
 
 def organization_from_dto(user: Dict[str, Any]) -> Organization:
@@ -79,3 +84,41 @@ def llm_output_specs_dto_from_rag_context(rag_context: RagContext) -> LlmOutputS
             for datastore_id, schemas in rag_context.table_columns_registry.items()
         }
     )
+
+def llm_profile_from_platform_model(platform_model: ModelInfo) -> LlmProfile:
+    return LlmProfile(
+        source=LlmSource.platform,
+        provider=platform_model.provider,
+        label=platform_model.label,
+        tags=platform_model.tags,
+        model_id=platform_model.model_id,
+        model_ref_id=None
+    )
+
+
+def llm_profile_from_user_model(user_model: UserLlmProfile) -> LlmProfile:
+    return LlmProfile(
+        source=LlmSource.user,
+        provider='custom',
+        label=user_model.label,
+        tags=[],
+        model_id=user_model.model_id,
+        model_ref_id=user_model.model_ref_id
+    )
+
+
+def base_llm_spec_from_query_request(query_request: AIQueryRequest) -> LlmSpec:
+    return LlmSpec(
+        provider=query_request.provider,
+        model_id=query_request.model_id,
+        prompt=query_request.prompt
+    )
+
+def user_llm_config_from_llm_spec(llm_spec: LlmSpec) -> Optional[UserLlmConfig]:
+    if llm_spec.user_llm_config:
+        return UserLlmConfig(
+            api_base=llm_spec.user_llm_config.api_base,
+            connection_params=llm_spec.user_llm_config.connection_params,
+            max_tokens=llm_spec.user_llm_config.max_tokens
+        )
+    return None

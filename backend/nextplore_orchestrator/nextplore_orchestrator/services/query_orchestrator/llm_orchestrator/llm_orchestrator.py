@@ -13,7 +13,7 @@ from nextplore_orchestrator.api.models.ai_query_response import (
     VectorHit,
     RrfEntry
 )
-from nextplore_orchestrator.domain.models import RagPipelineResult, RankedVector, VectorNeighbour
+from nextplore_orchestrator.domain.models import RagPipelineResult, RankedVector, VectorNeighbour, LlmSpec
 from nextplore_orchestrator.domain.mappers import llm_output_specs_dto_from_rag_context
 from nextplore_orchestrator.api.models.ai_query_request import AIQueryRequest
 from nextplore_orchestrator.services.vector_searcher import VectorSearcher
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class LlmOrchestrator(ABC):
     @abstractmethod
-    def run(self, request: AIQueryRequest, user_identity: UserIdentity) -> AIQueryResponse:
+    def run(self, llm_spec: LlmSpec, user_identity: UserIdentity) -> AIQueryResponse:
         ...
 
 
@@ -40,12 +40,12 @@ class SimpleLlmOrchestrator(LlmOrchestrator):
         self.query_executor = query_executor
         self.top_n = top_n
 
-    async def run(self, request: AIQueryRequest, user_identity: UserIdentity) -> AIQueryResponse:
-        collection = await self.vector_search.search(request.prompt, user_identity)
+    async def run(self, llm_spec: LlmSpec, user_identity: UserIdentity) -> AIQueryResponse:
+        collection = await self.vector_search.search(llm_spec.prompt, user_identity)
         rag_context = build_rag_context(collection.vector_neighbours[:self.top_n])
         llm_output_specs = llm_output_specs_dto_from_rag_context(rag_context)
         orm_context = await self.model_gateway.get_orm_context(
-            request=request,
+            llm_spec=llm_spec,
             llm_output_specs=llm_output_specs,
             user_identity=user_identity
         )
@@ -70,14 +70,14 @@ class ExpandedLlmOrchestrator(LlmOrchestrator):
         self.model_gateway = model_gateway
         self.query_executor = query_executor
 
-    async def run(self, request: AIQueryRequest, user_identity: UserIdentity) -> AIQueryResponse:
+    async def run(self, llm_spec: LlmSpec, user_identity: UserIdentity) -> AIQueryResponse:
         pipeline = await self.rag_pipeline.run(
-            request=request,
+            llm_spec=llm_spec,
             user_identity=user_identity
         )
         llm_output_specs = llm_output_specs_dto_from_rag_context(pipeline.rag_context)
         orm_context = await self.model_gateway.get_orm_context(
-            request=request,
+            llm_spec=llm_spec,
             llm_output_specs=llm_output_specs,
             user_identity=user_identity
         )
@@ -86,14 +86,14 @@ class ExpandedLlmOrchestrator(LlmOrchestrator):
             user_identity=user_identity
         )
         response.trace = self._build_trace(
-            request=request,
+            llm_spec=llm_spec,
             pipeline=pipeline
         )
         return response
 
-    def _build_trace(self, request: AIQueryRequest, pipeline: RagPipelineResult) -> PipelineTrace:
+    def _build_trace(self, llm_spec: LlmSpec, pipeline: RagPipelineResult) -> PipelineTrace:
         return PipelineTrace(
-            original_query=request.prompt,
+            original_query=llm_spec.prompt,
             sub_queries=pipeline.sub_queries,
             vector_hits=[
                 SubQuerySearchResult(

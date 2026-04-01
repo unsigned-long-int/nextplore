@@ -42,3 +42,6 @@ class LlmCreateRemoteError(Exception):
 
 class LlmGetProfilesRemoteError(Exception):
     pass
+
+class LlmGetConfigRemoteError(Exception):
+    pass

@@ -9,6 +9,7 @@ from .exceptions import (
     DataStoreUpdateRemoteError,
     CertGetProfilesRemoteError,
     CertCreateRemoteError,
-    LlmCreateRemoteError
+    LlmCreateRemoteError,
+    LlmGetConfigRemoteError
 )
 from .integration_client import IntegrationClient

@@ -45,7 +45,7 @@ class LlmInferenceClient(BaseServiceClient):
                 raise ModelResponseRemoteError(message)
             raise 
     
-    async def get_models(
+    async def get_platform_models(
         self,
         organization_id: UUID,
         user_id: UUID,

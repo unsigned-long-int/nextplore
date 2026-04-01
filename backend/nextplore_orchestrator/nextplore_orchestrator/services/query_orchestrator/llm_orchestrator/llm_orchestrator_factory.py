@@ -1,10 +1,10 @@
-from nextplore_orchestrator.api.models.ai_query_request import QueryMode
 from nextplore_orchestrator.services.query_orchestrator.exceptions import LlmOrchestratorBootstrapError
 from nextplore_orchestrator.services.query_orchestrator.llm_orchestrator.llm_orchestrator import (
     LlmOrchestrator,
     ExpandedLlmOrchestrator,
     SimpleLlmOrchestrator
 )
+from svc_nextplore_orchestrator_contracts.models import QueryMode
 
 class LlmOrchestratorFactory:
     def __init__(
