@@ -2,6 +2,7 @@
 #   filename:  openapi.patched.json
 #   timestamp: 2026-01-18T16:29:29+00:00
 
+from typing import List, Optional
 from enum import StrEnum
 
 from pydantic import UUID4, AwareDatetime, BaseModel, Field, RootModel, SecretStr
@@ -195,3 +196,29 @@ class ResponseGetCertProfilesV1NextploreOrchestratorIntegrationsCertificatesProf
         ...,
         title="Response Get Cert Profiles V1 Nextplore Orchestrator Integrations Certificates Profiles Get",
     )
+
+
+class LlmSource(StrEnum):
+    user = 'user'
+    platform = 'platform'
+
+class LlmProfile(BaseModel):
+    source: LlmSource = Field(..., title="Source")
+    provider: str = Field(..., title="Provider")
+    model_id: str = Field(..., title="Model Id")
+    label: str = Field(..., title="Label")
+    model_ref_id: Optional[UUID4]  = Field(..., title="Model Ref Id")
+    tags: List[str] = Field(..., title="Tags")
+
+class QueryMode(StrEnum):
+    SIMPLE = 'simple'
+    EXPANDED = 'expanded'
+
+class AIQueryRequest(BaseModel):
+    provider: str
+    model_id: str
+    prompt: str
+    is_user_model: bool
+    model_ref_id: Optional[UUID4] = Field(..., title="Model Ref Id")
+    mode: QueryMode = QueryMode.EXPANDED
+

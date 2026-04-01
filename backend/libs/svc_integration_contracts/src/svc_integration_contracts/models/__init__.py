@@ -187,12 +187,18 @@ class UserLlmCreateRequest(BaseModel):
     model_id: str = Field(..., title="Model Id")
     label: str = Field(..., title="Label")
     api_base: str = Field(..., title="API Base URL")
-    connection_params: Dict[str, Any] = Field(..., title="Litellm Params")
+    connection_params: Dict[str, Any] = Field(..., title="Connection Params")
     max_tokens: int = Field(..., title="Max Tokens")
     kek_kid: str | None = Field(default=None, title="Kek Kid")
 
 class UserLlmProfile(BaseModel):
+    model_ref_id: UUID4 = Field(..., title="Model Ref Id")
     api_base: str = Field(..., title="API Base URL")
     model_id: str = Field(..., title="Model Id")
     label: str = Field(..., title="Label")
+    max_tokens: int = Field(..., title="Max Tokens")
+
+class UserLlmConfig(BaseModel):
+    api_base: str = Field(..., title="API Base URL")
+    connection_params: Dict[str, Any] = Field(..., title="Connection Params")
     max_tokens: int = Field(..., title="Max Tokens")

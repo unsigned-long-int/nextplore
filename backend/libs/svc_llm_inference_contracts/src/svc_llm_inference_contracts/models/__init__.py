@@ -3,7 +3,7 @@
 #   timestamp: 2026-03-08T17:50:55+00:00
 
 from pydantic import UUID4, BaseModel, Field, RootModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 
 class ModelInfo(BaseModel):
@@ -53,11 +53,18 @@ class HTTPValidationError(BaseModel):
     detail: list[ValidationError] | None = Field(default=None, title="Detail")
 
 
+class UserLlmConfig(BaseModel):
+    api_base: str = Field(..., title="API Base URL")
+    connection_params: Dict[str, Any] = Field(..., title="Connection Params")
+    max_tokens: int = Field(..., title="Max Tokens")
+
+
 class ORMContextRequest(BaseModel):
     provider: str = Field(..., title="Provider")
     model_id: str = Field(..., title="Model Id")
     query: str = Field(..., title="Query")
     llm_output_specs: LlmOutputSpecs
+    user_llm_config: Optional[UserLlmConfig] = Field(None, title="User Llm Config")
 
 
 class MultiQueryRequest(BaseModel):
@@ -65,7 +72,7 @@ class MultiQueryRequest(BaseModel):
     model_id: str = Field(..., title="Model Id")
     multiplier: int = Field(..., title="Multiplier")
     query: str = Field(..., title="Query")
-
+    user_llm_config: Optional[UserLlmConfig] = Field(None, title="User Llm Config")
 
 class MultiQueryResponse(BaseModel):
     variants: List[str] = Field(..., title="Variants")
