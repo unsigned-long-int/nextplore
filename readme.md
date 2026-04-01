@@ -58,6 +58,7 @@ Under the hood it runs a multi-stage RAG pipeline:
 5. **Dynamic ORM execution** - SQLAlchemy metafactory instantiates a typed ORM model at runtime from the structured context and executes the query read-only
  
 All operations are strictly read-only on source systems.
+
 ---
  
 ## Architecture
