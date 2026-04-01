@@ -94,18 +94,18 @@ All operations are strictly read-only on source systems.
 
 ## Tech Stack
  
-| Layer | Technology                                                                                |
-|---|-------------------------------------------------------------------------------------------|
-| Backend | Python 3.13, FastAPI, SQLAlchemy 2.x async                                                |
-| LLM abstraction | LiteLLM (2,600+ models, 140+ providers)                                                   |
-| Vector store | Qdrant (multi-tenant, payload-indexed)                                                    |
-| Relational DB | PostgreSQL with Row-Level Security                                                        |
-| Cache | Redis (SHA-256 scoped keys per tenant/user)                                               |
-| Message queue | Apache Kafka + Confluent Schema Registry (AVRO)                                           |
-| Encryption | AES-256-GCM + RSA-OAEP, Azure Key Vault                                                   |
-| Containerisation | Docker, Docker Compose                                                                    |
-| CI | GitHub Actions                                                                            |
-| Observability | Prometheus metrics, structured JSON logging (Datadog-compatible), AKHK (Kafka monitoring) |
+| Layer | Technology                                                                                 |
+|---|--------------------------------------------------------------------------------------------|
+| Backend | Python 3.13, FastAPI, SQLAlchemy 2.x async                                                 |
+| LLM abstraction | LiteLLM (2,600+ models, 140+ providers)                                                    |
+| Vector store | Qdrant (multi-tenant, payload-indexed)                                                     |
+| Relational DB | PostgreSQL with Row-Level Security                                                         |
+| Cache | Redis (SHA-256 scoped keys per tenant/user)                                                |
+| Message queue | Apache Kafka + Confluent Schema Registry (AVRO)                                            |
+| Encryption | AES-256-GCM + RSA-OAEP, Azure Key Vault                                                    |
+| Containerisation | Docker, Docker Compose                                                                     |
+| CI | GitHub Actions                                                                             |
+| Observability | Prometheus metrics, structured JSON logging (Datadog-compatible), AKHQQ (Kafka monitoring) |
 ---
 
 ## Database Support
