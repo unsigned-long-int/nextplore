@@ -6,14 +6,15 @@ import {
     Paper,
     Typography,
 } from '@mui/material';
+import { styled } from '@mui/system';
 import {
     AutoAwesome as AutoAwesomeIcon,
     ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import {
     IconAtom,
-    IconBrain,
-    IconCloud,
+    IconBrain, IconPackage,
+    IconCloud, IconPlugConnected,
     IconRobot,
     IconSparkles,
 } from '@tabler/icons-react';
@@ -25,7 +26,8 @@ import { QueryResultTable } from '@/features/ai-query/components/QueryResultTabl
 import { LoadingOverlay } from '@/shared/components/LoadingOverlay';
 import { useGetModels } from '@/features/ai-query/hooks/useGetModels';
 import { useGetAiResponse } from '@/features/ai-query/hooks/useGetAiResponse';
-import type { ModelInfo, PipelineTrace as PipelineTraceData} from '@/shared/api/services/ai-query/types.gen';
+import type {LlmProfile, PipelineTrace as PipelineTraceData} from '@/shared/api/services/ai-query/types.gen';
+import {LlmSource} from "@/shared/api/services/ai-query/types.gen";
 
 const P = {
     glow: 'rgba(168,85,247,0.45)',
@@ -34,6 +36,57 @@ const P = {
     label: '#c084fc',
     icon: '#a855f7',
     dim: 'rgba(255,255,255,0.18)',
+};
+
+const BADGE_CONFIG = {
+    [LlmSource.PLATFORM]: {
+        icon: <IconPackage size={10} />,
+        label: 'Built-in',
+        color: '#38bdf8',
+        background: 'rgba(56,189,248,0.1)',
+        border: 'rgba(56,189,248,0.25)',
+    },
+    [LlmSource.USER]: {
+        icon: <IconPlugConnected size={10} />,
+        label: 'Custom',
+        color: '#c084fc',
+        background: 'rgba(168,85,247,0.1)',
+        border: 'rgba(168,85,247,0.25)',
+    },
+} as const;
+
+interface ModelSourceBadgeProps {
+    source: LlmSource;
+}
+
+export const ModelSourceBadge = ({ source }: ModelSourceBadgeProps) => {
+    const config = BADGE_CONFIG[source];
+    if (!config) return null;
+
+    return (
+        <Box
+            sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px',
+                px: '5px',
+                py: '2px',
+                borderRadius: '4px',
+                background: config.background,
+                border: `1px solid ${config.border}`,
+                color: config.color,
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                lineHeight: 1,
+                flexShrink: 0,
+            }}
+        >
+            {config.icon}
+            {config.label}
+        </Box>
+    );
 };
 
 const modelIcons: Record<string, ReactNode> = {
@@ -50,6 +103,8 @@ interface ModelOption {
     label: string;
     provider: string;
     icon?: ReactNode;
+    source: LlmSource;
+    model_ref_id?: string | null;
 }
 
 const Toast = ({ message, type }: { message: string; type: 'error' }) => (
@@ -72,10 +127,30 @@ const Toast = ({ message, type }: { message: string; type: 'error' }) => (
     </Box>
 );
 
+const GroupHeader = styled('div')({
+    position: 'sticky',
+    top: '-8px',
+    padding: '4px 10px',
+    color: P.label,
+    backgroundColor: 'rgba(168,85,247,0.08)',
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    borderBottom: `1px solid ${P.border}`,
+});
+
+
+const GroupItems = styled('ul')({
+    padding: 0,
+});
+
 export const AiQueryPage = () => {
     const [prompt, setPrompt] = useState('');
     const [selectedModel, setSelectedModel] = useState<string | null>(null);
     const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+    const [selectedModelRef, setSelectedModelRef] = useState<string | null>(null);
+    const [selectedModelSource, setSelectedModelSource] = useState<LlmSource | null>(null);
     const [inputValue, setInputValue] = useState('');
     const [aiQueryResponse, setAiQueryResponse] = useState<{ [key: string]: string }[]>([]);
     const [sqlPreview, setSqlPreview] = useState('');
@@ -86,15 +161,17 @@ export const AiQueryPage = () => {
     const getAiResponse = useGetAiResponse();
 
     const modelOptions: ModelOption[] = useMemo(() =>
-        (data as ModelInfo[]).map((m) => ({
+        (data as LlmProfile[]).map((m) => ({
             provider: m.provider,
             model_id: m.model_id,
             label: `${m.label} (${m.tags.join(', ')})`,
             icon: modelIcons[m.model_id?.toLowerCase() ?? ''] ?? modelIcons.default,
+            source: m.source,
+            model_ref_id: m.model_ref_id
         })), [data]);
 
     const handleAiQueryRequest = async () => {
-        if (!selectedModel || !selectedProvider) return;
+        if (!selectedModel || !selectedProvider || !selectedModelSource) return;
         setErrorMessage(null);
         setSqlPreview('');
         setAiQueryResponse([]);
@@ -104,7 +181,9 @@ export const AiQueryPage = () => {
             const response = await getAiResponse.mutateAsync({
                 provider: selectedProvider,
                 model_id: selectedModel,
-                prompt,
+                model_ref_id: selectedModelRef,
+                is_user_model: selectedModelSource === LlmSource.USER,
+                prompt: prompt,
             });
             setAiQueryResponse(response.data);
             setSqlPreview(response.sql);
@@ -118,6 +197,8 @@ export const AiQueryPage = () => {
         if (isSuccess && modelOptions.length > 0 && !selectedModel) {
             setSelectedModel(modelOptions[0].model_id);
             setSelectedProvider(modelOptions[0].provider);
+            setSelectedModelRef(modelOptions[0].model_ref_id ?? null);
+            setSelectedModelSource(modelOptions[0].source);
             setInputValue(modelOptions[0].label);
         }
     }, [isSuccess, modelOptions, selectedModel]);
@@ -176,6 +257,7 @@ export const AiQueryPage = () => {
 
                 <Autocomplete
                     options={modelOptions}
+                    groupBy={(option) => option.source === LlmSource.PLATFORM ? 'Platform Models' : 'Custom Models'}
                     getOptionLabel={(opt) => typeof opt === 'string' ? opt : opt.label}
                     inputValue={inputValue}
                     onInputChange={(_, val) => setInputValue(val)}
@@ -183,6 +265,8 @@ export const AiQueryPage = () => {
                         if (opt && typeof opt !== 'string') {
                             setSelectedModel(opt.model_id);
                             setSelectedProvider(opt.provider);
+                            setSelectedModelRef(opt.model_ref_id ?? null);
+                            setSelectedModelSource(opt.source);
                             setInputValue(opt.label);
                         }
                     }}
@@ -201,6 +285,7 @@ export const AiQueryPage = () => {
                                 display: 'flex', alignItems: 'center', gap: 1.25,
                                 px: '12px !important', py: '9px !important',
                                 borderRadius: '8px',
+                                justifyContent: 'space-between',
                                 mx: '4px',
                                 color: '#94a3b8',
                                 fontSize: '0.84rem',
@@ -216,10 +301,14 @@ export const AiQueryPage = () => {
                                 },
                             }}
                         >
-                            <Box sx={{ color: P.icon, display: 'flex', alignItems: 'center' }}>
-                                {opt.icon}
+                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+                                <Box sx={{ color: P.icon, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                                    {opt.icon}
+                                </Box>
+                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {opt.label}
+                                </Box>
                             </Box>
-                            {opt.label}
                         </Box>
                     )}
                     slotProps={{
@@ -271,7 +360,20 @@ export const AiQueryPage = () => {
                         </Box>
                     )}
                     sx={{ position: 'relative', maxWidth: 420 }}
+                    renderGroup={(params) => (
+                        <li key={params.key}>
+                          <GroupHeader>{params.group}</GroupHeader>
+                          <GroupItems>{params.children}</GroupItems>
+                        </li>
+                    )}
                 />
+                {selectedModelSource && (
+                    <Fade in={!!selectedModelSource} timeout={200}>
+                        <Box>
+                            <ModelSourceBadge source={selectedModelSource} />
+                        </Box>
+                    </Fade>
+                )}
             </Paper>
 
             <PromptBox

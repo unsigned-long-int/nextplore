@@ -1,6 +1,8 @@
 export type AIQueryRequest = {
     provider: string;
     model_id: string;
+    model_ref_id?: string | null;
+    is_user_model: boolean;
     prompt: string;
 };
 
@@ -35,11 +37,19 @@ export type AIQueryResponse = {
     trace?: PipelineTrace | undefined
 };
 
-export type ModelInfo = {
+export const LlmSource = {
+    PLATFORM: 'platform',
+    USER: 'user'
+} as const;
+export type LlmSource = typeof LlmSource[keyof typeof LlmSource];
+
+export type LlmProfile = {
+    source: LlmSource;
     provider: string;
     model_id: string;
     label: string;
     tags: string[];
+    model_ref_id?: string | null;
 };
 
 export type PromptRequest = {

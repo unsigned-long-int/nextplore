@@ -2,7 +2,7 @@ import { useOrchestratorClient } from '@/shared/api/client/OrchestratorClient';
 import type {
     AIQueryResponse,
     AIQueryRequest,
-    ModelInfo,
+    LlmProfile,
     PromptRequest,
     PromptResponse
 } from '@/shared/api/services/ai-query/types.gen';
@@ -15,7 +15,7 @@ export const useAiQueryApi = () => {
         getAiResponse: (data: AIQueryRequest) =>
             http.post<AIQueryResponse>('llm-inference/query', data),
         getModels: () =>
-            http.get<ModelInfo[]>('llm-inference/models'),
+            http.get<LlmProfile[]>('llm-inference/models'),
         getDescriptionEnhancement: (data: PromptRequest) =>
             http.post<PromptResponse>('llm-inference/enhancement', data),
         testLlm: (data: LlmModelCreateRequest)=>
