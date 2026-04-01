@@ -30,6 +30,22 @@ All credentials are protected with envelope encryption (AES-256-GCM + RSA-OAEP) 
 
 ---
 
+**Table Of Contents**
+
+- [What it Does](#what-it-does)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Database Support](#database-support)
+- [Llm Integration](#llm-integration)
+- [Security Model](#security-model)
+- [Observability](#observability)
+- [Demo](#demo)
+- [Integrating Data Stores](#integrating-data-stores)
+- [Links](#links)
+- [Roadmap](#roadmap)
+
+---
+
 ## What It Does
  
  
@@ -53,21 +69,6 @@ All operations are strictly read-only on source systems.
 **Query Flow**
 
 ![QueryFlow](./docs/quert-flow.jpg)
-
----
-
-**Table Of Contents**
-
-- [Project Focus](#project-focus)
-- [Demo](#demo)
-- [Overview](#overview)
-- [Features](#features)
-- [Integrating](#integrating)
-- [Architecture](#architecture)
-- [Security](#security)
-- [Links](#links)
-- [Roadmap](#roadmap)
-
 
 ---
 
@@ -115,6 +116,7 @@ All operations are strictly read-only on source systems.
 | MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                                                                               | ❌                                                                                                                      | ❌               |
 | PostgreSQL | ✅ (PostgreSQL's native pwd auth)      | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                                                                               | ❌                                                                                                                      | ❌               |
 | Snowflake  | ✅ (Snowflake's pwd auth)              | ❌                                                                                        | ❌                                                                                  | ❌                                                                                  | ✅ (RSA with signed JWT)                                                                         | ✅ (With network and auth policy)                                                                                       | ❌               |
+
 All connections enforce TLS with full X.509 certificate validation (`TrustServerCertificate=false`). CA bundles for all AWS and GCP regions are shipped with the service.
 
 ---
