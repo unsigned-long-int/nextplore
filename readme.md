@@ -15,9 +15,9 @@
 
 # Nextplore - LLM-powered SQL ORM Context Creator
 
-> Nextplore is a multi-tenant SaaS platform built on a microservice architecture, enabling natural language querying across enterprise databases without requiring SQL knowledge. It leverages LLMs combined with a retrieval-augmented generation (RAG) pipeline - including vector-embedded schema metadata, multi-query expansion, and semantic routing - to translate user intent into precise, context-aware database queries. 
+> Nextplore is a multi-tenant SaaS platform built on a microservice architecture, enabling natural language querying across enterprise databases without requiring SQL knowledge. It leverages LLMs combined with a retrieval-augmented generation (RAG) pipeline - including vector-embedded schema metadata, multi-query expansion, and semantic routing - to translate user intent into context-aware database queries. 
 Nextplore supports PostgreSQL, MySQL, SQL Server, and Snowflake, with native cloud IAM authentication across AWS, GCP, and Azure - including IAM roles, service account credentials, Azure AD (Entra ID), and certificate-based auth. Data stores can be registered from any cloud environment, enabling cross-cloud querying from a single interface.
-On the model layer, Nextplore integrates with 2,600+ language models across 140+ providers through a unified OpenAI-compatible abstraction - including OpenAI GPT-4o, Anthropic Claude, Google Gemini, Meta LLaMA, DeepSeek, Qwen, Mistral, and more. Teams can bring their own API keys, connect self-hosted models via Ollama or vLLM, or register any OpenAI-compatible endpoint.
+On the model layer, Nextplore integrates with 2,600+ language models across 140+ providers through a unified OpenAI-compatible abstraction - including OpenAI GPT-4o, Anthropic Claude, Google Gemini, Meta LLaMA, DeepSeek, Qwen, Mistral, and more. Users can bring their own API keys, connect self-hosted models via Ollama or vLLM, or register any OpenAI-compatible endpoint.
 All credentials are protected with envelope encryption (AES-256-GCM + RSA-OAEP) via Azure Key Vault.
 
 <p align="center">
@@ -27,6 +27,32 @@ All credentials are protected with envelope encryption (AES-256-GCM + RSA-OAEP) 
 <p align="center">
   <img src="https://img.shields.io/github/stars/unsigned-long-int/nextplore?style=flat-square" alt="Stars"> <img src="https://img.shields.io/github/forks/unsigned-long-int/nextplore?style=flat-square" alt="Forks"> <img src="https://img.shields.io/github/last-commit/unsigned-long-int/nextplore?style=flat-square" alt="Last Commit"> <img src="https://img.shields.io/github/languages/top/unsigned-long-int/nextplore?style=flat-square" alt="Top Language"><img src="https://github.com/unsigned-long-int/nextplore/actions/workflows/test-dev-backend.yaml/badge.svg" alt="Tests">
 </p>
+
+---
+
+## What It Does
+ 
+ 
+Under the hood it runs a multi-stage RAG pipeline:
+ 
+1. **Schema ingestion** - crawls connected databases, embeds table/column metadata with contextual descriptions, stores vectors in Qdrant with tenant-scoped payload indexes
+2. **Query expansion** - decomposes the user prompt into N semantic variants via LLM (multi-query retrieval)
+3. **Vector retrieval** - cosine similarity search over embedded schema metadata, re-ranked with Reciprocal Rank Fusion (RRF)
+4. **ORM context generation** - LLM maps retrieved schema context to a structured JSON response (`datastore`, `schema`, `table`, `columns`, `filters`, `aggregates`)
+5. **Dynamic ORM execution** - SQLAlchemy metafactory instantiates a typed ORM model at runtime from the structured context and executes the query read-only
+ 
+All operations are strictly read-only on source systems.
+---
+ 
+## Architecture
+
+**Components** 
+
+![Components Architecture](./docs/nextplore-components-architecture.jpg)
+
+**Query Flow**
+
+![QueryFlow](./docs/quert-flow.jpg)
 
 ---
 
@@ -42,11 +68,135 @@ All credentials are protected with envelope encryption (AES-256-GCM + RSA-OAEP) 
 - [Links](#links)
 - [Roadmap](#roadmap)
 
-## Project Focus
 
-Nextplore is a Retrieval-Augmented Generation (RAG) platform designed to provide structured access to enterprise data across heterogeneous data stores. It connects dynamically to multiple internal databases and enables unified querying and analysis of company knowledge.
+---
 
-The platform is strictly read-only and does not perform write operations on source systems, though future releases may introduce controlled data manipulation. Its focus is secure data retrieval, schema-aware exploration, and generation of structured insights from existing data assets. Nextplore delivers the greatest value when integrated with multiple data sources, acting as a centralized and consistent access layer for enterprise knowledge. 
+**Service breakdown**
+ 
+| Service | Responsibility                                                                     |
+|---|------------------------------------------------------------------------------------|
+| `nextplore-orchestrator` | Query entrypoint, pipeline coordination, result assembly                           |
+| `llm-inference-service` | LLM provider abstraction, ORM structured context generation, multi-query expansion |
+| `vector-service` | Qdrant writes/reads, RRF re-ranking, payload index management                      |
+| `integration-service` | Datastore CRUD, credential encryption, schema crawling, autosync                   |
+| `embedding-service` | Text embedding, vector generation for schema metadata                              |
+
+**Inter-service communication**
+ 
+- Synchronous blocking paths: REST/HTTP via custom `httpx` async client
+- Asynchronous background jobs: Kafka with AVRO schemas versioned in Confluent Schema Registry
+- Kafka messages partitioned by `tenant_id` for ordered per-tenant delivery
+- JWT middleware validates and injects `UserIdentity` context at every service boundary
+- Redis hashes access keys with unique user identity data
+
+---
+
+## Tech Stack
+ 
+| Layer | Technology                                                                                |
+|---|-------------------------------------------------------------------------------------------|
+| Backend | Python 3.13, FastAPI, SQLAlchemy 2.x async                                                |
+| LLM abstraction | LiteLLM (2,600+ models, 140+ providers)                                                   |
+| Vector store | Qdrant (multi-tenant, payload-indexed)                                                    |
+| Relational DB | PostgreSQL with Row-Level Security                                                        |
+| Cache | Redis (SHA-256 scoped keys per tenant/user)                                               |
+| Message queue | Apache Kafka + Confluent Schema Registry (AVRO)                                           |
+| Encryption | AES-256-GCM + RSA-OAEP, Azure Key Vault                                                   |
+| Containerisation | Docker, Docker Compose                                                                    |
+| CI | GitHub Actions                                                                            |
+| Observability | Prometheus metrics, structured JSON logging (Datadog-compatible), AKHK (Kafka monitoring) |
+---
+
+## Database Support
+ 
+| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> | Cloud IAM: AWS <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> | Cloud IAM: GCP <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> | Snowflake: Key-Pair <img src="docs/snowflake-logo.png" alt="azure-logo" width="20" height="20"/> | Snowflake: Programmatic Access Token (PAT) <img src="docs/snowflake-logo.png" alt="azure-logo" width="20" height="20"/> | Kerberos/Windows |
+| ---------- | -------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ❌                                                                                  | ❌                                                                                  | ❌                                                                                               | ❌                                                                                                                      | ❌               |
+| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                                                                               | ❌                                                                                                                      | ❌               |
+| PostgreSQL | ✅ (PostgreSQL's native pwd auth)      | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                                                                               | ❌                                                                                                                      | ❌               |
+| Snowflake  | ✅ (Snowflake's pwd auth)              | ❌                                                                                        | ❌                                                                                  | ❌                                                                                  | ✅ (RSA with signed JWT)                                                                         | ✅ (With network and auth policy)                                                                                       | ❌               |
+All connections enforce TLS with full X.509 certificate validation (`TrustServerCertificate=false`). CA bundles for all AWS and GCP regions are shipped with the service.
+
+---
+ 
+## LLM Integration
+ 
+Nextplore routes through LiteLLM, exposing a unified OpenAI-compatible interface regardless of backend provider.
+ 
+**Built-in providers (no configuration required)**
+ 
+- Moonshotai
+- meta-Llama
+- Qwen
+- Deepseek
+- OpenAI (GPT-4o)
+ 
+**Custom / self-hosted models**
+ 
+Users can register any OpenAI-compatible endpoint:
+ 
+```json
+{
+  "model_id": "meta-llama/Llama-3.1-8B-Instruct",
+  "api_base": "https://router.huggingface.co/v1",
+  "connection_params": { "api_key": "hf-..." },
+  "max_tokens": 4096
+}
+```
+Credentials are encrypted on write (AES-256-GCM, DEK wrapped with tenant KEK in Azure Key Vault) and decrypted at inference time in `integration-service`. 
+
+---
+ 
+## Security Model
+ 
+**Envelope encryption**
+ 
+Each tenant is provisioned with a dedicated Azure Key Vault. For every registered credential:
+ 
+1. A random DEK (AES-256) is generated
+2. Credential is encrypted: `AES-256-GCM(plaintext, DEK)`
+3. DEK is wrapped: `RSA-OAEP(DEK, KEK)` — KEK lives in AKV, never extracted
+4. Stored: `{ ciphertext, nonce, tag, wrapped_dek }` — decryptable only with tenant KEK
+ 
+**Tenant isolation**
+ 
+- PostgreSQL RLS enforces per-tenant data visibility at the DB layer
+- Redis cache keys are scoped: `SHA-256(tenant_id + user_id + payload_hash)`
+- Kafka messages carry tenant identity in headers; partitioned by `tenant_id`
+- JWT middleware injects `UserIdentity(organization_id, user_id)` — validated at every service boundary before any business logic executes
+ 
+**Certificate authentication (Azure)**
+ 
+For Azure IAM integrations, Nextplore generates RSA-3072 key pairs. Private key stored in AKV, public key returned to user for upload to their registered app. JWT signed with private key, validated by Azure against the registered public certificate - no secrets in connection strings.
+ 
+
+---
+
+
+## Observability
+ 
+**Structured logging**
+ 
+All services emit JSON-formatted logs compatible with Datadog log pipelines:
+ 
+```json
+{
+  "timestamp": "2026-04-01 20:46:02,183",
+  "name": "nextplore_sdk.cache.client.base_redis_client",
+  "level": "INFO",
+  "message": "Cache MISS orm-context:1cc906a1...",
+  "env": "dev",
+  "app_name": "llm-inference-service",
+  "version": "1.0.0"
+}
+```
+ 
+**Metrics**
+ 
+Prometheus scrape endpoint exposed per service at `/metrics`. Tracked: request latency, cache hit/miss ratio, LLM response time, vector search latency.
+ 
+
+---
 
 ## Demo
 
@@ -73,66 +223,9 @@ Create and manage your SQL data stores. Benefit from LLM help to generate vector
 Integrated with your own custom models, either self-hosted or private inference endpoints. 
 ![Custom LLM Use Case](./docs/custom-llm-use-case.gif)
 
+---
 
-**Vectors Metadata View**
-
-View and validate vectors used for RAG. 
-
-![Vectors Metadata Use Case](./docs/vectors-metadata-use-case.gif)
-
-**MFA Tenant Login**
-
-Securely create and log in to your environment.
-
-![MFA Login](./docs/mfa-login.gif)
-
-## Overview
-
-Nextplore aims to enable developers or general users to interact with a variety of relational databases without the need to write any SQL queries. Under the hood it uses [`sqlalchemy`](https://docs.sqlalchemy.org/en/20/intro.html) to dynamically generate and query Object Relational Mapping ([ORMs](https://docs.sqlalchemy.org/en/20/orm/)) models.
-
-Due to abstraction of [DBAPI](https://peps.python.org/pep-0249/) the interaction with range of databases becomes possible regardless of the internals of particular database dialects. Nextplore creates ORMs by leveraging [factory pattern](https://refactoring.guru/design-patterns/factory-method) applied together with [metaprogramming](https://www.geeksforgeeks.org/python/metaprogramming-metaclasses-python/). This is achieved by converting natural language responses into structured JSON output schema which serve as arguments for a variety of metafactories responsible for generating new ORMs.
-
-Since databases may grow very large consisting of hundreds of schemas and tables, the metadata of tables are embedded and stored at [QDrant](https://qdrant.tech/). Respective metadata (i.e. integration, database, tables, schemas) is stored in PostgreSQL together with QDrant ID. This allows nextplore to apply [RAG](https://aws.amazon.com/what-is/retrieval-augmented-generation/) where only most relevant tables are used as basis for structured LLMs responses. The user natural language prompt is converted into vector, then cosine similarity is calculated between and **top N** vectors are matched as future knowledge source for chosen LLM.
-
-## Features
-
-### Natural language querying
-
-**Nextplore** enables you to explore and interact with **any relational data** across multiple databases **without writing a single line of SQL**.
-
-With AI-driven search, you can query **all available metadata** from your connected integrations using a **single, unified query**.
-
-- Choose from a variety of powerful AI models:
-
-  - **Moonshatai**
-  - **DeepSeek**
-  - **OpenAI**
-  - **LlamA**
-
-- **Unified search across integrations**  
-  Query data across all connected databases in one go.
-
-- **Pivot functions**  
-  Built-in support for:
-
-  - `AVG`, `SUM`, `COUNT`, `MAX`, `MIN`
-
-- **Advanced filtering**  
-  Supported operators:
-
-  - `==`, `!=`, `>`, `<`, `>=`, `<=`, `LIKE`, `NOT LIKE`, `IN`
-
-- **SQL transparency**  
-  View the **exact SQL** generated for your request.
-
-- **Data export**  
-  Export selected results directly for further analysis.
-
-- **Model flexibility**  
-  Choose your preferred AI model for query processing.
-
-
-### Integrations
+## Integrating Data Stores
 
 **Nextplore** natively integrates with multiple database management systems (DBMS), including [Snowflake](https://www.snowflake.com/en/), [MySQL](https://www.mysql.com/), [MSSQL](https://www.microsoft.com/en/sql-server), [PostgreSQL](https://www.postgresql.org/). For authentication and authorization, it supports standards-based **Identity and Access Management (IAM)** integration with major cloud providers: Azure, AWS, and GCP - enabling secure, policy-driven access to managed services.
 
@@ -145,14 +238,8 @@ With AI-driven search, you can query **all available metadata** from your connec
 > However, Nextplore guarantees static egress IPs, which allow you to safely expose your database endpoint to the public network while restricting inbound access exclusively to Nextplore's IP(s). It is recommended to configure your firewall or network security group to permit connections only from this address.
 > :blush: **Exception**: For **GCP**-hosted instances **Nextplore** gives you possibility to avoid IP whitelisting via [Cloud Authentication Proxy Connectors](https://cloud.google.com/sql/docs/mysql/language-connectors) as described [here](#sql-native-authentication).
 
-| DB         | Native Authentication (cloud-agnostic) | Cloud IAM: Azure <img src="docs/azure-logo.png" alt="azure-logo" width="20" height="20"/> | Cloud IAM: AWS <img src="docs/aws-logo.png" alt="aws-logo" width="20" height="20"/> | Cloud IAM: GCP <img src="docs/gcp-logo.png" alt="gcp-logo" width="20" height="20"/> | Snowflake: Key-Pair <img src="docs/snowflake-logo.png" alt="azure-logo" width="20" height="20"/> | Snowflake: Programmatic Access Token (PAT) <img src="docs/snowflake-logo.png" alt="azure-logo" width="20" height="20"/> | Kerberos/Windows |
-| ---------- | -------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| SQL Server | ✅ (MSSQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ❌                                                                                  | ❌                                                                                  | ❌                                                                                               | ❌                                                                                                                      | ❌               |
-| MySQL      | ✅ (MySQL's native pwd auth)           | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                                                                               | ❌                                                                                                                      | ❌               |
-| PostgreSQL | ✅ (PostgreSQL's native pwd auth)      | ✅ (oAuth 2.0 - Client Secret / Certificate)                                              | ✅ (Assume Role with temp token)                                                    | ✅ (IAM DB Auth with Cloud Connector)                                               | ❌                                                                                               | ❌                                                                                                                      | ❌               |
-| Snowflake  | ✅ (Snowflake's pwd auth)              | ❌                                                                                        | ❌                                                                                  | ❌                                                                                  | ✅ (RSA with signed JWT)                                                                         | ✅ (With network and auth policy)                                                                                       | ❌               |
 
-### Metadata overview
+**Metadata overview**
 
 **Nextplore** provides a comprehensive view of the metadata associated with each integration.
 It enables users to seamlessly inspect and validate active integrations, with a focus on the tables and columns most relevant for **Retrieval-Augmented Generation (RAG)** query resolution.
@@ -161,7 +248,8 @@ By exposing both system-defined and descriptive metadata (e.g., SQL Server _exte
 
 This refinement enables RAG pipelines to more accurately surface the correct datasets for user queries, ultimately improving both retrieval precision and interpretability of query results.
 
-## Integrating
+
+### Connection setup by cloud
 
 ### SQL server
 
@@ -745,63 +833,6 @@ DAYS_TO_EXPIRY = 30; -- copy paste token and insert as password in your data_sto
 
 ---
 
-## Architecture
-
-The image below provides the basic architecture of the application.
-
-![architecture](docs/architecture-diagram.jpg)
-
-**Tenant Isolation**
-
-- For tenant isolation [RLS](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) approach in a single database has been implemented (enough for MVP and small number of vendors, per-tenant-db and automatic provision should be implemented to avoid [noisy neighbour problem](https://learn.microsoft.com/en-us/azure/architecture/antipatterns/noisy-neighbor/noisy-neighbor) if bigger tenants are coming)
-- To secure sensitive data (i.e. integration credentials) automatic provision of Azure Vault Store for [secret envelope](https://medium.com/@tarangchikhalia/envelope-encryption-a-secure-approach-to-secrets-management-c8abce5b24d2) has been built.
-- Tenant isolation is achieved also with redis key validation, where sha256 keys always take unique user UUID and tenant UUID generated by backend database.
-- To ensure only authenticated users reach microservices endpoints, JWT validation (with caching) is performed via middleware where user credentials are validated and context is set per user identity.
-- Each of event sent by kafka follows the interface requiring to contain reference to user identity. Kafka events contain headers which allow message bus to partition them by tenant.
-
-**Services Isolation**
-
-- Each microservice is provisioned with a dedicated PostgreSQL role, scoped with the principle of least privilege. Access is strictly limited to the schemas relevant to the service's domain, ensuring data segregation, minimizing blast radius, and supporting multi-tenant security requirements.
-- Inter-service communication follows an event-driven architecture implemented on Apache Kafka. To maintain strict, language-agnostic contract guarantees, producing services register and version AVRO schemas in the Confluent Schema Registry. This ensures schema evolution compatibility and prevents consumer-producer contract drift.
-- Kafka messages are transmitted in a compact, byte-encoded format, minimizing payload size and network overhead. Serialization and deserialization are handled via the AVRO-based implementation of the Codec interface, enabling a modular serialization layer. This design allows for seamless substitution with alternative serialization mechanisms such as Protocol Buffers or JSON without impacting upstream or downstream service logic.
-- Kafka messages are partitioned by tenant-id to guarantee ordered delivery and consistent event processing within each tenant's scope.
-
-**Logging/Analytics**
-
-- Logging can be configured via `.conf` files per microservice. 
-- Logging provides json-formatted information on runtime state. It enables integrations with log analytics agents such as Datadog to collect, analyse and manage state of the application. 
-- API performance metrics are collected and analysed via [prometheus](https://prometheus.io/)
-
-**LLM Integrations**
-
-- Curated default models shipped out of the box - no configuration required to run first queries
-- 2,600+ models across 140+ providers via a unified OpenAI-compatible abstraction layer - OpenAI, Anthropic, Google Gemini, Meta LLaMA, Mistral, Azure OpenAI, AWS Bedrock, Groq, Cohere and more
-- Self-hosted inference supported via Ollama, vLLM, TGI, or any OpenAI-compatible REST endpoint
-- Bring-your-own-key (BYOK) - per-user API credentials stored with envelope encryption (AES-256-GCM + RSA-OAEP) via Azure Key Vault
-- Model routing is runtime-configurable per datasource and per query - no redeployment required
-- User-hosted models registered via REST API with encrypted connection params and live connection validation before persistence
-
-**Microservice communication** 
-
-- Nextplore offloads asynchronous requests to run via kafka message queue, thus allowing certain background jobs to run in parallel with other user activities.
-- Synchronous, blocking interactions are handled via RESTful HTTP APIs.
-- Some background jobs like syncing and etc. are run serverless at regular intervalls.
-
-**Storage**
-
-- Relational structured data is stored in PostgreSQL. This applies to authentication and structured metadata. 
-- Embeddings used for RAG are stored in QDrant together with references to structured metadata.
-
-## Security
-
-Given the importance and sensitivity of company's internal information, Nextplore takes all possible precautious measures to secure the data and minimise the exposure at each step. 
-
-Nextplore uses only metadata it may find on integrated data stores without having access to the content itself. You are encouraged to limit access rights as described in [integrating](#integrating) section. 
-
-Sensitive data used for authentication is secured via envelope encryption. Each vendor is provisioned with a dedicated azure key vault where key encryption key (KEK). For each created integration random data encryption key (DEK) is generated. DEK is used to encrypt the data. DEK itself is then encrypted and stored per integration. Encrypted DEK itself is used unless unwrapped with KEK with a personal vendor vault.
-
-To identify vulnerabilities, both source code, dependencies and container images are continuously scanned using Veracode. Container images are immutable, versioned, and stored in a private JFrog container registry. Code quality and maintainability are enforced through continuous static analysis via SonarQube integration.
-
 
 ## Links
 [License](./license.md)
@@ -809,4 +840,4 @@ To identify vulnerabilities, both source code, dependencies and container images
 
 ## Roadmap
 
-> Future releases will include support for **Snowflake** and **client agents** for Kerberos authentication.
+> Future releases will focus on improving RAG optimisation, LLM output quality and vector store configuration to improve model results at scale. 
