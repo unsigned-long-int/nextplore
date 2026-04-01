@@ -839,7 +839,8 @@ DAYS_TO_EXPIRY = 30; -- copy paste token and insert as password in your data_sto
 
 ## Links
 [License](./license.md)
-[Personal Website](www.unsigned-long-int.co)
+
+[Personal Website](https://unsigned-long-int.com/)
 
 ## Roadmap
 
