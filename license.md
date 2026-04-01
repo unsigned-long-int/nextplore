@@ -3,7 +3,7 @@
 
 **Nextplore**
 
-Copyright (c) 2025 Nikolay Oleynikov
+Copyright (c) 2026 Nikolay Oleynikov
 
 ---
 
