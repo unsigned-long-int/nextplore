@@ -7,7 +7,7 @@ from nextplore_sdk.encryptor.client.crypto_client import CryptoClient
 from nextplore_sdk.encryptor.client.encrypted_secret import EncryptedSecret
 
 from integration_service.database.models import UserLlmORM
-from integration_service.domain.models.user_llm import UserLlm
+from integration_service.domain.models.user_llm import UserLlm, UserLlmProfile
 from integration_service.domain.mappers.user_llm.converter import (
     orm_from_user_llm,
     user_llm_from_orm,
@@ -15,8 +15,6 @@ from integration_service.domain.mappers.user_llm.converter import (
     user_llm_profile_from_orm
 )
 from svc_integration_contracts.models import UserLlmCreateRequest
-
-
 
 
 MODULE = 'integration_service.domain.mappers.user_llm.converter'
@@ -39,6 +37,7 @@ def make_user_llm(**overrides) -> UserLlm:
         'nonce': b'nonce',
         'encrypted_conn_params': make_encrypted_secret(),
         'max_tokens': 4096,
+        'kek_kid': 'https://vault.azure.net/keys/test-key/version',
     }
     return UserLlm(**{**defaults, **overrides})
 
@@ -53,6 +52,7 @@ def make_orm(**overrides) -> UserLlmORM:
         'nonce': b'nonce',
         'tag': b'tag',
         'wrapped_dek': b'wrapped_dek',
+        'kek_kid': 'https://vault.azure.net/keys/test-key/version',
     }
     return UserLlmORM(**{**defaults, **overrides})
 
@@ -69,7 +69,20 @@ def make_payload(**overrides) -> UserLlmCreateRequest:
     return UserLlmCreateRequest(**{**defaults, **overrides})
 
 
-class TestOrmFromUserHostedModel(unittest.TestCase):
+def make_user_llm_orm(**overrides):
+    orm = MagicMock()
+    orm.id = uuid4()
+    orm.api_base = 'https://api.openai.com/v1'
+    orm.model_id = 'gpt-4o'
+    orm.label = 'GPT-4o'
+    orm.max_tokens = 4096
+    for k, v in overrides.items():
+        setattr(orm, k, v)
+    return orm
+
+
+
+class TestOrmFromUserLlm(unittest.TestCase):
 
     def setUp(self):
         self.organization_id = uuid4()
@@ -84,48 +97,41 @@ class TestOrmFromUserHostedModel(unittest.TestCase):
         )
 
     def test_returns_orm_instance(self):
-        result = self._call()
-        self.assertIsInstance(result, UserLlmORM)
+        self.assertIsInstance(self._call(), UserLlmORM)
 
     def test_maps_organization_id(self):
-        result = self._call()
-        self.assertEqual(result.organization_id, self.organization_id)
+        self.assertEqual(self._call().organization_id, self.organization_id)
 
     def test_maps_user_id(self):
-        result = self._call()
-        self.assertEqual(result.user_id, self.user_id)
+        self.assertEqual(self._call().user_id, self.user_id)
 
     def test_maps_model_id(self):
-        result = self._call()
-        self.assertEqual(result.model_id, self.llm.model_id)
+        self.assertEqual(self._call().model_id, self.llm.model_id)
 
     def test_maps_label(self):
-        result = self._call()
-        self.assertEqual(result.label, self.llm.label)
+        self.assertEqual(self._call().label, self.llm.label)
 
     def test_maps_api_base(self):
-        result = self._call()
-        self.assertEqual(result.api_base, self.llm.api_base)
+        self.assertEqual(self._call().api_base, self.llm.api_base)
 
     def test_maps_max_tokens(self):
-        result = self._call()
-        self.assertEqual(result.max_tokens, self.llm.max_tokens)
+        self.assertEqual(self._call().max_tokens, self.llm.max_tokens)
+
+    def test_maps_kek_kid(self):
+        self.assertEqual(self._call().kek_kid, self.llm.kek_kid)
 
     def test_maps_ciphertext(self):
-        result = self._call()
-        self.assertEqual(result.encrypted_connection_params, self.llm.encrypted_conn_params.ciphertext)
+        self.assertEqual(self._call().encrypted_connection_params, self.llm.encrypted_conn_params.ciphertext)
 
     def test_maps_nonce(self):
-        result = self._call()
-        self.assertEqual(result.nonce, self.llm.encrypted_conn_params.nonce)
+        self.assertEqual(self._call().nonce, self.llm.encrypted_conn_params.nonce)
 
     def test_maps_tag(self):
-        result = self._call()
-        self.assertEqual(result.tag, self.llm.encrypted_conn_params.tag)
+        self.assertEqual(self._call().tag, self.llm.encrypted_conn_params.tag)
 
     def test_maps_wrapped_dek(self):
-        result = self._call()
-        self.assertEqual(result.wrapped_dek, self.llm.encrypted_conn_params.wrapped_dek)
+        self.assertEqual(self._call().wrapped_dek, self.llm.encrypted_conn_params.wrapped_dek)
+
 
 
 class TestUserLlmFromOrm(unittest.TestCase):
@@ -143,67 +149,56 @@ class TestUserLlmFromOrm(unittest.TestCase):
         )
 
     def test_returns_user_llm(self):
-        result = self._call()
-        self.assertIsInstance(result, UserLlm)
+        self.assertIsInstance(self._call(), UserLlm)
 
     def test_maps_model_id(self):
-        result = self._call()
-        self.assertEqual(result.model_id, self.orm.model_id)
+        self.assertEqual(self._call().model_id, self.orm.model_id)
 
     def test_maps_label(self):
-        result = self._call()
-        self.assertEqual(result.label, self.orm.label)
+        self.assertEqual(self._call().label, self.orm.label)
 
     def test_maps_api_base(self):
-        result = self._call()
-        self.assertEqual(result.api_base, self.orm.api_base)
+        self.assertEqual(self._call().api_base, self.orm.api_base)
 
     def test_maps_max_tokens(self):
-        result = self._call()
-        self.assertEqual(result.max_tokens, self.orm.max_tokens)
+        self.assertEqual(self._call().max_tokens, self.orm.max_tokens)
 
     def test_maps_nonce(self):
-        result = self._call()
-        self.assertEqual(result.nonce, self.orm.nonce)
+        self.assertEqual(self._call().nonce, self.orm.nonce)
+
+    def test_maps_kek_kid(self):
+        self.assertEqual(self._call().kek_kid, self.orm.kek_kid)
 
     def test_builds_encrypted_secret_with_nonce(self):
-        result = self._call()
-        self.assertEqual(result.encrypted_conn_params.nonce, self.orm.nonce)
+        self.assertEqual(self._call().encrypted_conn_params.nonce, self.orm.nonce)
 
     def test_builds_encrypted_secret_with_tag(self):
-        result = self._call()
-        self.assertEqual(result.encrypted_conn_params.tag, self.orm.tag)
+        self.assertEqual(self._call().encrypted_conn_params.tag, self.orm.tag)
 
     def test_builds_encrypted_secret_with_ciphertext(self):
-        result = self._call()
-        self.assertEqual(result.encrypted_conn_params.ciphertext, self.orm.encrypted_connection_params)
+        self.assertEqual(self._call().encrypted_conn_params.ciphertext, self.orm.encrypted_connection_params)
 
     def test_builds_encrypted_secret_with_wrapped_dek(self):
-        result = self._call()
-        self.assertEqual(result.encrypted_conn_params.wrapped_dek, self.orm.wrapped_dek)
+        self.assertEqual(self._call().encrypted_conn_params.wrapped_dek, self.orm.wrapped_dek)
 
     def test_aad_contains_organization_id(self):
-        result = self._call()
-        self.assertEqual(result.encrypted_conn_params.aad['organization_id'], self.organization_id)
+        self.assertEqual(self._call().encrypted_conn_params.aad['organization_id'], self.organization_id)
 
     def test_aad_contains_user_id(self):
-        result = self._call()
-        self.assertEqual(result.encrypted_conn_params.aad['user_id'], self.user_id)
+        self.assertEqual(self._call().encrypted_conn_params.aad['user_id'], self.user_id)
 
     def test_aad_contains_api_base(self):
-        result = self._call()
-        self.assertEqual(result.encrypted_conn_params.aad['api_base'], self.orm.api_base)
+        self.assertEqual(self._call().encrypted_conn_params.aad['api_base'], self.orm.api_base)
 
     def test_aad_contains_model_id(self):
-        result = self._call()
-        self.assertEqual(result.encrypted_conn_params.aad['model_id'], self.orm.model_id)
+        self.assertEqual(self._call().encrypted_conn_params.aad['model_id'], self.orm.model_id)
 
     def test_aad_has_exactly_four_keys(self):
-        result = self._call()
         self.assertSetEqual(
-            set(result.encrypted_conn_params.aad.keys()),
+            set(self._call().encrypted_conn_params.aad.keys()),
             {'organization_id', 'user_id', 'api_base', 'model_id'}
         )
+
 
 
 class TestUserLlmFromDto(unittest.TestCase):
@@ -225,32 +220,28 @@ class TestUserLlmFromDto(unittest.TestCase):
             )
 
     def test_returns_user_llm(self):
-        result = self._call()
-        self.assertIsInstance(result, UserLlm)
+        self.assertIsInstance(self._call(), UserLlm)
 
     def test_maps_model_id(self):
-        result = self._call()
-        self.assertEqual(result.model_id, self.payload.model_id)
+        self.assertEqual(self._call().model_id, self.payload.model_id)
 
     def test_maps_label(self):
-        result = self._call()
-        self.assertEqual(result.label, self.payload.label)
+        self.assertEqual(self._call().label, self.payload.label)
 
     def test_maps_api_base(self):
-        result = self._call()
-        self.assertEqual(result.api_base, self.payload.api_base)
+        self.assertEqual(self._call().api_base, self.payload.api_base)
 
     def test_maps_max_tokens(self):
-        result = self._call()
-        self.assertEqual(result.max_tokens, self.payload.max_tokens)
+        self.assertEqual(self._call().max_tokens, self.payload.max_tokens)
+
+    def test_maps_kek_kid(self):
+        self.assertEqual(self._call().kek_kid, self.payload.kek_kid)
 
     def test_maps_nonce_from_encrypted_secret(self):
-        result = self._call()
-        self.assertEqual(result.nonce, self.mock_encrypted_secret.nonce)
+        self.assertEqual(self._call().nonce, self.mock_encrypted_secret.nonce)
 
     def test_sets_encrypted_conn_params(self):
-        result = self._call()
-        self.assertIs(result.encrypted_conn_params, self.mock_encrypted_secret)
+        self.assertIs(self._call().encrypted_conn_params, self.mock_encrypted_secret)
 
     def test_calls_encrypt_conn_params_with_correct_args(self):
         with patch(f'{MODULE}.encrypt_conn_params', return_value=self.mock_encrypted_secret) as mock_encrypt:
@@ -281,19 +272,10 @@ class TestUserLlmFromDto(unittest.TestCase):
 
 
 
-
-def make_user_llm_orm(**overrides):
-    orm = MagicMock()
-    orm.api_base = 'https://api.openai.com/v1'
-    orm.model_id = 'gpt-4o'
-    orm.label = 'GPT-4o'
-    orm.max_tokens = 4096
-    for k, v in overrides.items():
-        setattr(orm, k, v)
-    return orm
-
-
 class TestUserLlmProfileFromOrm(unittest.TestCase):
+
+    def test_returns_user_llm_profile_instance(self):
+        self.assertIsInstance(user_llm_profile_from_orm(make_user_llm_orm()), UserLlmProfile)
 
     def test_maps_api_base(self):
         result = user_llm_profile_from_orm(make_user_llm_orm())
@@ -311,24 +293,28 @@ class TestUserLlmProfileFromOrm(unittest.TestCase):
         result = user_llm_profile_from_orm(make_user_llm_orm())
         self.assertEqual(result.max_tokens, 4096)
 
-    def test_returns_user_llm_profile_instance(self):
-        from integration_service.domain.models.user_llm import UserLlmProfile
-        result = user_llm_profile_from_orm(make_user_llm_orm())
-        self.assertIsInstance(result, UserLlmProfile)
+    def test_maps_model_ref_id(self):
+        model_ref_id = uuid4()
+        result = user_llm_profile_from_orm(make_user_llm_orm(id=model_ref_id))
+        self.assertEqual(result.model_ref_id, model_ref_id)
+
+    def test_model_ref_id_is_none_when_not_set(self):
+        result = user_llm_profile_from_orm(make_user_llm_orm(id=None))
+        self.assertIsNone(result.model_ref_id)
 
     def test_maps_custom_api_base(self):
         result = user_llm_profile_from_orm(make_user_llm_orm(api_base='https://custom.endpoint.com/v1'))
         self.assertEqual(result.api_base, 'https://custom.endpoint.com/v1')
 
     def test_maps_custom_model_id(self):
-        result = user_llm_profile_from_orm(make_user_llm_orm(model_id='claude-3-5-sonnet'))
-        self.assertEqual(result.model_id, 'claude-3-5-sonnet')
+        result = user_llm_profile_from_orm(make_user_llm_orm(model_id='claude-sonnet-4-6'))
+        self.assertEqual(result.model_id, 'claude-sonnet-4-6')
 
     def test_maps_custom_max_tokens(self):
         result = user_llm_profile_from_orm(make_user_llm_orm(max_tokens=8192))
         self.assertEqual(result.max_tokens, 8192)
 
-    def test_does_not_expose_orm_fields(self):
+    def test_does_not_expose_encrypted_fields(self):
         result = user_llm_profile_from_orm(make_user_llm_orm())
         self.assertFalse(hasattr(result, 'connection_params'))
         self.assertFalse(hasattr(result, 'encrypted_api_key'))

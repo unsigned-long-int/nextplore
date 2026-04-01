@@ -15,6 +15,7 @@ from integration_service.api.router import (
     create_certificate_router,
     user_llm_create_router,
     user_llm_profiles_router,
+    user_llm_config_router
 )
 from integration_service.api.middleware import IdentityMiddleware
 
@@ -41,5 +42,6 @@ app.include_router(cert_profiles_router)
 app.include_router(create_certificate_router)
 app.include_router(user_llm_create_router)
 app.include_router(user_llm_profiles_router)
+app.include_router(user_llm_config_router)
 
 Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)

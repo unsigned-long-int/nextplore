@@ -11,6 +11,7 @@ from nextplore_sdk.encryptor.client.crypto_client import CryptoClient
 class UserLlm:
     model_id: str
     label: str
+    kek_kid: str
     api_base: str
     nonce: bytes
     encrypted_conn_params: EncryptedSecret

@@ -10,3 +10,4 @@ from .cert_profiles_router import router as cert_profiles_router
 from .create_certificate_router import router as create_certificate_router
 from .user_llm_create_router import router as user_llm_create_router
 from .user_llm_profiles_router import router as user_llm_profiles_router
+from .user_llm_config_router import router as user_llm_config_router

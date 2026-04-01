@@ -7,7 +7,8 @@ from svc_integration_contracts.models import (
     DataStoreConnectionProfile,
     DataStoreProfile,
     CertProfile,
-    UserLlmProfile
+    UserLlmProfile,
+    UserLlmConfig
 )
 from nextplore_sdk.cache.utils.key_factory import get_cache_key, get_string_cache_key
 from nextplore_sdk.cache.client.interface import Cache
@@ -172,7 +173,6 @@ class CacheService:
             value=response
         )
 
-
     async def delete_datastore_cert_profiles(
         self,
         user_identity: UserIdentity,
@@ -214,7 +214,7 @@ class CacheService:
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            model=CertProfile
+            model=UserLlmProfile
         )
 
     async def set_user_llm_profiles(
@@ -227,6 +227,39 @@ class CacheService:
             prefix='user-llm-profile'
         )
         await self.cache.set_many(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key,
+            value=response
+        )
+
+    async def get_user_llm_config(
+        self,
+        user_identity: UserIdentity,
+        model_ref_id: UUID
+    ) -> UserLlmConfig:
+        cache_key = get_string_cache_key(
+            value=str(model_ref_id),
+            prefix='user-llm-config'
+        )
+        return await self.cache.get_one(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key,
+            model=UserLlmConfig
+        )
+
+    async def set_user_llm_config(
+        self,
+        user_identity: UserIdentity,
+        model_ref_id: UUID,
+        response: UserLlmConfig
+    ) -> None:
+        cache_key = get_string_cache_key(
+            value=str(model_ref_id),
+            prefix='user-llm-config'
+        )
+        await self.cache.set_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,

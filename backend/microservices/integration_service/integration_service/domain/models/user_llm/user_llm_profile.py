@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from uuid import UUID
 
 
 @dataclass(frozen=True)
@@ -7,3 +8,4 @@ class UserLlmProfile:
     model_id: str
     label: str
     max_tokens: int
+    model_ref_id: UUID

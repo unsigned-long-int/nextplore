@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -27,6 +27,7 @@ def make_user_llm_orm(**overrides):
     orm.model_id = 'gpt-4o'
     orm.label = 'GPT-4o'
     orm.max_tokens = 4096
+    orm.kek_kid = 'https://vault.azure.net/keys/test-key/version'
     for k, v in overrides.items():
         setattr(orm, k, v)
     return orm
@@ -38,6 +39,7 @@ def make_user_llm_profile(**overrides):
         'model_id': 'gpt-4o',
         'label': 'GPT-4o',
         'max_tokens': 4096,
+        'model_ref_id': uuid4()
     }
     return UserLlmProfile(**{**defaults, **overrides})
 
@@ -54,8 +56,7 @@ class TestLlmRepositoryCreate(unittest.IsolatedAsyncioTestCase):
     @patch(f'{MODULE}.orm_from_user_llm')
     async def test_returns_model_id(self, mock_orm_from_user_llm):
         model_id = uuid4()
-        orm = make_user_llm_orm(id=model_id)
-        mock_orm_from_user_llm.return_value = orm
+        mock_orm_from_user_llm.return_value = make_user_llm_orm(id=model_id)
 
         result = await self.repo.create_user_llm(
             organization_id=self.organization_id,
@@ -67,8 +68,7 @@ class TestLlmRepositoryCreate(unittest.IsolatedAsyncioTestCase):
 
     @patch(f'{MODULE}.orm_from_user_llm')
     async def test_calls_orm_from_user_llm_with_correct_args(self, mock_orm_from_user_llm):
-        orm = make_user_llm_orm()
-        mock_orm_from_user_llm.return_value = orm
+        mock_orm_from_user_llm.return_value = make_user_llm_orm()
 
         await self.repo.create_user_llm(
             organization_id=self.organization_id,
@@ -97,8 +97,7 @@ class TestLlmRepositoryCreate(unittest.IsolatedAsyncioTestCase):
 
     @patch(f'{MODULE}.orm_from_user_llm')
     async def test_flushes_session(self, mock_orm_from_user_llm):
-        orm = make_user_llm_orm()
-        mock_orm_from_user_llm.return_value = orm
+        mock_orm_from_user_llm.return_value = make_user_llm_orm()
 
         await self.repo.create_user_llm(
             organization_id=self.organization_id,
@@ -181,11 +180,11 @@ class TestLlmRepositoryGetProfiles(unittest.IsolatedAsyncioTestCase):
     @patch(f'{MODULE}.user_llm_profile_from_orm')
     async def test_returns_mapped_profiles(self, mock_profile_from_orm):
         orm1 = make_user_llm_orm()
-        orm2 = make_user_llm_orm(model_id='claude-3-5-sonnet')
+        orm2 = make_user_llm_orm(model_id='claude-sonnet-4-6')
         self._mock_query_result([orm1, orm2])
 
         profile1 = make_user_llm_profile()
-        profile2 = make_user_llm_profile(model_id='claude-3-5-sonnet')
+        profile2 = make_user_llm_profile(model_id='claude-sonnet-4-6')
         mock_profile_from_orm.side_effect = [profile1, profile2]
 
         result = await self.repo.get_user_llm_profiles(
@@ -268,3 +267,114 @@ class TestLlmRepositoryGetProfiles(unittest.IsolatedAsyncioTestCase):
 
         mock_logger.error.assert_called_once()
         self.assertTrue(mock_logger.error.call_args.kwargs['exc_info'])
+
+
+class TestLlmRepositoryGetUserLlm(unittest.IsolatedAsyncioTestCase):
+
+    def setUp(self):
+        self.organization_id = uuid4()
+        self.user_id = uuid4()
+        self.model_ref_id = uuid4()
+        self.connector, self.session = make_backend_connector()
+        self.repo = LlmRepository(self.connector)
+
+    def _mock_scalar_one_result(self, orm):
+        result = MagicMock()
+        result.scalar_one.return_value = orm
+        self.session.execute = AsyncMock(return_value=result)
+
+    @patch(f'{MODULE}.user_llm_from_orm')
+    async def test_returns_mapped_user_llm(self, mock_user_llm_from_orm):
+        orm = make_user_llm_orm()
+        self._mock_scalar_one_result(orm)
+        expected = MagicMock(spec=UserLlm)
+        mock_user_llm_from_orm.return_value = expected
+
+        result = await self.repo.get_user_llm(
+            organization_id=self.organization_id,
+            user_id=self.user_id,
+            model_ref_id=self.model_ref_id,
+        )
+
+        self.assertEqual(result, expected)
+
+    @patch(f'{MODULE}.user_llm_from_orm')
+    async def test_calls_user_llm_from_orm_with_correct_args(self, mock_user_llm_from_orm):
+        orm = make_user_llm_orm()
+        self._mock_scalar_one_result(orm)
+        mock_user_llm_from_orm.return_value = MagicMock(spec=UserLlm)
+
+        await self.repo.get_user_llm(
+            organization_id=self.organization_id,
+            user_id=self.user_id,
+            model_ref_id=self.model_ref_id,
+        )
+
+        mock_user_llm_from_orm.assert_called_once_with(
+            organization_id=self.organization_id,
+            user_id=self.user_id,
+            user_llm_orm=orm,
+        )
+
+    @patch(f'{MODULE}.user_llm_from_orm')
+    async def test_opens_session_scope_with_correct_ids(self, mock_user_llm_from_orm):
+        self._mock_scalar_one_result(make_user_llm_orm())
+        mock_user_llm_from_orm.return_value = MagicMock(spec=UserLlm)
+
+        await self.repo.get_user_llm(
+            organization_id=self.organization_id,
+            user_id=self.user_id,
+            model_ref_id=self.model_ref_id,
+        )
+
+        self.connector.session_scope.assert_called_once_with(
+            self.organization_id, self.user_id
+        )
+
+    async def test_raises_user_llm_get_failed_on_sqlalchemy_error(self):
+        self.session.execute = AsyncMock(side_effect=SQLAlchemyError('db error'))
+
+        with self.assertRaises(UserLlmGetFailed):
+            await self.repo.get_user_llm(
+                organization_id=self.organization_id,
+                user_id=self.user_id,
+                model_ref_id=self.model_ref_id,
+            )
+
+    async def test_error_message_contains_db_error(self):
+        self.session.execute = AsyncMock(side_effect=SQLAlchemyError('no row found'))
+
+        with self.assertRaises(UserLlmGetFailed) as ctx:
+            await self.repo.get_user_llm(
+                organization_id=self.organization_id,
+                user_id=self.user_id,
+                model_ref_id=self.model_ref_id,
+            )
+
+        self.assertIn('no row found', str(ctx.exception))
+
+    @patch(f'{MODULE}.logger')
+    async def test_logs_error_on_sqlalchemy_error(self, mock_logger):
+        self.session.execute = AsyncMock(side_effect=SQLAlchemyError('db error'))
+
+        with self.assertRaises(UserLlmGetFailed):
+            await self.repo.get_user_llm(
+                organization_id=self.organization_id,
+                user_id=self.user_id,
+                model_ref_id=self.model_ref_id,
+            )
+
+        mock_logger.error.assert_called_once()
+        self.assertTrue(mock_logger.error.call_args.kwargs['exc_info'])
+
+    async def test_raises_user_llm_get_failed_when_scalar_one_raises(self):
+        result = MagicMock()
+        result.scalar_one.side_effect = SQLAlchemyError('no result found')
+        self.session.execute = AsyncMock(return_value=result)
+
+        with self.assertRaises(UserLlmGetFailed):
+            await self.repo.get_user_llm(
+                organization_id=self.organization_id,
+                user_id=self.user_id,
+                model_ref_id=self.model_ref_id,
+            )
