@@ -11,7 +11,7 @@ def parse_response_schema(
         provider_name: str
 ) -> Dict[str, Any]:
     if 'column_names' not in model_response or not model_response['column_names']:
-        msg = f'Missing or empty column_names in response. Model: {model_id}. Provider: OpenAI. Response: {model_response}'
+        msg = f'Missing or empty column_names in response. Model: {model_id}. Provider: {provider_name}. Response: {model_response}'
         raise InvalidModelResponse(msg)
 
     first_col = model_response['column_names'][0]
@@ -20,7 +20,7 @@ def parse_response_schema(
 
     for col in model_response['column_names']:
         if not col.startswith(f'{schema_name}.{table_name}.'):
-            msg = f'Parsing failed. Column {col} does not belong to {schema_name}.{table_name}. Model: OpenAI. Provider: OpenAI, Response: {model_response}'
+            msg = f'Parsing failed. Column {col} does not belong to {schema_name}.{table_name}. Model: {model_id}. Provider: {provider_name}, Response: {model_response}'
             raise InvalidModelResponse(msg)
 
     parsed = {

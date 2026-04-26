@@ -158,15 +158,15 @@ Each tenant is provisioned with a dedicated Azure Key Vault. For every registere
  
 1. A random DEK (AES-256) is generated
 2. Credential is encrypted: `AES-256-GCM(plaintext, DEK)`
-3. DEK is wrapped: `RSA-OAEP(DEK, KEK)` — KEK lives in AKV, never extracted
-4. Stored: `{ ciphertext, nonce, tag, wrapped_dek }` — decryptable only with tenant KEK
+3. DEK is wrapped: `RSA-OAEP(DEK, KEK)` - KEK lives in AKV, never extracted
+4. Stored: `{ ciphertext, nonce, tag, wrapped_dek }` - decryptable only with tenant KEK
  
 **Tenant isolation**
  
 - PostgreSQL RLS enforces per-tenant data visibility at the DB layer
 - Redis cache keys are scoped: `SHA-256(tenant_id + user_id + payload_hash)`
 - Kafka messages carry tenant identity in headers; partitioned by `tenant_id`
-- JWT middleware injects `UserIdentity(organization_id, user_id)` — validated at every service boundary before any business logic executes
+- JWT middleware injects `UserIdentity(organization_id, user_id)` - validated at every service boundary before any business logic executes
  
 **Certificate authentication (Azure)**
  
