@@ -8,16 +8,21 @@ from nextplore_orchestrator.domain.models import (
     OrmMetadata,
     VectorNeighbour,
     RagContext,
-    LlmSpec
+    LlmSpec,
+    OnboardingRequest
 )
+from nextplore_orchestrator.database.models import OnboardingRequestORM, OrganizationORM
 
-from svc_nextplore_orchestrator_contracts.models import LlmProfile, LlmSource
+from svc_nextplore_orchestrator_contracts.models import LlmProfile, LlmSource, RegisterRequest
 from svc_integration_contracts.models import UserLlmProfile
 from svc_vector_contracts.models import VectorMetadata, VectorSearchResult
 from svc_llm_inference_contracts.models import LlmOutputSpecs, DataStoreEntry, SchemaEntry, ModelInfo, UserLlmConfig
 
 
-def organization_from_dto(user: Dict[str, Any]) -> Organization:
+def organization_from_dto(
+    user: Dict[str, Any],
+    onboarding_id: UUID
+) -> Organization:
     name = user.get('name')
     azure_tenant_id = user.get('tid')
     email = user.get('preferred_username')
@@ -26,7 +31,23 @@ def organization_from_dto(user: Dict[str, Any]) -> Organization:
     return Organization(
         azure_tenant_id=azure_tenant_id,
         name=name,
-        domain=domain
+        domain=domain,
+        onboarding_request_id=onboarding_id
+    )
+
+
+def organization_from_orm(organization: OrganizationORM) -> Organization:
+    return Organization(
+        name=organization.name,
+        domain=organization.domain,
+        azure_tenant_id=organization.azure_tenant_id,
+        plan=organization.plan,
+        status=organization.status,
+        id=organization.id,
+        onboarding_request_id=organization.onboarding_request_id,
+        activated_at=organization.activated_at,
+        suspended_at=organization.suspended_at,
+        suspend_reason=organization.suspend_reason,
     )
 
 
@@ -122,3 +143,31 @@ def user_llm_config_from_llm_spec(llm_spec: LlmSpec) -> Optional[UserLlmConfig]:
             max_tokens=llm_spec.user_llm_config.max_tokens
         )
     return None
+
+
+def onboarding_request_from_orm(req: OnboardingRequestORM) -> OnboardingRequest:
+    return OnboardingRequest(
+        company_name=req.company_name,
+        email_domain=req.domain,
+        contact_email=req.contact_email,
+        plan=req.plan,
+        email_verified=req.email_verified,
+        status=req.status,
+        id=req.id,
+        verification_token=req.verification_token,
+        verified_at=req.verified_at,
+        reviewed_by=req.reviewed_by,
+        review_note=req.review_note,
+        reviewed_at=req.reviewed_at,
+        outbox_mail_id=req.outbox_mail_id,
+        verification_token_expires_at=req.verification_token_expires_at,
+    )
+
+def onboarding_request_from_dto(req: RegisterRequest) -> OnboardingRequest:
+    email_domain = str(req.contact_email).split('@')[1].lower()
+    return OnboardingRequest(
+        company_name=req.company_name,
+        contact_email=str(req.contact_email),
+        email_domain=email_domain,
+        plan=req.plan
+    )

@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from nextplore_orchestrator.api.models.user_profile import UserProfile
 from nextplore_orchestrator.cache.orchestrator_cache import OrchestratorCacheService
@@ -36,33 +36,81 @@ async def get_user_profile(
     if cached:
         return cached
 
-    auth_repo = AuthRepository(backend_connector)
+    async with backend_connector.session_scope() as scoped_session:
+        auth_repo = AuthRepository(scoped_session)
 
-    organization_id = await auth_repo.get_org(azure_tenant_id)
-    org = organization_from_dto(user)
-    if not organization_id:
-        key_vault_provider = AzureVaultKeyProvider(key_vault_url=os.getenv('VAULT_URL'))
-        kek_kid = key_vault_provider.create_vault(azure_tenant_id)
-        organization_id = await auth_repo.create_org(organization=org, kek_kid=kek_kid)
+        organization = await auth_repo.get_org(azure_tenant_id)
+        if not organization:
+            email_domain = email.split('@')[1].lower()
+            request = await auth_repo.get_onboarding_request_by_domain(email_domain)
+            if not request:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail={
+                        'code': 'registration_required',
+                        'message': 'Your organisation has not requested access to Nextplore.',
+                    },
+                )
+            if not request.email_verified:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail={
+                        'code': 'email_not_verified',
+                        'message': 'Please verify your email address first.',
+                    },
+                )
+            if request.status == 'pending':
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail={
+                        'code': 'approval_pending',
+                        'message': 'Your access request is under review.',
+                    },
+                )
+            if request.status == 'rejected':
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail={
+                        'code': 'registration_rejected',
+                        'message': 'Your access request was not approved. Contact support.',
+                    },
+                )
+            key_vault_provider = AzureVaultKeyProvider(key_vault_url=os.getenv('VAULT_URL'))
+            kek_kid = key_vault_provider.create_vault(azure_tenant_id)
+            org = organization_from_dto(user=user, onboarding_id=request.id)
+            organization_id = await auth_repo.create_org(
+                organization=org,
+                kek_kid=kek_kid,
+            )
+        else:
+            if organization.status == 'suspended':
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail={
+                        'code': 'org_suspended',
+                        'message': 'Your organisation access has been suspended. Contact support.',
+                    },
+                )
+            organization_id = organization.id
 
-    usr = user_from_dto(user, organization_id)
-    user_id = await auth_repo.get_user(usr)
-    if not user_id:
-        user_id = await auth_repo.create_user(usr)
+        usr = user_from_dto(user=user, organization_id=organization_id)
+        user_id = await auth_repo.get_user(usr)
+        if not user_id:
+            user_id = await auth_repo.create_user(usr)
 
-    response = UserProfile(
-        id=user_id,
-        email=usr.email,
-        name=usr.name,
-        organization=org.name,
-        organization_id=organization_id
-    )
+        response = UserProfile(
+            id=user_id,
+            email=usr.email,
+            name=usr.name,
+            organization=org.name,
+            organization_id=organization_id
+        )
 
-    await cache_service.set_user_profile(
-        org.azure_tenant_id,
-        usr.azure_user_id,
-        response=response,
-        ttl=300
-    )
+        await cache_service.set_user_profile(
+            org.azure_tenant_id,
+            usr.azure_user_id,
+            response=response,
+            ttl=300
+        )
 
-    return response
+        return response

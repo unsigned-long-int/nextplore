@@ -16,4 +16,9 @@ class OrganizationORM(Base):
     plan = Column(Text, nullable=True, default='standard')
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     kek_kid = Column(Text, nullable=False)
+    onboarding_request_id = Column(UUID(as_uuid=True), nullable=False)
+    status = Column(Text, nullable=False, default='active')
+    activated_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    suspended_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    suspend_reason = Column(Text, nullable=True)
     

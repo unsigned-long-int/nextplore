@@ -1,4 +1,5 @@
 from typing import Optional
+from svc_nextplore_orchestrator_contracts.models import RegisterResponse
 
 from nextplore_orchestrator.api.context import UserIdentity
 from nextplore_orchestrator.api.models.user_stats import UserStats
@@ -78,3 +79,24 @@ class OrchestratorCacheService:
             value=response,
             ttl=ttl
         )
+
+    async def get_onboarding_response(
+        self,
+        email_domain: str
+    ) -> RegisterResponse:
+        key = email_domain
+        cache_key = get_string_cache_key(value=key, prefix='onboarding-request')
+        return await self.cache.get_one(
+            cache_key,
+            model=RegisterResponse
+        )
+
+    async def set_onboarding_response(
+        self,
+        response: RegisterResponse,
+        email_domain: str,
+        ttl: Optional[int] = None
+    ) -> None:
+        key=email_domain
+        cache_key = get_string_cache_key(value=key, prefix='onboarding-request')
+        await self.cache.set_one(cache_key, value=response, ttl=ttl)

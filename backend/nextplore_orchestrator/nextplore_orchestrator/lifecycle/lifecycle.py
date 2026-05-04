@@ -6,6 +6,8 @@ from nextplore_sdk.logging.setup import setup_logger
 from nextplore_sdk.cache.client.base_redis_client import BaseCache
 from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
+
+from nextplore_orchestrator.api.limiter import limiter
 from nextplore_orchestrator.clients.factory import (
     ClientsRegistry,
     ClientsFactory
@@ -16,11 +18,15 @@ from nextplore_orchestrator.cache.identity_cache import IdentityCacheService
 from nextplore_orchestrator.cache.jwks_cache import JWKSCacheService
 from _version import version, app_name
 from nextplore_orchestrator.services.model_gateway import ModelGateway
-from nextplore_orchestrator.services.query_orchestrator.llm_orchestrator import SimpleLlmOrchestrator, \
-    ExpandedLlmOrchestrator, LlmOrchestratorFactory
+from nextplore_orchestrator.services.query_orchestrator.llm_orchestrator import (
+    SimpleLlmOrchestrator,
+    ExpandedLlmOrchestrator,
+    LlmOrchestratorFactory
+)
 from nextplore_orchestrator.services.query_orchestrator.query_executor import QueryExecutor
 from nextplore_orchestrator.services.rag import RagPipeline
 from nextplore_orchestrator.services.vector_searcher import VectorSearcher
+from nextplore_orchestrator.services.onboarding import OnboardingService
 
 
 @asynccontextmanager
@@ -55,7 +61,8 @@ async def lifespan(app: FastAPI):
     app.state.token_verifier = token_verifier
 
     orchestrator_cache_client = BaseCache(namespace='nextplore_orchestrator', version='v1')
-    app.state.orchestrator_cache_service = OrchestratorCacheService(orchestrator_cache_client)
+    orchestrator_cache_service = OrchestratorCacheService(orchestrator_cache_client)
+    app.state.orchestrator_cache_service = orchestrator_cache_service
 
     identity_cache_client = BaseCache(namespace='user_identity', version='v1')
     app.state.identity_cache_service = IdentityCacheService(identity_cache_client)
@@ -90,6 +97,12 @@ async def lifespan(app: FastAPI):
         simple_llm_orchestrator=simple_llm_orchestrator,
         expanded_llm_orchestrator=expanded_llm_orchestrator,
     )
+
+    app.state.onboarding_service = OnboardingService(
+        db_connector=backend_connector,
+        cache_service=orchestrator_cache_service
+    )
+    app.state.limiter = limiter
 
     yield
 

@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Dict, Any, Optional
 from jose import jwt, JWTError
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from fastapi.security import HTTPBearer
 
 from .jwks_fetcher import JWKSFetcher
@@ -21,44 +21,46 @@ class TokenVerifier:
         self.jwks_fetcher = jwks_fetcher
 
     async def verify_token(self, token: str) -> Dict[str, Any]:
-        jwks = await self.jwks_fetcher.get_jwks(jwks_url=JWKS_URL)
-        keys = jwks.get('keys', [])
-        if not keys:
-            raise HTTPException(500, detail='No JWKS keys available')
-        
-        last_err: Optional[Exception] = None
-        claims: Optional[Dict[str, Any]] = None
-        for key in keys:
-            kid = key
-            try:
-                claims = jwt.decode(
-                    token,
-                    key,
-                    algorithms=['RS256'],
-                    audience=JWT_AUDIENCE,
-                    options={
-                        'verify_signature': True,
-                        'verify_aud': True,
-                        'verify_exp': True,
-                        'verify_iat': True,
-                        'leeway': 60,
-                    },
-                )
-                break
-            except JWTError as e:
-                last_err = e
+        try:
+            header = jwt.get_unverified_header(token)
+        except JWTError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Malformed token header')
+        expected_kid = header.get('kid')
+        if not expected_kid:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token missing kid claim')
 
-        if claims is None:
-            logger.debug(f'JWT verify failed for kid={keys}, {last_err}', exc_info=True)
-            raise HTTPException(401, detail='Token verification failed')
+        jwks = await self.jwks_fetcher.get_jwks(jwks_url=JWKS_URL, expected_kid=expected_kid)
+        key = next(
+            (k for k in jwks.get('keys', []) if k.get('kid') == expected_kid),
+            None
+        )
+        if key is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Unknown key ID')
+
+        try:
+            claims = jwt.decode(
+                token,
+                key,
+                algorithms=['RS256'],
+                audience=JWT_AUDIENCE,
+                options={
+                    'verify_signature': True,
+                    'verify_aud': True,
+                    'verify_exp': True,
+                    'verify_iat': True,
+                    'leeway': 60,
+                },
+            )
+        except JWTError as e:
+            logger.debug(f'JWT decode failed for kid={expected_kid}: {e}')
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token verification failed')
 
         tid = claims.get('tid')
         iss = claims.get('iss')
         if not tid or not iss:
-            raise HTTPException(401, detail='Missing required claims')
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Missing required claims')
 
-        expected_iss_v2 = f'{AZURE_AUTHORITY}/{tid}/v2.0'
-        if iss != expected_iss_v2:
-            raise HTTPException(401, detail='Invalid issuer')
+        if iss != f'{AZURE_AUTHORITY}/{tid}/v2.0':
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid issuer')
 
         return claims

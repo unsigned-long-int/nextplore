@@ -25,17 +25,18 @@ async def create_llm_model(
     org_id = getattr(user_identity, 'organization_id', None)
     user_id = getattr(user_identity, 'user_id', None)
 
-    auth_repo = AuthRepository(backend_connector)
-
     try:
-        kek_kid = await auth_repo.get_kek_kid(org_id)
-        enriched_llm = user_llm_create_request.model_copy(update={'kek_kid': kek_kid})
-        await integration_client.create_user_llm(
-            organization_id=org_id,
-            user_id=user_id,
-            payload=enriched_llm
-        )
-        return Response(status_code=status.HTTP_201_CREATED)
+        async with backend_connector.session_scope() as scoped_session:
+            auth_repo = AuthRepository(scoped_session)
+
+            kek_kid = await auth_repo.get_kek_kid(org_id)
+            enriched_llm = user_llm_create_request.model_copy(update={'kek_kid': kek_kid})
+            await integration_client.create_user_llm(
+                organization_id=org_id,
+                user_id=user_id,
+                payload=enriched_llm
+            )
+            return Response(status_code=status.HTTP_201_CREATED)
     except LlmCreateRemoteError as e:
         logger.error(
             'Create Llm model failed (remote)',
