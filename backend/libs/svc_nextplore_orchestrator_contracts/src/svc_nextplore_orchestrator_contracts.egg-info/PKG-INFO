@@ -6,4 +6,4 @@ Author: Oleynikov Nikolay
 License: Proprietary
 Requires-Python: >=3.13.2
 Requires-Dist: datamodel-code-generator>=0.53.0
-Requires-Dist: pydantic>=2.10.6
+Requires-Dist: pydantic[email]>=2.10.6

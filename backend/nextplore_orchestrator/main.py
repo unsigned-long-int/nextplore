@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 
 from nextplore_orchestrator.lifecycle import lifespan
@@ -20,7 +23,9 @@ from nextplore_orchestrator.api.router import (
     create_llm_model_router,
     description_enhancement_router,
     user_llm_profiles_router,
-    test_user_llm_router
+    test_user_llm_router,
+    register_router,
+    email_token_verification_router
 )
 
 app = FastAPI(lifespan=lifespan)
@@ -31,6 +36,8 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*']
 )
+app.add_middleware(SlowAPIMiddleware)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(ai_queries_router)
 app.include_router(gen_models_router)
@@ -48,5 +55,7 @@ app.include_router(description_enhancement_router)
 app.include_router(create_llm_model_router)
 app.include_router(user_llm_profiles_router)
 app.include_router(test_user_llm_router)
+app.include_router(register_router)
+app.include_router(email_token_verification_router)
 
 Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)

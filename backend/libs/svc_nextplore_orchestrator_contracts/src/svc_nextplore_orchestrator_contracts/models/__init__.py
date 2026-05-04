@@ -5,7 +5,7 @@
 from typing import List, Optional
 from enum import StrEnum
 
-from pydantic import UUID4, AwareDatetime, BaseModel, Field, RootModel, SecretStr
+from pydantic import UUID4, AwareDatetime, BaseModel, Field, RootModel, SecretStr, EmailStr
 
 
 class AIQueryRequest(BaseModel):
@@ -222,3 +222,16 @@ class AIQueryRequest(BaseModel):
     model_ref_id: Optional[UUID4] = Field(..., title="Model Ref Id")
     mode: QueryMode = QueryMode.EXPANDED
 
+
+class RegisterRequest(BaseModel):
+    company_name: str
+    contact_email: EmailStr
+    plan: str
+
+
+
+class RegisterResponse(BaseModel):
+    message: str
+
+class EmailVerificationStatusResponse(BaseModel):
+    status: str

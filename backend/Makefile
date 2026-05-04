@@ -10,6 +10,7 @@ AI_SERVICE := microservices/llm_inference_service
 EMBEDDING_SERVICE := microservices/embedding_service
 INTEGRATION_SERVICE := microservices/integration_service
 VECTOR_SERVICE := microservices/vector_service
+NOTIFICATION_SERVICE := microservices/notification_service
 MESSAGING_LIB := libs/messaging
 SDK_LIB := libs/sdk
 
@@ -69,6 +70,9 @@ run-tests: install-libs
 	@echo "Running tests for vector_service..."
 	cd $(VECTOR_SERVICE) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
 	@echo ""
+	@echo "Running tests for notification_service..."
+	cd $(NOTIFICATION_SERVICE) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
+	@echo ""
 	@echo "Running tests for messaging library..."
 	@cd $(MESSAGING_LIB) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
 	@echo ""
@@ -96,6 +100,10 @@ run-tests-cov: install-libs install-test-deps
 	@echo "Testing vector_service..."
 	@cd $(VECTOR_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
 	@mv $(VECTOR_SERVICE)/.coverage .coverage.vector 2>/dev/null || true
+	@echo ""
+	@echo "Testing notification_service..."
+	@cd $(NOTIFICATION_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
+	@mv $(NOTIFICATION_SERVICE)/.coverage .coverage.vector 2>/dev/null || true
 	@echo ""
 	@echo "Testing messaging library..."
 	@cd $(MESSAGING_LIB) && PYTHONPATH=src $(PYTHON) -m coverage run --source=$$(pwd)/src --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s tests -p "$(TEST_PATTERN)" -t . -v || exit 1
@@ -137,6 +145,10 @@ test-vector: install-libs
 	@echo "Running tests for vector_service..."
 	cd $(VECTOR_SERVICE) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v
 
+test-notification: install-libs
+	@echo "Running tests for notification_service..."
+	cd $(NOTIFICATION_SERVICE) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v
+
 test-messaging: install-libs
 	@echo "Running tests for messaging library..."
 	@cd $(MESSAGING_LIB) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v
@@ -159,6 +171,16 @@ test-integration-cov: install-libs install-test-deps
 	@cd $(INTEGRATION_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py" -m unittest discover -s . -p "$(TEST_PATTERN)" -v
 	@cd $(INTEGRATION_SERVICE) && $(PYTHON) -m coverage report
 	@cd $(INTEGRATION_SERVICE) && $(PYTHON) -m coverage html
+
+test-vector-cov: install-libs install-test-deps
+	@cd $(VECTOR_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py" -m unittest discover -s . -p "$(TEST_PATTERN)" -v
+	@cd $(VECTOR_SERVICE) && $(PYTHON) -m coverage report
+	@cd $(VECTOR_SERVICE) && $(PYTHON) -m coverage html
+
+test-notification-cov: install-libs install-test-deps
+	@cd $(NOTIFICATION_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py" -m unittest discover -s . -p "$(TEST_PATTERN)" -v
+	@cd $(NOTIFICATION_SERVICE) && $(PYTHON) -m coverage report
+	@cd $(NOTIFICATION_SERVICE) && $(PYTHON) -m coverage html
 
 test-messaging-cov: install-libs install-test-deps
 	@cd $(MESSAGING_LIB) && $(PYTHON) -m coverage run --source=. --omit="test_*.py" -m unittest discover -s . -p "$(TEST_PATTERN)" -v
@@ -215,6 +237,9 @@ dev-embedding: infra
 dev-vector: infra
 	docker compose --profile vector_service up
 
+dev-notification: infra
+	docker compose --profile notification_service up
+
 dev-ai:
 	docker compose up -d redis
 	docker compose --profile llm_inference_service up
@@ -247,6 +272,9 @@ embedding:
 vector:
 	docker compose up vector_service
 
+notification:
+	docker compose up notification_service
+
 llm-inference:
 	docker compose up llm_inference_service
 
@@ -270,6 +298,10 @@ rebuild-embedding: infra
 rebuild-vector: infra
 	docker compose --profile vector_service $(INFRA_PROFILES) rm -f vector_service
 	docker compose --profile vector_service $(INFRA_PROFILES) up -d --build vector_service
+
+rebuild-notification: infra
+	docker compose --profile notification_service $(INFRA_PROFILES) rm -f notification_service
+	docker compose --profile notification_service $(INFRA_PROFILES) up -d --build notification_service
 
 rebuild-llm-inference: infra
 	docker compose --profile llm_inference_service $(INFRA_PROFILES) rm -f llm_inference_service

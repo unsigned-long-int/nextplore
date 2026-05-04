@@ -1,2 +1,2 @@
 datamodel-code-generator>=0.53.0
-pydantic>=2.10.6
+pydantic[email]>=2.10.6

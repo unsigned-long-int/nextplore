@@ -106,7 +106,7 @@ services:
       - GCP_ACCESS_KEY=${GCP_ACCESS_KEY}
       - AZURE_TENANT_ID=${AZURE_TENANT_ID_CRYPTO}
       - AZURE_CLIENT_ID=${AZURE_CLIENT_ID_CRYPTO}
-      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET_CRYPTO}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - AKV_URL=${AKV_URL}
@@ -205,6 +205,38 @@ services:
     mem_limit: 384m
     mem_reservation: 256m
 
+  notification_service:
+    build:
+      context: .
+      dockerfile: microservices/notification_service/Dockerfile
+      args:
+        NEXTPLORE_SDK: libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
+    container_name: notification_service
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USR_NOTIFICATION_SERVICE=${DB_USR_NOTIFICATION_SERVICE}
+      - DB_PWD_NOTIFICATION_SERVICE=${DB_PWD_NOTIFICATION_SERVICE}
+      - DB_NAME=${DB_NAME}
+      - AZURE_COMMUNICATION_CONNECTION_STRING=${AZURE_COMMUNICATION_CONNECTION_STRING}
+      - NEXTPLORE_FROM_EMAIL=${NEXTPLORE_FROM_EMAIL}
+      - NEXTPLORE_ADMIN_EMAIL=${NEXTPLORE_ADMIN_EMAIL}
+      - NEXTPLORE_APP_URL=${NEXTPLORE_APP_URL}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    profiles: [notification_service, all]
+    restart: on-failure
+    networks:
+      - app-network
+    mem_limit: 256m
+    mem_reservation: 128m
+
+
   orchestration_service:
     build:
       context: .
@@ -232,8 +264,9 @@ services:
       - KAFKA_GROUP_PREFIX=${KAFKA_GROUP_PREFIX}
       - FERNET_KEY=${FERNET_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
-      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID_CRYPTO}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID_CRYPTO}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET_CRYPTO}
       - JWT_AUDIENCE=${JWT_AUDIENCE}
       - AZURE_AUTHORITY=${AZURE_AUTHORITY}
       - ISSUER=${ISSUER}
@@ -244,6 +277,9 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
+      - NEXTPLORE_ADMIN_EMAIL=${NEXTPLORE_ADMIN_EMAIL}
+      - NEXTPLORE_APP_URL=${NEXTPLORE_APP_URL}
+      - VAULT_URL=${VAULT_URL}
     profiles: [orchestration_service, all]
     restart: on-failure
     networks:
