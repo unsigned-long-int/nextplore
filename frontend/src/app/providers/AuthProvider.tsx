@@ -1,22 +1,21 @@
-import { type ReactNode, createContext, useContext, useMemo, useState, useEffect } from 'react';
+import { type ReactNode, createContext, useContext, useMemo } from 'react';
 import { MsalProvider, useMsal } from '@azure/msal-react';
-import { msalInstance, acquireToken, login, logout } from '../../shared/auth/msal';
+import { msalInstance, acquireToken, login, logout } from '@/shared/auth/msal';
 
 type AuthContextValue = {
     isAuthenticated: boolean;
     getBearer: (scopes: string[]) => Promise<string>;
     login: (scopes: string[]) => Promise<void>;
     logout: () => Promise<void>;
-}
+};
+
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+
 export const InnerAuthProvider = ({ children }: { children: ReactNode }) => {
     const { accounts } = useMsal();
-    const [isAuthenticated, setAuthenticated] = useState<boolean>(false);
-    useEffect(() => {
-        setAuthenticated(accounts.length > 0);
-    }, [accounts.length]);
+    const isAuthenticated = accounts.length > 0;
 
     const value = useMemo<AuthContextValue>(() => ({
         isAuthenticated,

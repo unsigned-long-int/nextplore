@@ -1,18 +1,17 @@
 import { createHttp } from '@/shared/api/core/http';
 import { useAuth } from '@/app/providers/AuthProvider';
+import { BACKEND_SCOPES, LOGIN_SCOPES } from '@/shared/auth/scopes';
+import {useMemo} from "react";
 
-const ACCOUNT_SCOPES = ['openid', 'profile', 'email', import.meta.env.VITE_AAD_SCOPE];
 const ORCHESTRATOR_BASE_URL = import.meta.env.VITE_ORCHESTRATOR_BASE_URL;
 
 export const useOrchestratorClient = () => {
-    const { getBearer, login } = useAuth();
+    const {getBearer, login} = useAuth();
 
-    return createHttp({
+    return useMemo(() => createHttp({
         baseURL: ORCHESTRATOR_BASE_URL,
-        scopes: ACCOUNT_SCOPES,
+        scopes: BACKEND_SCOPES,
         getBearer,
-        onUnauthorized: () => {
-            login(ACCOUNT_SCOPES).catch(() => {});
-        }
-    });
-};
+        onUnauthorized: () => login(LOGIN_SCOPES).catch(console.error),
+    }), [getBearer, login]);
+}

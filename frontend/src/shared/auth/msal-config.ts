@@ -1,5 +1,6 @@
 import type { Configuration, PopupRequest } from '@azure/msal-browser';
 import { LogLevel } from '@azure/msal-browser';
+import { LOGIN_SCOPES  } from '@/shared/auth/scopes';
 
 
 export const msalConfig: Configuration = {
@@ -22,7 +23,5 @@ export const msalConfig: Configuration = {
 
 
 export const loginRequest: PopupRequest = {
-    scopes: [
-        'openid', 'profile', 'email', 'api://08fc1e2b-9867-42bc-8825-78942fab68da/access_as_user'
-    ]
+    scopes: LOGIN_SCOPES,
 };
