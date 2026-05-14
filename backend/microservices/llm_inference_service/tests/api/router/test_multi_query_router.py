@@ -76,14 +76,14 @@ class TestGetExpandedQuery(unittest.TestCase):
     @patch(f'{MODULE}.dispatch_provider_factory')
     @patch(f'{MODULE}.resolve_llm_provider_params')
     @patch(f'{MODULE}.get_current_identity')
-    def test_original_query_is_first_variant(self, mock_identity, mock_resolve, mock_dispatch, mock_expand):
+    def test_original_query_is_available(self, mock_identity, mock_resolve, mock_dispatch, mock_expand):
         mock_identity.return_value = self.mock_identity
         mock_resolve.return_value = self.mock_provider_params
         mock_dispatch.return_value = self.mock_provider_factory
 
         response = self.client.post(ENDPOINT, json=PAYLOAD)
 
-        self.assertEqual(response.json()['variants'][0], PAYLOAD['query'])
+        self.assertEqual(response.json()['original_query'], PAYLOAD['query'])
 
     @patch(f'{MODULE}.expand_query', return_value='expanded prompt')
     @patch(f'{MODULE}.dispatch_provider_factory')
@@ -96,7 +96,7 @@ class TestGetExpandedQuery(unittest.TestCase):
 
         response = self.client.post(ENDPOINT, json=PAYLOAD)
 
-        self.assertLessEqual(len(response.json()['variants']), PAYLOAD['multiplier'] + 1)
+        self.assertLessEqual(len(response.json()['variants']), PAYLOAD['multiplier'])
 
 
     @patch(f'{MODULE}.expand_query', return_value='expanded prompt')
@@ -163,7 +163,7 @@ class TestGetExpandedQuery(unittest.TestCase):
         mock_identity.return_value = self.mock_identity
         mock_resolve.return_value = self.mock_provider_params
         mock_dispatch.return_value = self.mock_provider_factory
-        cached = MultiQueryResponse(variants=['Show me all Klingon characters', 'List Klingons'])
+        cached = MultiQueryResponse(original_query='Show me all Klingon characters', variants=['List Klingons'])
         self.cache_mock.get_expanded_query = AsyncMock(return_value=cached)
 
         response = self.client.post(ENDPOINT, json=PAYLOAD)
@@ -179,7 +179,7 @@ class TestGetExpandedQuery(unittest.TestCase):
         mock_resolve.return_value = self.mock_provider_params
         mock_dispatch.return_value = self.mock_provider_factory
         self.cache_mock.get_expanded_query = AsyncMock(
-            return_value=MultiQueryResponse(variants=['cached query'])
+            return_value=MultiQueryResponse(original_query='cached_query', variants=['cached query'])
         )
 
         self.client.post(ENDPOINT, json=PAYLOAD)
@@ -192,7 +192,7 @@ class TestGetExpandedQuery(unittest.TestCase):
     def test_does_not_resolve_params_on_cache_hit(self, mock_identity, mock_resolve, mock_dispatch):
         mock_identity.return_value = self.mock_identity
         self.cache_mock.get_expanded_query = AsyncMock(
-            return_value=MultiQueryResponse(variants=['cached query'])
+            return_value=MultiQueryResponse(original_query='cached_query', variants=['cached query'])
         )
 
         self.client.post(ENDPOINT, json=PAYLOAD)

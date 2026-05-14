@@ -72,7 +72,8 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
         )
 
         self.multi_query_response = MultiQueryResponse(
-            variants=['Show me all Klingon characters', 'List Klingon species members']
+            original_query='Show me all Klingon characters',
+            variants=['List Klingon species members']
         )
         self.prompt_request = PromptRequest(
             prompt='What is the warp speed of the Enterprise?'

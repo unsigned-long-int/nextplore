@@ -55,7 +55,8 @@ async def get_expanded_query(
         variants = [q.strip() for q in query_response.strip().splitlines() if q.strip()]
 
         multi_query_response = MultiQueryResponse(
-            variants=[payload.query] + variants[:payload.multiplier]
+            original_query=payload.query,
+            variants=variants[:payload.multiplier]
         )
         await cache_service.set_expanded_query(
             user_identity=user_identity,
