@@ -7,7 +7,9 @@ from vector_service.api.router import (
     meta_router, 
     stats_router, 
     nearest_neighbours_router,
-    profiles_router
+    profiles_router,
+    semantic_cache_store_router,
+    semantic_cache_lookup_router
 )
 
 
@@ -24,5 +26,7 @@ app.include_router(meta_router)
 app.include_router(stats_router)
 app.include_router(nearest_neighbours_router)
 app.include_router(profiles_router)
+app.include_router(semantic_cache_store_router)
+app.include_router(semantic_cache_lookup_router)
 
 Instrumentator().instrument(app).expose(app, include_in_schema=False, should_gzip=True)
