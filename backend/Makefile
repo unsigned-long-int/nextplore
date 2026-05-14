@@ -1,4 +1,4 @@
-.PHONY: help up down logs stats clean
+.PHONY: help up down logs stats clean build-services all
 
 SDK_PATH=./libs/sdk/src
 MSG_PATH=./libs/messaging/src
@@ -247,8 +247,16 @@ dev-ai:
 dev-orchestration: infra
 	docker compose --profile orchestration_service up
 
-all:
+build-services: check-libs
+	docker compose --profile all build
+
+all-detached: build-services
+	docker compose --profile all up -d
+
+
+all: build-services
 	docker compose --profile all up
+
 
 down:
 	docker compose --profile all down
