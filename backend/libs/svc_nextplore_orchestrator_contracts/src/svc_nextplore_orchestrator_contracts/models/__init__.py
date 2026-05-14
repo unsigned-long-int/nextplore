@@ -229,9 +229,9 @@ class RegisterRequest(BaseModel):
     plan: str
 
 
-
 class RegisterResponse(BaseModel):
     message: str
+
 
 class EmailVerificationStatusResponse(BaseModel):
     status: str

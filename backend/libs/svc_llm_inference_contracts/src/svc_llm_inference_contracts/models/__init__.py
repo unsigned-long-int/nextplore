@@ -75,6 +75,7 @@ class MultiQueryRequest(BaseModel):
     user_llm_config: Optional[UserLlmConfig] = Field(None, title="User Llm Config")
 
 class MultiQueryResponse(BaseModel):
+    original_query: str = Field(..., title="Original Query")
     variants: List[str] = Field(..., title="Variants")
 
 

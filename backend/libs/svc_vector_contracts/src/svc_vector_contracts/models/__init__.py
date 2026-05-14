@@ -2,6 +2,8 @@
 #   filename:  openapi.patched.json
 #   timestamp: 2026-01-18T16:31:23+00:00
 
+from typing import Any, Dict, List, Optional
+from datetime import datetime
 from pydantic import UUID4, BaseModel, Field, RootModel
 
 
@@ -70,3 +72,23 @@ class ResponseGetMetaV1VectorOrganizationsOrganizationIdUsersUserIdIntegrationsV
         ...,
         title="Response Get Meta V1 Vector Organizations  Organization Id  Users  User Id  Integrations Vectors Meta Get",
     )
+
+class SemanticCacheLookupResult(BaseModel):
+    hit: bool = Field(..., title="Hit")
+    json_payload: Dict[str, Any] | None =  Field(default=None, title="JSON Payload")
+
+
+class SemanticCacheEntry(BaseModel):
+    embedding: List[float] = Field(..., title="Embedding")
+    json_payload: Dict[str, Any] = Field(..., title="JSON Payload")
+    expires_at: datetime = Field(..., title="Expires At")
+    provider: str  = Field(..., title="Provider")
+    model_id: str  = Field(..., title="Model Id")
+    model_ref_id: Optional[UUID4] = Field(default=None, title="Model Ref Id")
+
+
+class SemanticCacheLookupQuery(BaseModel):
+    embedding: list[float] = Field(..., title="Embedding")
+    provider: str = Field(..., title="Provider")
+    model_id: str = Field(..., title="Model Id")
+    model_ref_id: Optional[UUID4] = Field(default=None, title="Model Ref Id")
