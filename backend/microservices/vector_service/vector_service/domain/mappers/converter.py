@@ -1,7 +1,7 @@
 import json
 
 from vector_service.database.models import VectorORM
-from vector_service.domain.models.vector import VectorProfile
+from vector_service.domain.models import VectorProfile
 
 
 def orm_to_domain_vector_profile(vector_orm: VectorORM) -> VectorProfile:
