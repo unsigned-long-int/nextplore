@@ -4,6 +4,7 @@ export type AIQueryRequest = {
     model_ref_id?: string | null;
     is_user_model: boolean;
     prompt: string;
+    bypass_cache: boolean;
 };
 
 export type VectorHit = {
@@ -34,7 +35,8 @@ export type PipelineTrace = {
 export type AIQueryResponse = {
     sql: string;
     data: { [key: string]: string} [];
-    trace?: PipelineTrace | undefined
+    trace?: PipelineTrace | undefined;
+    cache_hit: boolean
 };
 
 export const LlmSource = {

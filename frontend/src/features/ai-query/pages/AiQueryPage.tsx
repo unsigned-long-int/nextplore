@@ -13,21 +13,24 @@ import {
 } from '@mui/icons-material';
 import {
     IconAtom,
-    IconBrain, IconPackage,
-    IconCloud, IconPlugConnected,
+    IconBrain,
+    IconPackage,
+    IconCloud,
+    IconPlugConnected,
     IconRobot,
     IconSparkles,
 } from '@tabler/icons-react';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { PipelineTrace } from '@/features/ai-query/components/LlmPipelineTrace';
 import { PromptBox } from '@/features/ai-query/components/PromptBox';
+import { CacheHitBadge } from '@/features/ai-query/components/CacheHitBadge';
 import { QueryStatementPreview } from '@/features/ai-query/components/QueryStatementPreview';
 import { QueryResultTable } from '@/features/ai-query/components/QueryResultTable';
 import { LoadingOverlay } from '@/shared/components/LoadingOverlay';
 import { useGetModels } from '@/features/ai-query/hooks/useGetModels';
 import { useGetAiResponse } from '@/features/ai-query/hooks/useGetAiResponse';
 import type {LlmProfile, PipelineTrace as PipelineTraceData} from '@/shared/api/services/ai-query/types.gen';
-import {LlmSource} from "@/shared/api/services/ai-query/types.gen";
+import { LlmSource } from "@/shared/api/services/ai-query/types.gen";
 
 const P = {
     glow: 'rgba(168,85,247,0.45)',
@@ -107,7 +110,7 @@ interface ModelOption {
     model_ref_id?: string | null;
 }
 
-const Toast = ({ message, type }: { message: string; type: 'error' }) => (
+const Toast = ({ message }: { message: string }) => (
     <Box sx={{
         position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
         background: 'linear-gradient(135deg, #1c0b0b 0%, #450a0a 100%)',
@@ -155,7 +158,8 @@ export const AiQueryPage = () => {
     const [aiQueryResponse, setAiQueryResponse] = useState<{ [key: string]: string }[]>([]);
     const [sqlPreview, setSqlPreview] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [pipelineTrace, setPipelineTrace] = useState<PipelineTraceData | undefined>(undefined);
+    const [pipelineTrace, setPipelineTrace] = useState<PipelineTraceData | null>(null);
+    const [cacheHit, setCacheHit] = useState<boolean>(false);
 
     const { data = [], isError, isSuccess, error } = useGetModels();
     const getAiResponse = useGetAiResponse();
@@ -170,12 +174,13 @@ export const AiQueryPage = () => {
             model_ref_id: m.model_ref_id
         })), [data]);
 
-    const handleAiQueryRequest = async () => {
+    const handleAiQueryRequest = async (bypassCache = false) => {
         if (!selectedModel || !selectedProvider || !selectedModelSource) return;
         setErrorMessage(null);
         setSqlPreview('');
         setAiQueryResponse([]);
-        setPipelineTrace(undefined);
+        setPipelineTrace(null);
+        setCacheHit(false);
 
         try {
             const response = await getAiResponse.mutateAsync({
@@ -184,10 +189,12 @@ export const AiQueryPage = () => {
                 model_ref_id: selectedModelRef,
                 is_user_model: selectedModelSource === LlmSource.USER,
                 prompt: prompt,
+                bypass_cache: bypassCache
             });
             setAiQueryResponse(response.data);
             setSqlPreview(response.sql);
-            setPipelineTrace(response.trace);
+            setPipelineTrace(response.trace ?? null);
+            setCacheHit(response.cache_hit)
         } catch (e: any) {
             setErrorMessage(e.message);
         }
@@ -405,18 +412,18 @@ export const AiQueryPage = () => {
 
                 <Fade in={showResults} timeout={400}>
                     <Box>
-                        <PipelineTrace
-                            trace={pipelineTrace}
-                            visible={showResults}
-                        />
-
+                        {cacheHit ? (
+                            <CacheHitBadge onRunFresh={() => handleAiQueryRequest(true)} />
+                        ) : (
+                            <PipelineTrace trace={pipelineTrace} visible={showResults} />
+                        )}
                         <QueryStatementPreview sql={sqlPreview} />
                         <QueryResultTable data={aiQueryResponse} />
                     </Box>
                 </Fade>
             </Box>
 
-            {errorMessage && isError && <Toast message={errorMessage} type="error" />}
+            {errorMessage && isError && <Toast message={errorMessage} />}
         </Box>
     );
 };

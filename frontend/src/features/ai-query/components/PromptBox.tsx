@@ -1,4 +1,4 @@
-import { useState, KeyboardEvent } from 'react';
+import { useState, type KeyboardEvent } from 'react';
 import {
     Box,
     TextField,
@@ -136,7 +136,7 @@ export const PromptBox = ({ prompt, setPrompt, onSubmit, loading }: Props) => {
 
                 <Button
                     variant="contained"
-                    onClick={onSubmit}
+                    onClick={() => onSubmit()}
                     disabled={loading || !prompt.trim()}
                     startIcon={
                         loading

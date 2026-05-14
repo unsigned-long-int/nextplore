@@ -14,53 +14,6 @@ import type {
     SubQuerySearchResult
 } from '@/shared/api/services/ai-query/types.gen';
 
-
-export const DUMMY_TRACE: PipelineTraceData = {
-    original_query: 'what is average salary per month?',
-    sub_queries: [
-        'average expense per employee last year',
-        'per-person cost breakdown 2024 german entity',
-        'employee spending report annual',
-    ],
-    vector_hits: [
-        {
-            sub_query: 'average expense per employee last year',
-            vector_hits: [
-                { table: 'expenses',      score: 0.93, snippet: 'amount, date, employee_id' },
-                { table: 'employees',     score: 0.88, snippet: 'id, name, entity' },
-                { table: 'cost_centers',  score: 0.71, snippet: 'id, name, budget' },
-                { table: 'entities',      score: 0.64, snippet: 'id, country, name' },
-            ],
-        },
-        {
-            sub_query: 'per-person cost breakdown 2024 german entity',
-            vector_hits: [
-                { table: 'expenses',      score: 0.89, snippet: 'amount, currency, date' },
-                { table: 'entities',      score: 0.85, snippet: 'id, country, name' },
-                { table: 'employees',     score: 0.76, snippet: 'id, entity_id' },
-                { table: 'cost_centers',  score: 0.58, snippet: 'id, entity_id' },
-            ],
-        },
-        {
-            sub_query: 'employee spending report annual',
-            vector_hits: [
-                { table: 'employees',     score: 0.91, snippet: 'id, name, department' },
-                { table: 'expenses',      score: 0.84, snippet: 'employee_id, amount' },
-                { table: 'departments',   score: 0.62, snippet: 'id, name' },
-                { table: 'cost_centers',  score: 0.55, snippet: 'department_id' },
-            ],
-        },
-    ],
-    rrf_ranking: [
-        { table: 'expenses',     rrf_score: 0.051, rank: 1 },
-        { table: 'employees',    rrf_score: 0.047, rank: 2 },
-        { table: 'entities',     rrf_score: 0.033, rank: 3 },
-        { table: 'cost_centers', rrf_score: 0.029, rank: 4 },
-        { table: 'departments',  rrf_score: 0.018, rank: 5 },
-    ],
-    schema_context: ['expenses', 'employees', 'entities'],
-};
-
 const P = {
     border: 'rgba(168,85,247,0.18)',
     soft:   'rgba(168,85,247,0.08)',
@@ -333,7 +286,7 @@ const SchemaContextStage = ({ tables }: { tables: string[] }) => (
 );
 
 interface PipelineTraceProps {
-    trace?: PipelineTraceData;
+    trace: PipelineTraceData | null;
     visible: boolean;
 }
 
@@ -358,9 +311,9 @@ export const PipelineTrace = ({ trace, visible }: PipelineTraceProps) => {
         return () => timers.forEach(clearTimeout);
     }, [visible]);
 
-    const data = trace ?? DUMMY_TRACE;
 
-    if (!visible) return null;
+    if (!visible || !trace) return null;
+    const data = trace;
 
     return (
         <Paper
