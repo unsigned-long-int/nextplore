@@ -1,12 +1,8 @@
 from typing import List, Dict, Any
 from dataclasses import dataclass, field
-from uuid import UUID
 
 
 @dataclass(frozen=True)
-class VectorPoint:
-    id: UUID
-    user_id: UUID
-    organization_id: UUID
-    vector: List[float]
+class SemanticCacheMeta:
+    embedding: List[float]
     extra: Dict[str, Any] = field(default_factory=dict)

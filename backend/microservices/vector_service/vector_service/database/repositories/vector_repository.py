@@ -14,8 +14,8 @@ from vector_service.database.exceptions import (
     VectorDeleteFailed
 )
 from vector_service.database.models import VectorORM
-from vector_service.domain.models.vector import VectorProfile
-from vector_service.domain.mappers.vector import orm_to_domain_vector_profile
+from vector_service.domain.models import VectorProfile
+from vector_service.domain.mappers import orm_to_domain_vector_profile
 from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 
 

@@ -1,23 +1,18 @@
 import logging
 
-from typing import List
-from uuid import UUID
+from typing import List, Optional
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 from qdrant_client.async_qdrant_client import AsyncQdrantClient
 from qdrant_client.http.models import (
-    Filter, 
-    FieldCondition, 
-    MatchValue, 
-    FilterSelector,
-    MatchAny,
-    PointStruct
+    Filter, FieldCondition, MatchValue,
+    FilterSelector, MatchAny,PointStruct,
+    QueryResponse
 )
+
 from vector_service.services.vector_store_service.exceptions import (
-    DeleteVectorDBFailed,
-    SearchVectorDBFailed,
-    UpsertVectorDBFailed
+    DeleteVectorDBFailed, SearchVectorDBFailed, UpsertVectorDBFailed
 )
-from vector_service.services.vector_store_service.models import VectorPoint, Vector
+from vector_service.services.vector_store_service.models import VectorPoint
 from vector_service.api.context import UserIdentity
 
 
@@ -36,34 +31,27 @@ class QDrantStoreClient:
         user_identity: UserIdentity, 
         embedding: List[float],
         top_k: int = 5,
-        collection: str = 'nextplore'
-    ) -> List[Vector]:
+        collection: str = 'nextplore',
+        refine_filters: Optional[List[FieldCondition]] = None,
+        score_threshold: Optional[float] = None,
+    ) -> QueryResponse:
         try:
             qd_filter = Filter(
                 must=[
                         FieldCondition(key='user_id', match=MatchValue(value=str(user_identity.user_id))),
-                        FieldCondition(key='organization_id', match=MatchValue(value=str(user_identity.organization_id)))
+                        FieldCondition(key='organization_id', match=MatchValue(value=str(user_identity.organization_id))),
+                        *(refine_filters or []),
                     ]
             )
-            hits = await self._client.query_points(
+            return await self._client.query_points(
                 collection_name=collection,
                 query=embedding,
                 limit=top_k,
                 with_payload=True,
                 with_vectors=False,
-                query_filter=qd_filter
+                query_filter=qd_filter,
+                score_threshold=score_threshold
             )
-            if not hits.points:
-                return []
-            
-            return [
-                Vector(
-                    id=UUID(chunk_id),
-                    score=hit.score
-                )
-                for hit in hits.points
-                if (chunk_id := hit.payload.get('qdrant_vector_id')) is not None
-            ]
         except ResponseHandlingException as e:
             msg = f'QDrant response handling failed: {e}'
             logger.error(msg, exc_info=True)
@@ -132,7 +120,8 @@ class QDrantStoreClient:
                     payload={
                         'qdrant_vector_id': str(point.id),
                         'user_id': str(point.user_id),
-                        'organization_id': str(point.organization_id)
+                        'organization_id': str(point.organization_id),
+                        **point.extra
                     }
                 )
                 for point in vector_points
