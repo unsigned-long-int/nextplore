@@ -3,5 +3,6 @@ from .exceptions import (
     VectorSearchDBRemoteError,
     VectorGetMetasRemoteError,
     VectorGetStatsRemoteError,
-    VectorGetProfilesRemoteError
+    VectorGetProfilesRemoteError,
+    VectorGetSemanticMatchRemoteError
 )

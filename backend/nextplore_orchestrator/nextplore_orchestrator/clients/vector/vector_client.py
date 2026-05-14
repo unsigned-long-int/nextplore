@@ -2,13 +2,17 @@ import httpx
 from uuid import UUID
 from typing import List
 from json import JSONDecodeError
+from fastapi import status
 
+from nextplore_orchestrator.api.models.ai_query_response import AIQueryResponse
 from nextplore_orchestrator.clients.base import BaseServiceClient
 from nextplore_orchestrator.clients.vector.exceptions import (
     VectorSearchDBRemoteError,
     VectorGetMetasRemoteError,
     VectorGetProfilesRemoteError,
-    VectorGetStatsRemoteError
+    VectorGetStatsRemoteError,
+    VectorGetSemanticMatchRemoteError,
+    VectorUpsertSemanticMatchRemoteError
 )
 
 from svc_vector_contracts.models import (
@@ -18,7 +22,10 @@ from svc_vector_contracts.models import (
     TableProfile,
     VectorIndexStats,
     TableMetadata,
-    VectorMetadata
+    VectorMetadata,
+    SemanticCacheLookupQuery,
+    SemanticCacheLookupResult,
+    SemanticCacheEntry
 )
 
 
@@ -104,4 +111,45 @@ class VectorClient(BaseServiceClient):
                 except (JSONDecodeError, KeyError, TypeError):
                     message = 'Get vector profiles failed and error response could not be parsed'
                 raise VectorGetProfilesRemoteError(message)
+            raise
+
+    async def lookup_semantic_cache(
+        self,
+        organization_id: UUID,
+        user_id: UUID,
+        payload: SemanticCacheLookupQuery
+    ) -> SemanticCacheLookupResult:
+        try:
+            url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/semantic-cache/lookup'
+            response = await self.post(url, payload.model_dump())
+            response.raise_for_status()
+            return SemanticCacheLookupResult(**response.json())
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code in (status.HTTP_424_FAILED_DEPENDENCY, status.HTTP_403_FORBIDDEN):
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Get semantic match from cache failed')
+                except (JSONDecodeError, KeyError, TypeError):
+                    message = 'Get semantic match from cache failed and error response could not be parsed'
+                raise VectorGetSemanticMatchRemoteError(message)
+            raise
+
+    async def store_semantic_cache_entry(
+        self,
+        organization_id: UUID,
+        user_id: UUID,
+        payload: SemanticCacheEntry
+    ) -> None:
+        try:
+            url = f'/v1/vector/organizations/{organization_id}/users/{user_id}/semantic-cache'
+            response = await self.post(url, payload.model_dump())
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code in (status.HTTP_424_FAILED_DEPENDENCY, status.HTTP_403_FORBIDDEN):
+                try:
+                    detail = e.response.json().get('detail', {})
+                    message = detail.get('message', 'Upsert semantic cache match failed')
+                except (JSONDecodeError, KeyError, TypeError):
+                    message = 'Upsert semantic cache match failed and error response could not be parsed'
+                raise VectorUpsertSemanticMatchRemoteError(message)
             raise

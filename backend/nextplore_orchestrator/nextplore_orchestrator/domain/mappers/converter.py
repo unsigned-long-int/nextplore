@@ -9,7 +9,7 @@ from nextplore_orchestrator.domain.models import (
     VectorNeighbour,
     RagContext,
     LlmSpec,
-    OnboardingRequest
+    OnboardingRequest, UserLlmSpec
 )
 from nextplore_orchestrator.database.models import OnboardingRequestORM, OrganizationORM
 
@@ -128,11 +128,15 @@ def llm_profile_from_user_model(user_model: UserLlmProfile) -> LlmProfile:
     )
 
 
-def base_llm_spec_from_query_request(query_request: AIQueryRequest) -> LlmSpec:
+def base_llm_spec_from_query_request(
+        query_request: AIQueryRequest,
+        base_prompt_embedding: Optional[List[float]] = None
+) -> LlmSpec:
     return LlmSpec(
         provider=query_request.provider,
         model_id=query_request.model_id,
-        prompt=query_request.prompt
+        prompt=query_request.prompt,
+        base_prompt_embedding=base_prompt_embedding
     )
 
 def user_llm_config_from_llm_spec(llm_spec: LlmSpec) -> Optional[UserLlmConfig]:
@@ -143,6 +147,14 @@ def user_llm_config_from_llm_spec(llm_spec: LlmSpec) -> Optional[UserLlmConfig]:
             max_tokens=llm_spec.user_llm_config.max_tokens
         )
     return None
+
+
+def user_llm_spec_from_llm_config(llm_config: UserLlmConfig) -> UserLlmSpec:
+    return UserLlmSpec(
+        api_base=llm_config.api_base,
+        connection_params=llm_config.connection_params,
+        max_tokens=llm_config.max_tokens
+    )
 
 
 def onboarding_request_from_orm(req: OnboardingRequestORM) -> OnboardingRequest:

@@ -27,3 +27,4 @@ class AIQueryResponse(BaseModel):
     sql: str
     data: List[Dict[str, str]]
     trace: Optional[PipelineTrace] = Field(None, title="PipelineTrace")
+    cache_hit: bool = Field(default=False, title="CacheHit")

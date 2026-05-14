@@ -1,9 +1,10 @@
+import asyncio
+
 from nextplore_orchestrator.api.context import UserIdentity
 from nextplore_orchestrator.services.vector_searcher import VectorSearcher
 from nextplore_orchestrator.services.model_gateway import ModelGateway
 from nextplore_orchestrator.services.rag import build_rag_context, reciprocal_rank_fusion
 from nextplore_orchestrator.domain.models import RagPipelineResult, LlmSpec
-from nextplore_orchestrator.api.models.ai_query_request import AIQueryRequest
 
 
 class RagPipeline:
@@ -18,8 +19,22 @@ class RagPipeline:
         self.top_n = top_n
 
     async def run(self, llm_spec: LlmSpec, user_identity: UserIdentity) -> RagPipelineResult:
-        sub_queries = await self.model_gateway.expand_query(llm_spec, user_identity)
-        neighbour_collections = await self.vector_search.search_many(sub_queries, user_identity)
+        sub_queries = await self.model_gateway.expand_query(
+            llm_spec=llm_spec,
+            user_identity=user_identity
+        )
+        var_neighbour_collections, orig_neighbour_collections = await asyncio.gather(
+            self.vector_search.search_many(
+                queries=sub_queries,
+                user_identity=user_identity
+            ),
+            self.vector_search.search(
+                query=llm_spec.prompt,
+                user_identity=user_identity,
+                base_prompt_embedding=llm_spec.base_prompt_embedding
+            )
+        )
+        neighbour_collections = [*var_neighbour_collections, orig_neighbour_collections]
         ranked = reciprocal_rank_fusion(neighbour_collections)
         rag_context = build_rag_context([rv.vector for rv in ranked[:self.top_n]])
         return RagPipelineResult(

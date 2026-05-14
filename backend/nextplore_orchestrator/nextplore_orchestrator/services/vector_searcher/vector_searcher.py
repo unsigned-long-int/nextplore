@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from typing import List, Optional
 
 from nextplore_orchestrator.clients.embedding import EmbeddingClient
 from nextplore_orchestrator.clients.vector import VectorClient
@@ -18,12 +18,20 @@ class VectorSearcher:
         self.embedding_client = embedding_client
         self.vector_client = vector_client
 
-    async def search(self, query: str, user_identity: UserIdentity) -> VectorNeighbourCollection:
-        embedding = await self.embedding_client.embed(query)
+    async def search(
+        self,
+        query: str,
+        user_identity: UserIdentity,
+        base_prompt_embedding: Optional[List[float]] = None
+    ) -> VectorNeighbourCollection:
+        if base_prompt_embedding is None:
+            embedding_response = await self.embedding_client.embed(query)
+            base_prompt_embedding = embedding_response.embedding
+            
         vector_hits = await self.vector_client.get_nearest_neighbours(
             organization_id=user_identity.organization_id,
             user_id=user_identity.user_id,
-            payload=EmbeddingQuery(embedding=embedding.embedding),
+            payload=EmbeddingQuery(embedding=base_prompt_embedding),
         )
         meta = await self.vector_client.get_meta(
             organization_id=user_identity.organization_id,

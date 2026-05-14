@@ -1,10 +1,12 @@
 from typing import Optional
 from svc_nextplore_orchestrator_contracts.models import RegisterResponse
 
+from nextplore_orchestrator.api.models.ai_query_response import AIQueryResponse
+from nextplore_orchestrator.api.models.ai_query_request import AIQueryRequest
 from nextplore_orchestrator.api.context import UserIdentity
 from nextplore_orchestrator.api.models.user_stats import UserStats
 from nextplore_orchestrator.api.models.user_profile import UserProfile
-from nextplore_sdk.cache.utils.key_factory import get_string_cache_key
+from nextplore_sdk.cache.utils.key_factory import get_string_cache_key, get_cache_key
 from nextplore_sdk.cache.client.interface import Cache
 
 
@@ -97,6 +99,34 @@ class OrchestratorCacheService:
         email_domain: str,
         ttl: Optional[int] = None
     ) -> None:
-        key=email_domain
+        key = email_domain
         cache_key = get_string_cache_key(value=key, prefix='onboarding-request')
         await self.cache.set_one(cache_key, value=response, ttl=ttl)
+
+
+    async def set_ai_query_response(
+        self,
+        user_identity: UserIdentity,
+        request: AIQueryRequest,
+        response: AIQueryResponse
+    ) -> None:
+        cache_key = get_cache_key(model=request, prefix='ai-query')
+        await self.cache.set_one(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key,
+            value=response
+        )
+
+    async def get_ai_query_response(
+        self,
+        user_identity: UserIdentity,
+        request: AIQueryRequest
+    ) -> AIQueryResponse:
+        cache_key = get_cache_key(model=request, prefix='ai-query')
+        return await self.cache.get_one(
+            user_identity.organization_id,
+            user_identity.user_id,
+            cache_key,
+            model=AIQueryResponse
+        )

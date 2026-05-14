@@ -14,9 +14,9 @@ from nextplore_orchestrator.clients.factory import (
 )
 from nextplore_orchestrator.api.dependencies.authentication import JWKSFetcher, TokenVerifier
 from nextplore_orchestrator.cache.orchestrator_cache import OrchestratorCacheService
+from nextplore_orchestrator.cache.semantic_cache_service import SemanticCacheService
 from nextplore_orchestrator.cache.identity_cache import IdentityCacheService
 from nextplore_orchestrator.cache.jwks_cache import JWKSCacheService
-from _version import version, app_name
 from nextplore_orchestrator.services.model_gateway import ModelGateway
 from nextplore_orchestrator.services.query_orchestrator.llm_orchestrator import (
     SimpleLlmOrchestrator,
@@ -27,6 +27,9 @@ from nextplore_orchestrator.services.query_orchestrator.query_executor import Qu
 from nextplore_orchestrator.services.rag import RagPipeline
 from nextplore_orchestrator.services.vector_searcher import VectorSearcher
 from nextplore_orchestrator.services.onboarding import OnboardingService
+
+from _version import version, app_name
+
 
 
 @asynccontextmanager
@@ -63,6 +66,11 @@ async def lifespan(app: FastAPI):
     orchestrator_cache_client = BaseCache(namespace='nextplore_orchestrator', version='v1')
     orchestrator_cache_service = OrchestratorCacheService(orchestrator_cache_client)
     app.state.orchestrator_cache_service = orchestrator_cache_service
+
+    semantic_cache_service = SemanticCacheService(
+        vector_client=registry.vector_client,
+    )
+    app.state.semantic_cache_service = semantic_cache_service
 
     identity_cache_client = BaseCache(namespace='user_identity', version='v1')
     app.state.identity_cache_service = IdentityCacheService(identity_cache_client)

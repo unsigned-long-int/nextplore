@@ -77,9 +77,9 @@ async def get_user_profile(
                 )
             key_vault_provider = AzureVaultKeyProvider(key_vault_url=os.getenv('VAULT_URL'))
             kek_kid = key_vault_provider.create_vault(azure_tenant_id)
-            org = organization_from_dto(user=user, onboarding_id=request.id)
+            organization = organization_from_dto(user=user, onboarding_id=request.id)
             organization_id = await auth_repo.create_org(
-                organization=org,
+                organization=organization,
                 kek_kid=kek_kid,
             )
         else:
@@ -102,12 +102,12 @@ async def get_user_profile(
             id=user_id,
             email=usr.email,
             name=usr.name,
-            organization=org.name,
+            organization=organization.name,
             organization_id=organization_id
         )
 
         await cache_service.set_user_profile(
-            org.azure_tenant_id,
+            organization.azure_tenant_id,
             usr.azure_user_id,
             response=response,
             ttl=300

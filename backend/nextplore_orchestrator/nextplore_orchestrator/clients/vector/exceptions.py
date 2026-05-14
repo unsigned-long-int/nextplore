@@ -12,3 +12,11 @@ class VectorGetProfilesRemoteError(Exception):
 
 class VectorGetStatsRemoteError(Exception):
     pass
+
+
+class VectorGetSemanticMatchRemoteError(Exception):
+    pass
+
+
+class VectorUpsertSemanticMatchRemoteError(Exception):
+    pass
