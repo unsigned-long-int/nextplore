@@ -8,7 +8,9 @@ import httpx
 from pydantic import BaseModel, SecretStr
 
 from nextplore_orchestrator.api.context import get_current_identity
+import os
 
+_INTERNAL_TOKEN = os.environ["INTERNAL_SERVICE_TOKEN"]
 
 class PayloadEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -86,15 +88,13 @@ class BaseServiceClient:
 
     @staticmethod
     def _inject_identity_headers(
-        headers: dict[str, Any] | None = None,
+            headers: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         identity = get_current_identity()
-        if identity is None:
-            raise RuntimeError("UserIdentity is missing in context")
-
         base_headers = headers.copy() if headers else {}
         base_headers.setdefault("x-user-id", str(identity.user_id))
         base_headers.setdefault("x-org-id", str(identity.organization_id))
+        base_headers.setdefault("x-internal-token", _INTERNAL_TOKEN)
         return base_headers
 
     @staticmethod

@@ -1,3 +1,17 @@
-from .exc import UserIdentityContextError
-from .identity_context import get_current_identity, set_current_identity
-from .user_identity import UserIdentity
+from nextplore_sdk.identity.context import (
+    UserIdentity,
+    UserIdentityContextError,
+    current_identity,
+    get_current_identity,
+    identity_context,
+    set_current_identity,
+)
+
+__all__ = [
+    "UserIdentity",
+    "UserIdentityContextError",
+    "current_identity",
+    "get_current_identity",
+    "identity_context",
+    "set_current_identity",
+]

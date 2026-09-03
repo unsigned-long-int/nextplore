@@ -35,11 +35,6 @@ class VectorRepositoryTestBase(unittest.IsolatedAsyncioTestCase):
         self.datastore_id = uuid4()
 
     def assert_session_scoped_to_tenant(self):
-        """Every query must open a session bound to the caller's tenant.
-
-        This is the contract row-level security depends on: if the repository
-        ever opens an unscoped session, RLS has nothing to filter on.
-        """
         self.backend_connector_mock.session_scope.assert_called_once_with(
             self.organization_id, self.user_id
         )

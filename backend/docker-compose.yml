@@ -87,9 +87,10 @@ services:
         KAFKA_MESSAGING: libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl
         SVC_INTEGRATION_CONTRACTS: libs/.wheelhouse/svc_integration_contracts-0.1.0-py3-none-any.whl
     container_name: integration_service
-    ports:
-      - "${INTEGRATION_PORT:-8001}:8001"
+    expose:
+      - "8001"
     environment:
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1
       - REDIS_URL=${REDIS_URL}
@@ -131,9 +132,10 @@ services:
         KAFKA_MESSAGING: libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl
         SVC_EMBEDDING_CONTRACTS: libs/.wheelhouse/svc_embedding_contracts-0.1.0-py3-none-any.whl
     container_name: embedding_service
-    ports:
-      - "${EMBEDDING_PORT:-8002}:8001"
+    expose:
+      - "8001"
     environment:
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1
       - REDIS_URL=${REDIS_URL}
@@ -158,9 +160,10 @@ services:
         KAFKA_MESSAGING: libs/.wheelhouse/kafka_messaging-0.1.0-py3-none-any.whl
         SVC_VECTOR_CONTRACTS: libs/.wheelhouse/svc_vector_contracts-0.1.0-py3-none-any.whl
     container_name: vector_service
-    ports:
-      - "${VECTOR_PORT:-8003}:8001"
+    expose:
+      - "8001"
     environment:
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1
       - REDIS_URL=${REDIS_URL}
@@ -192,9 +195,10 @@ services:
     container_name: llm_inference_service
     depends_on:
       - redis
-    ports:
-      - "${LLM_INFERENCE_PORT:-8004}:8001"
+    expose:
+      - "8001"
     environment:
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - REDIS_URL=${REDIS_URL}
       - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
@@ -213,6 +217,7 @@ services:
         NEXTPLORE_SDK: libs/.wheelhouse/nextplore_sdk-0.1.0-py3-none-any.whl
     container_name: notification_service
     environment:
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
       - PYTHONUNBUFFERED=1
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
@@ -258,6 +263,7 @@ services:
     ports:
       - "${ORCHESTRATION_PORT:-8005}:8001"
     environment:
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
       - GCP_ACCESS_KEY=/app/gcp-access-key.json
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
       - PYTHONUNBUFFERED=1

@@ -1,2 +1,0 @@
-class UserIdentityContextError(Exception):
-    pass

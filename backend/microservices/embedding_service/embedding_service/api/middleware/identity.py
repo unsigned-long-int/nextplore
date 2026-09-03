@@ -5,7 +5,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
-from embedding_service.api.context.identity_context import (
+from embedding_service.api.context import (
     UserIdentity,
     set_current_identity,
 )

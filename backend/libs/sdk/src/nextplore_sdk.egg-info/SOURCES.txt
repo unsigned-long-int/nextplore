@@ -88,6 +88,9 @@ src/nextplore_sdk/encryptor/models/cert.py
 src/nextplore_sdk/encryptor/provider/__init__.py
 src/nextplore_sdk/encryptor/provider/azure_vault_key_provider.py
 src/nextplore_sdk/encryptor/provider/vault_key_provider.py
+src/nextplore_sdk/identity/__init__.py
+src/nextplore_sdk/identity/context.py
+src/nextplore_sdk/identity/middleware.py
 src/nextplore_sdk/logging/__init__.py
 src/nextplore_sdk/logging/custom_json_formatter.py
 src/nextplore_sdk/logging/setup.py
