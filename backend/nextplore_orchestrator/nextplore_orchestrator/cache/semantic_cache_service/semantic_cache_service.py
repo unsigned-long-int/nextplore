@@ -49,16 +49,14 @@ class SemanticCacheService:
             )
             logger.info(f"Semantic cache HIT {ai_query.prompt}")
             return cached
-        except VectorGetSemanticMatchRemoteError as e:
-            logger.error(
-                f"Semantic cache VECTOR STORE ERROR {ai_query.prompt}: {e}",
-                exc_info=True,
+        except VectorGetSemanticMatchRemoteError:
+            logger.exception(
+                "Semantic cache VECTOR STORE ERROR %s",
+                ai_query.prompt,
             )
             return None
-        except Exception as e:
-            logger.error(
-                f"Semantic cache ERROR lookup({ai_query.prompt}): {e}", exc_info=True
-            )
+        except Exception:
+            logger.exception("Semantic cache ERROR lookup(%s)", ai_query.prompt)
             return None
 
     async def store_semantic_cache_entry(
@@ -84,12 +82,7 @@ class SemanticCacheService:
                 ),
             )
             logger.info(f"Semantic cache SET {request.prompt}")
-        except VectorUpsertSemanticMatchRemoteError as e:
-            logger.error(
-                f"Semantic cache VECTOR STORE ERROR {request.prompt}: {e}",
-                exc_info=True,
-            )
-        except Exception as e:
-            logger.error(
-                f"Semantic cache ERROR store({request.prompt}): {e}", exc_info=True
-            )
+        except VectorUpsertSemanticMatchRemoteError:
+            logger.exception("Semantic cache VECTOR STORE ERROR %s", request.prompt)
+        except Exception:
+            logger.exception("Semantic cache ERROR store(%s)", request.prompt)
