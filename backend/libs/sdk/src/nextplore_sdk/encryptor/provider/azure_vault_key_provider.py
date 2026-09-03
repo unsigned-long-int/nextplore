@@ -1,4 +1,3 @@
-
 from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.keys import KeyClient

@@ -52,7 +52,5 @@ async def create_user_llm(
         logger.error(f"Unexpected create LLM model error: {e!s}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "message": f"Unexpected error while creating integration: {e!s}"
-            },
+            detail={"message": f"Unexpected error while creating integration: {e!s}"},
         )

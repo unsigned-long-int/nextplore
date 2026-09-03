@@ -6,3 +6,12 @@ from .exceptions import (
     VectorSearchDBRemoteError,
 )
 from .vector_client import VectorClient
+
+__all__ = [
+    "VectorClient",
+    "VectorGetMetasRemoteError",
+    "VectorGetProfilesRemoteError",
+    "VectorGetSemanticMatchRemoteError",
+    "VectorGetStatsRemoteError",
+    "VectorSearchDBRemoteError",
+]

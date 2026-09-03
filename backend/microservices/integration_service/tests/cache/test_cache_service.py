@@ -126,7 +126,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             user_identity=self.user_identity
         )
 
-        expected_value = f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        expected_value = (
+            f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        )
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value, prefix="datastore-stats"
         )
@@ -148,7 +150,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             user_identity=self.user_identity, response=response
         )
 
-        expected_value = f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        expected_value = (
+            f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        )
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value, prefix="datastore-stats"
         )
@@ -267,7 +271,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             user_identity=self.user_identity
         )
 
-        expected_value = f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        expected_value = (
+            f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        )
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value, prefix="datastore-profile"
         )
@@ -301,7 +307,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             user_identity=self.user_identity, response=response
         )
 
-        expected_value = f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        expected_value = (
+            f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        )
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value, prefix="datastore-profile"
         )
@@ -369,7 +377,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             user_identity=self.user_identity
         )
 
-        expected_value = f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        expected_value = (
+            f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        )
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value, prefix="datastore-cert-profile"
         )
@@ -406,7 +416,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             user_identity=self.user_identity, response=response
         )
 
-        expected_value = f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        expected_value = (
+            f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        )
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value, prefix="datastore-cert-profile"
         )
@@ -426,7 +438,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             user_identity=self.user_identity
         )
 
-        expected_value = f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        expected_value = (
+            f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        )
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value, prefix="datastore-cert-profile"
         )
@@ -489,7 +503,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             user_identity=self.user_identity
         )
 
-        expected_value = f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        expected_value = (
+            f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        )
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value, prefix="user-llm-profile"
         )
@@ -519,7 +535,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             user_identity=self.user_identity, response=response
         )
 
-        expected_value = f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        expected_value = (
+            f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        )
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value, prefix="user-llm-profile"
         )
@@ -539,7 +557,9 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             user_identity=self.user_identity
         )
 
-        expected_value = f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        expected_value = (
+            f"{self.user_identity.user_id!s}{self.user_identity.organization_id!s}"
+        )
         get_string_cache_key_mock.assert_called_once_with(
             value=expected_value, prefix="user-llm-profile"
         )

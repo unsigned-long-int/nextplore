@@ -48,7 +48,7 @@ class AuthRepository:
                 return organization_from_orm(organization_orm)
         except SQLAlchemyError as e:
             msg = f"Get organization failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise OrganizationGetFailed(msg) from e
 
     async def create_org(self, organization: Organization, kek_kid: str) -> UUID:
@@ -67,7 +67,7 @@ class AuthRepository:
             return organization_orm.id
         except SQLAlchemyError as e:
             msg = f"Create organization failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise OrganizationCreateFailed(msg) from e
 
     async def get_user(self, user: User) -> UUID | None:
@@ -81,7 +81,7 @@ class AuthRepository:
             return user_orm.id if user_orm else None
         except SQLAlchemyError as e:
             msg = f"Get user failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise UserGetFailed(msg) from e
 
     async def create_user(self, user: User) -> UUID:
@@ -99,7 +99,7 @@ class AuthRepository:
             return user_orm.id
         except SQLAlchemyError as e:
             msg = f"Create user failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise UserCreateFailed(msg) from e
 
     async def get_kek_kid(self, organization_id: UUID) -> str:
@@ -112,7 +112,7 @@ class AuthRepository:
             kek_id = result.scalar()
         except SQLAlchemyError as e:
             msg = f"Get Kek ID failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise KekIdGetFailed(msg) from e
 
         if not kek_id:
@@ -133,7 +133,7 @@ class AuthRepository:
                 return onboarding_request_from_orm(request_orm)
         except SQLAlchemyError as e:
             msg = f"Get onboarding request failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise OnboardingRequestGetFailed(msg) from e
 
     async def create_onboarding_request(
@@ -159,7 +159,7 @@ class AuthRepository:
             return request_orm.id
         except SQLAlchemyError as e:
             msg = f"Create onboarding request failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise OnboardingRequestCreateFailed(msg) from e
 
     async def delete_onboarding_request(self, onboarding_id: UUID) -> None:
@@ -173,7 +173,7 @@ class AuthRepository:
                 raise OnboardingRequestDeleteFailed(msg)
         except SQLAlchemyError as e:
             msg = f"Delete onboarding request failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise OnboardingRequestDeleteFailed(msg) from e
 
     async def get_onboarding_request_by_verification_token(
@@ -193,7 +193,7 @@ class AuthRepository:
                 return onboarding_request_from_orm(request_orm)
         except SQLAlchemyError as e:
             msg = f"Get onboarding request failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise OnboardingRequestGetFailed(msg) from e
 
     async def verify_email(self, request_id: UUID) -> None:
@@ -211,5 +211,5 @@ class AuthRepository:
                 raise OnboardingRequestUpdateFailed(msg)
         except SQLAlchemyError as e:
             msg = f"Update onboarding request failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise OnboardingRequestUpdateFailed(msg) from e

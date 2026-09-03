@@ -1,4 +1,3 @@
-
 from nextplore_sdk.database.connection_maker.exc.exceptions import MissingCloud
 from nextplore_sdk.database.connection_maker.models.cloud import Cloud
 

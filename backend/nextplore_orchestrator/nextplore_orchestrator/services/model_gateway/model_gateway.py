@@ -1,4 +1,3 @@
-
 from svc_llm_inference_contracts.models import (
     LlmOutputSpecs,
     MultiQueryRequest,

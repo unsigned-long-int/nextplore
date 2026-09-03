@@ -1,4 +1,3 @@
-
 from nextplore_sdk.database.connection_maker.exc.exceptions import MissingAuth
 from nextplore_sdk.database.connection_maker.models.auth import Auth
 

@@ -1,4 +1,5 @@
 import uuid
+from typing import ClassVar
 
 from sqlalchemy import TIMESTAMP, Column, Text, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -7,8 +8,8 @@ from .base import Base
 
 
 class OrganizationORM(Base):
-    __tablename__ = "organizations"
-    __table_args__ = {"schema": "auth"}
+    __tablename__: ClassVar = "organizations"
+    __table_args__: ClassVar = {"schema": "auth"}
 
     id = Column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False

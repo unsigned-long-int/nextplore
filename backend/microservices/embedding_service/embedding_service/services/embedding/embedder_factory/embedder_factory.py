@@ -1,4 +1,3 @@
-
 from embedding_service.services.embedding.embedders import EmbedderBase
 from embedding_service.services.embedding.exceptions import MissingEmbedderEngine
 

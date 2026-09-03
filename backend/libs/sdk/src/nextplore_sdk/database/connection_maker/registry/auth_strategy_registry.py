@@ -1,4 +1,3 @@
-
 from nextplore_sdk.database.connection_maker.auth.auth_strategy import AuthStrategy
 from nextplore_sdk.database.connection_maker.auth.azure_asql_strategy import (
     AzureIamAsqlStrategy,

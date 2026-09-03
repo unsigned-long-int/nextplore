@@ -67,9 +67,7 @@ async def create_certificate(
             detail={"message": f"AKV Error: {e!s}"},
         )
     except CertCreateFailed as e:
-        logger.error(
-            f"Create certificate failed with DB error: {e!s}", exc_info=True
-        )
+        logger.error(f"Create certificate failed with DB error: {e!s}", exc_info=True)
     except Exception as e:
         logger.error(f"Unexpected create certificate error: {e!s}", exc_info=True)
         raise HTTPException(

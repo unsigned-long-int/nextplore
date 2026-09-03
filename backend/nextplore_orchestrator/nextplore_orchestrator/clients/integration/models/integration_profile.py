@@ -1,4 +1,3 @@
-
 from pydantic import UUID4, BaseModel, Field
 
 from .auth import Auth

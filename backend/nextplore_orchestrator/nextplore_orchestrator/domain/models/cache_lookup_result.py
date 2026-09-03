@@ -9,5 +9,4 @@ class CacheLookupResult:
 
     @property
     def hit(self) -> bool:
-        return self.json_payload is not Non
-        e
+        return self.json_payload is not None

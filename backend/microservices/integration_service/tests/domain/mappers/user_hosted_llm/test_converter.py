@@ -276,9 +276,12 @@ class TestUserLlmFromDto(unittest.TestCase):
             )
 
     def test_encrypt_error_propagates(self):
-        with patch(
-            f"{MODULE}.encrypt_conn_params", side_effect=RuntimeError("vault down")
-        ), self.assertRaises(RuntimeError):
+        with (
+            patch(
+                f"{MODULE}.encrypt_conn_params", side_effect=RuntimeError("vault down")
+            ),
+            self.assertRaises(RuntimeError),
+        ):
             user_llm_from_dto(
                 organization_id=self.organization_id,
                 user_id=self.user_id,

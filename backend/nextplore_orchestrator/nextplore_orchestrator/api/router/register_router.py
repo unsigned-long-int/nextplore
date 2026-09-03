@@ -39,9 +39,7 @@ async def register_organization(
         OnboardingRequestCreateFailed,
         EmailOutboxCreateFailed,
     ) as e:
-        logger.error(
-            f"Create onboarding request with DB error: {e!s}", exc_info=True
-        )
+        logger.error(f"Create onboarding request with DB error: {e!s}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={"message": f"Database error: {e!s}"},

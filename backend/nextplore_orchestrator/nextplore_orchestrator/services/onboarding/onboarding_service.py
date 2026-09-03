@@ -125,25 +125,23 @@ class OnboardingService:
             OnboardingRequestCreateFailed,
             EmailOutboxCreateFailed,
         ) as e:
-            logger.error(
+            logger.exception(
                 "Create onboarding request failed due to database dependency.",
                 extra={
                     "email_domain": email_domain,
                     "onboarding_id": onboarding_id if onboarding_id else None,
                     "error_type": type(e).__name__,
                 },
-                exc_info=True,
             )
             raise
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Unexpected error during create_onboarding_request.",
                 extra={
                     "email_domain": email_domain,
                     "onboarding_id": onboarding_id if onboarding_id else None,
                     "error_type": type(e).__name__,
                 },
-                exc_info=True,
             )
             raise
 
@@ -158,7 +156,7 @@ class OnboardingService:
                 )
 
                 if not request:
-                    logger.error(f"Invalid verification token sent: {token}")
+                    logger.exception("Invalid verification token sent")
                     raise InvalidVerificationToken(
                         "Invalid or expired verification token"
                     )
@@ -186,24 +184,22 @@ class OnboardingService:
                 )
                 return EmailVerificationStatusResponse(status="verified")
         except OnboardingRequestUpdateFailed as e:
-            logger.error(
+            logger.exception(
                 "Email verification for onboarding request failed due to database dependency.",
                 extra={
                     "email_domain": request.email_domain if request else None,
                     "onboarding_id": request.id if request else None,
                     "error_type": type(e).__name__,
                 },
-                exc_info=True,
             )
             raise
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Unexpected error during email verification.",
                 extra={
                     "email_domain": request.email_domain if request else None,
                     "onboarding_id": request.id if request else None,
                     "error_type": type(e).__name__,
                 },
-                exc_info=True,
             )
             raise

@@ -1,4 +1,5 @@
 import uuid
+from typing import ClassVar
 
 from sqlalchemy import TIMESTAMP, Boolean, Column, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -7,8 +8,8 @@ from .base import Base
 
 
 class OnboardingRequestORM(Base):
-    __tablename__ = "onboarding_requests"
-    __table_args__ = (
+    __tablename__: ClassVar = "onboarding_requests"
+    __table_args__: ClassVar = (
         UniqueConstraint("domain", name="onboarding_requests_domain_key"),
         {"schema": "auth"},
     )

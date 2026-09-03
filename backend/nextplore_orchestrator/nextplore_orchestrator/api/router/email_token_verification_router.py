@@ -26,9 +26,7 @@ async def verify_email_token(
         response = await onboarding_service.verify_email(token)
         return response
     except OnboardingRequestUpdateFailed as e:
-        logger.error(
-            f"Email verification failed with DB error: {e!s}", exc_info=True
-        )
+        logger.error(f"Email verification failed with DB error: {e!s}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={"message": f"Database error: {e!s}"},

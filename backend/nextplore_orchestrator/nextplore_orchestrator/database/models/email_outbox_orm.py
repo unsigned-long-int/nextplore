@@ -1,4 +1,5 @@
 import uuid
+from typing import ClassVar
 
 from sqlalchemy import TIMESTAMP, Column, Integer, Text, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -7,8 +8,8 @@ from .base import Base
 
 
 class EmailOutboxORM(Base):
-    __tablename__ = "email_outbox"
-    __table_args__ = {"schema": "notification"}
+    __tablename__: ClassVar = "email_outbox"
+    __table_args__: ClassVar = {"schema": "notification"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     recipient = Column(Text, nullable=False)

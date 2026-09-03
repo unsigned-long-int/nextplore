@@ -1,4 +1,3 @@
-
 from openai.types.chat import ChatCompletionToolParam
 from svc_llm_inference_contracts.models import LlmOutputSpecs
 

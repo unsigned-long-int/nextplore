@@ -29,5 +29,5 @@ class NotificationRepository:
             return mail_outbox_orm.id
         except SQLAlchemyError as e:
             msg = f"Create mail outbox failed with database error: {e!s}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise EmailOutboxCreateFailed(msg) from e

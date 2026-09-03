@@ -1,4 +1,3 @@
-
 from kafka_messaging.events.base import BaseEvent
 
 _EVENT_REGISTRY: dict[str, type[BaseEvent]] = {}
