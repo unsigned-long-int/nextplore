@@ -1,16 +1,15 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from embedding_service.lifecycle import lifespan
-from embedding_service.api.router import embedding_router
 from embedding_service.api.middleware import IdentityMiddleware
-
+from embedding_service.api.router import embedding_router
+from embedding_service.lifecycle import lifespan
 
 app = FastAPI(
-    title='Embedding Service',
-    description='Handles embeddings of datastreams',
-    version = '1.0.0',
-    lifespan=lifespan
+    title="Embedding Service",
+    description="Handles embeddings of datastreams",
+    version="1.0.0",
+    lifespan=lifespan,
 )
 app.add_middleware(IdentityMiddleware)
 app.include_router(embedding_router)

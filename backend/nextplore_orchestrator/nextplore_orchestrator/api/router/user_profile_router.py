@@ -1,38 +1,38 @@
 import os
-from fastapi import APIRouter, Depends, HTTPException, status
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from nextplore_sdk.database.backend.database_backend_connector import (
+    DatabaseBackendConnector,
+)
+from nextplore_sdk.encryptor.provider.azure_vault_key_provider import (
+    AzureVaultKeyProvider,
+)
+
+from nextplore_orchestrator.api.dependencies.authentication import get_azure_user
+from nextplore_orchestrator.api.dependencies.cache import get_orchestrator_cache_service
+from nextplore_orchestrator.api.dependencies.connector import get_backend_connector
 from nextplore_orchestrator.api.models.user_profile import UserProfile
 from nextplore_orchestrator.cache.orchestrator_cache import OrchestratorCacheService
 from nextplore_orchestrator.database.repositories import AuthRepository
-from nextplore_orchestrator.domain.mappers import user_from_dto, organization_from_dto
-from nextplore_orchestrator.api.dependencies.cache import get_orchestrator_cache_service
-from nextplore_orchestrator.api.dependencies.authentication import get_azure_user
-from nextplore_orchestrator.api.dependencies.connector import get_backend_connector
+from nextplore_orchestrator.domain.mappers import organization_from_dto, user_from_dto
 
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
-from nextplore_sdk.encryptor.provider.azure_vault_key_provider import AzureVaultKeyProvider
+router = APIRouter(prefix="/v1/nextplore-orchestrator", tags=["UserProfile"])
 
 
-router = APIRouter(prefix='/v1/nextplore-orchestrator', tags=['UserProfile'])
-
-
-@router.get('/users/profiles', response_model=UserProfile)
+@router.get("/users/profiles", response_model=UserProfile)
 async def get_user_profile(
     user=Depends(get_azure_user),
     backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
-    cache_service: OrchestratorCacheService = Depends(get_orchestrator_cache_service)
+    cache_service: OrchestratorCacheService = Depends(get_orchestrator_cache_service),
 ) -> UserProfile:
-    email = user.get('preferred_username')
+    email = user.get("preferred_username")
     if not email:
-        raise ValueError('preferred_username claim is missing')
-    
-    azure_tenant_id = user.get('tid')
-    azure_user_id = user.get('oid')
+        raise ValueError("preferred_username claim is missing")
 
-    cached = await cache_service.get_user_profile(
-        azure_tenant_id,
-        azure_user_id
-    )
+    azure_tenant_id = user.get("tid")
+    azure_user_id = user.get("oid")
+
+    cached = await cache_service.get_user_profile(azure_tenant_id, azure_user_id)
     if cached:
         return cached
 
@@ -41,41 +41,43 @@ async def get_user_profile(
 
         organization = await auth_repo.get_org(azure_tenant_id)
         if not organization:
-            email_domain = email.split('@')[1].lower()
+            email_domain = email.split("@")[1].lower()
             request = await auth_repo.get_onboarding_request_by_domain(email_domain)
             if not request:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail={
-                        'code': 'registration_required',
-                        'message': 'Your organisation has not requested access to Nextplore.',
+                        "code": "registration_required",
+                        "message": "Your organisation has not requested access to Nextplore.",
                     },
                 )
             if not request.email_verified:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail={
-                        'code': 'email_not_verified',
-                        'message': 'Please verify your email address first.',
+                        "code": "email_not_verified",
+                        "message": "Please verify your email address first.",
                     },
                 )
-            if request.status == 'pending':
+            if request.status == "pending":
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail={
-                        'code': 'approval_pending',
-                        'message': 'Your access request is under review.',
+                        "code": "approval_pending",
+                        "message": "Your access request is under review.",
                     },
                 )
-            if request.status == 'rejected':
+            if request.status == "rejected":
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail={
-                        'code': 'registration_rejected',
-                        'message': 'Your access request was not approved. Contact support.',
+                        "code": "registration_rejected",
+                        "message": "Your access request was not approved. Contact support.",
                     },
                 )
-            key_vault_provider = AzureVaultKeyProvider(key_vault_url=os.getenv('VAULT_URL'))
+            key_vault_provider = AzureVaultKeyProvider(
+                key_vault_url=os.getenv("VAULT_URL")
+            )
             kek_kid = key_vault_provider.create_vault(azure_tenant_id)
             organization = organization_from_dto(user=user, onboarding_id=request.id)
             organization_id = await auth_repo.create_org(
@@ -83,12 +85,12 @@ async def get_user_profile(
                 kek_kid=kek_kid,
             )
         else:
-            if organization.status == 'suspended':
+            if organization.status == "suspended":
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail={
-                        'code': 'org_suspended',
-                        'message': 'Your organisation access has been suspended. Contact support.',
+                        "code": "org_suspended",
+                        "message": "Your organisation access has been suspended. Contact support.",
                     },
                 )
             organization_id = organization.id
@@ -103,14 +105,11 @@ async def get_user_profile(
             email=usr.email,
             name=usr.name,
             organization=organization.name,
-            organization_id=organization_id
+            organization_id=organization_id,
         )
 
         await cache_service.set_user_profile(
-            organization.azure_tenant_id,
-            usr.azure_user_id,
-            response=response,
-            ttl=300
+            organization.azure_tenant_id, usr.azure_user_id, response=response, ttl=300
         )
 
         return response

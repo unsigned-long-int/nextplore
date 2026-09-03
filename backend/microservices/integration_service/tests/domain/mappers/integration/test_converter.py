@@ -1,57 +1,56 @@
 import unittest
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 from svc_integration_contracts.models import (
-    DataStoreUpdateRequest,
-    DataStoreCreateRequest,
-    Auth,
     DB,
-    Cloud
+    Auth,
+    Cloud,
+    DataStoreCreateRequest,
+    DataStoreUpdateRequest,
 )
 
-from integration_service.domain.models.datastore import (
-    DataStoreUpdate,
-    DataStoreCreate,
-    DataStoreProfile,
-    DataStore
-)
 from integration_service.database.models import DataStoreORM
 from integration_service.domain.mappers.datastore import (
-    datastore_update_from_dto,
     datastore_create_from_dto,
-    orm_from_datastore_create,
+    datastore_from_orm,
     datastore_profile_from_orm,
-    datastore_from_orm
+    datastore_update_from_dto,
+    orm_from_datastore_create,
+)
+from integration_service.domain.models.datastore import (
+    DataStore,
+    DataStoreCreate,
+    DataStoreProfile,
+    DataStoreUpdate,
 )
 
 
 class TestDataStoreUpdateFromDTO(unittest.TestCase):
-
     def test_converts_all_fields(self):
         payload = DataStoreUpdateRequest(
-            connection_name='test_connection',
-            host='localhost',
+            connection_name="test_connection",
+            host="localhost",
             port=5432,
-            database_name='test_db',
-            autosync_on=True
+            database_name="test_db",
+            autosync_on=True,
         )
 
         result = datastore_update_from_dto(payload)
 
         self.assertIsInstance(result, DataStoreUpdate)
-        self.assertEqual(result.connection_name, 'test_connection')
-        self.assertEqual(result.host, 'localhost')
+        self.assertEqual(result.connection_name, "test_connection")
+        self.assertEqual(result.host, "localhost")
         self.assertEqual(result.port, 5432)
-        self.assertEqual(result.database_name, 'test_db')
+        self.assertEqual(result.database_name, "test_db")
         self.assertEqual(result.autosync_on, True)
 
     def test_handles_optional_fields(self):
         payload = DataStoreUpdateRequest(
-            connection_name='test',
+            connection_name="test",
             host=None,
             port=None,
             database_name=None,
-            autosync_on=False
+            autosync_on=False,
         )
 
         result = datastore_update_from_dto(payload)
@@ -63,32 +62,31 @@ class TestDataStoreUpdateFromDTO(unittest.TestCase):
 
 
 class TestDataStoreCreateFromDTO(unittest.TestCase):
-
     def setUp(self):
-        self.tenant_id = 'tenant'
-        self.client_id = 'client_id'
-        self.kek_kid = 'kek_kid'
+        self.tenant_id = "tenant"
+        self.client_id = "client_id"
+        self.kek_kid = "kek_kid"
 
     def test_converts_all_required_fields(self):
         payload = DataStoreCreateRequest(
             auth=Auth.iam,
             cloud=Cloud.azure,
             db=DB.postgresql,
-            connection_name='test_connection',
-            descr='test-descr',
-            host='localhost',
-            database_name='test_db',
+            connection_name="test_connection",
+            descr="test-descr",
+            host="localhost",
+            database_name="test_db",
             kek_kid=self.kek_kid,
             port=5432,
-            warehouse='warehouse1',
+            warehouse="warehouse1",
             tenant_id=self.tenant_id,
             client_id=self.client_id,
-            region='us-east-1',
-            azure_cert_kid='cert_kid_123',
-            azure_cert_name='test_cert',
-            azure_public_key_pem='-----BEGIN PUBLIC KEY-----',
-            snowflake_public_key_pem='-----BEGIN PUBLIC KEY-----',
-            autosync_on=True
+            region="us-east-1",
+            azure_cert_kid="cert_kid_123",
+            azure_cert_name="test_cert",
+            azure_public_key_pem="-----BEGIN PUBLIC KEY-----",
+            snowflake_public_key_pem="-----BEGIN PUBLIC KEY-----",
+            autosync_on=True,
         )
 
         result = datastore_create_from_dto(payload)
@@ -97,19 +95,19 @@ class TestDataStoreCreateFromDTO(unittest.TestCase):
         self.assertEqual(result.auth, Auth.iam)
         self.assertEqual(result.cloud, Cloud.azure)
         self.assertEqual(result.db, DB.postgresql)
-        self.assertEqual(result.connection_name, 'test_connection')
-        self.assertEqual(result.host, 'localhost')
-        self.assertEqual(result.database_name, 'test_db')
+        self.assertEqual(result.connection_name, "test_connection")
+        self.assertEqual(result.host, "localhost")
+        self.assertEqual(result.database_name, "test_db")
         self.assertEqual(result.kek_kid, self.kek_kid)
         self.assertEqual(result.port, 5432)
-        self.assertEqual(result.warehouse, 'warehouse1')
+        self.assertEqual(result.warehouse, "warehouse1")
         self.assertEqual(result.tenant_id, self.tenant_id)
         self.assertEqual(result.client_id, self.client_id)
-        self.assertEqual(result.region, 'us-east-1')
-        self.assertEqual(result.azure_cert_kid, 'cert_kid_123')
-        self.assertEqual(result.azure_cert_name, 'test_cert')
-        self.assertEqual(result.azure_public_key_pem, '-----BEGIN PUBLIC KEY-----')
-        self.assertEqual(result.snowflake_public_key_pem, '-----BEGIN PUBLIC KEY-----')
+        self.assertEqual(result.region, "us-east-1")
+        self.assertEqual(result.azure_cert_kid, "cert_kid_123")
+        self.assertEqual(result.azure_cert_name, "test_cert")
+        self.assertEqual(result.azure_public_key_pem, "-----BEGIN PUBLIC KEY-----")
+        self.assertEqual(result.snowflake_public_key_pem, "-----BEGIN PUBLIC KEY-----")
         self.assertTrue(result.autosync_on)
 
     def test_handles_minimal_payload(self):
@@ -117,10 +115,10 @@ class TestDataStoreCreateFromDTO(unittest.TestCase):
             auth=Auth.password_native,
             cloud=Cloud.aws,
             db=DB.mysql,
-            connection_name='minimal',
-            descr='test-descr',
-            host='db.example.com',
-            database_name='mydb',
+            connection_name="minimal",
+            descr="test-descr",
+            host="db.example.com",
+            database_name="mydb",
             kek_kid=self.kek_kid,
             port=3306,
             warehouse=None,
@@ -131,53 +129,50 @@ class TestDataStoreCreateFromDTO(unittest.TestCase):
             azure_cert_name=None,
             azure_public_key_pem=None,
             snowflake_public_key_pem=None,
-            autosync_on=False
+            autosync_on=False,
         )
 
         result = datastore_create_from_dto(payload)
 
         self.assertEqual(result.auth, Auth.password_native)
-        self.assertEqual(result.connection_name, 'minimal')
+        self.assertEqual(result.connection_name, "minimal")
         self.assertIsNone(result.warehouse)
         self.assertIsNone(result.region)
         self.assertFalse(result.autosync_on)
 
 
 class TestORMFromDataStoreCreate(unittest.TestCase):
-
     def setUp(self):
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.tenant_id = 'tenant_id'
-        self.client_id = 'client_id'
-        self.kek_kid = 'kek_kid'
+        self.tenant_id = "tenant_id"
+        self.client_id = "client_id"
+        self.kek_kid = "kek_kid"
 
     def test_converts_to_orm_with_all_fields(self):
         datastore_create = DataStoreCreate(
             auth=Auth.cert,
             cloud=Cloud.gcp,
             db=DB.sqlserver,
-            connection_name='prod_connection',
-            descr='test-descr',
-            host='prod.example.com',
-            database_name='prod_db',
+            connection_name="prod_connection",
+            descr="test-descr",
+            host="prod.example.com",
+            database_name="prod_db",
             kek_kid=self.kek_kid,
             port=443,
-            warehouse='prod_warehouse',
+            warehouse="prod_warehouse",
             tenant_id=self.tenant_id,
             client_id=self.client_id,
-            region='us-west-2',
-            azure_cert_kid='cert_123',
-            azure_cert_name='prod_cert',
-            azure_public_key_pem='-----BEGIN PUBLIC KEY-----\nAZURE',
-            snowflake_public_key_pem='-----BEGIN PUBLIC KEY-----\nSNOWFLAKE',
-            autosync_on=True
+            region="us-west-2",
+            azure_cert_kid="cert_123",
+            azure_cert_name="prod_cert",
+            azure_public_key_pem="-----BEGIN PUBLIC KEY-----\nAZURE",
+            snowflake_public_key_pem="-----BEGIN PUBLIC KEY-----\nSNOWFLAKE",
+            autosync_on=True,
         )
 
         result = orm_from_datastore_create(
-            self.organization_id,
-            self.user_id,
-            datastore_create
+            self.organization_id, self.user_id, datastore_create
         )
 
         self.assertIsInstance(result, DataStoreORM)
@@ -186,18 +181,22 @@ class TestORMFromDataStoreCreate(unittest.TestCase):
         self.assertEqual(result.auth, Auth.cert)
         self.assertEqual(result.cloud, Cloud.gcp)
         self.assertEqual(result.db, DB.sqlserver)
-        self.assertEqual(result.connection_name, 'prod_connection')
-        self.assertEqual(result.host, 'prod.example.com')
+        self.assertEqual(result.connection_name, "prod_connection")
+        self.assertEqual(result.host, "prod.example.com")
         self.assertEqual(result.port, 443)
-        self.assertEqual(result.database_name, 'prod_db')
-        self.assertEqual(result.warehouse, 'prod_warehouse')
+        self.assertEqual(result.database_name, "prod_db")
+        self.assertEqual(result.warehouse, "prod_warehouse")
         self.assertEqual(result.tenant_id, self.tenant_id)
         self.assertEqual(result.client_id, self.client_id)
-        self.assertEqual(result.region, 'us-west-2')
-        self.assertEqual(result.azure_cert_kid, 'cert_123')
-        self.assertEqual(result.azure_cert_name, 'prod_cert')
-        self.assertEqual(result.azure_public_key_pem, '-----BEGIN PUBLIC KEY-----\nAZURE')
-        self.assertEqual(result.snowflake_public_key_pem, '-----BEGIN PUBLIC KEY-----\nSNOWFLAKE')
+        self.assertEqual(result.region, "us-west-2")
+        self.assertEqual(result.azure_cert_kid, "cert_123")
+        self.assertEqual(result.azure_cert_name, "prod_cert")
+        self.assertEqual(
+            result.azure_public_key_pem, "-----BEGIN PUBLIC KEY-----\nAZURE"
+        )
+        self.assertEqual(
+            result.snowflake_public_key_pem, "-----BEGIN PUBLIC KEY-----\nSNOWFLAKE"
+        )
         self.assertEqual(result.kek_kid, self.kek_kid)
         self.assertTrue(result.autosync_on)
 
@@ -206,10 +205,10 @@ class TestORMFromDataStoreCreate(unittest.TestCase):
             auth=Auth.password_proxy,
             cloud=Cloud.gcp,
             db=DB.postgresql,
-            connection_name='test',
-            descr='test-descr',
-            host='localhost',
-            database_name='test',
+            connection_name="test",
+            descr="test-descr",
+            host="localhost",
+            database_name="test",
             kek_kid=self.kek_kid,
             port=5432,
             warehouse=None,
@@ -220,13 +219,11 @@ class TestORMFromDataStoreCreate(unittest.TestCase):
             azure_cert_name=None,
             azure_public_key_pem=None,
             snowflake_public_key_pem=None,
-            autosync_on=False
+            autosync_on=False,
         )
 
         result = orm_from_datastore_create(
-            self.organization_id,
-            self.user_id,
-            datastore_create
+            self.organization_id, self.user_id, datastore_create
         )
 
         self.assertIsInstance(result.organization_id, UUID)
@@ -237,7 +234,6 @@ class TestORMFromDataStoreCreate(unittest.TestCase):
 
 
 class TestDataStoreProfileFromORM(unittest.TestCase):
-
     def test_converts_orm_to_profile(self):
         datastore_id = uuid4()
         datastore_orm = DataStoreORM(
@@ -247,16 +243,16 @@ class TestDataStoreProfileFromORM(unittest.TestCase):
             auth=Auth.password_proxy,
             cloud=Cloud.snowflake_managed,
             db=DB.snowflake,
-            connection_name='test_connection',
-            database_name='test_db',
-            host='test.example.com',
+            connection_name="test_connection",
+            database_name="test_db",
+            host="test.example.com",
             port=443,
             autosync_on=True,
-            warehouse='warehouse1',
+            warehouse="warehouse1",
             tenant_id=uuid4(),
             client_id=uuid4(),
-            region='us-east-1',
-            kek_kid=uuid4()
+            region="us-east-1",
+            kek_kid=uuid4(),
         )
 
         result = datastore_profile_from_orm(datastore_orm)
@@ -266,9 +262,9 @@ class TestDataStoreProfileFromORM(unittest.TestCase):
         self.assertEqual(result.auth, Auth.password_proxy)
         self.assertEqual(result.cloud, Cloud.snowflake_managed)
         self.assertEqual(result.db, DB.snowflake)
-        self.assertEqual(result.connection_name, 'test_connection')
-        self.assertEqual(result.database_name, 'test_db')
-        self.assertEqual(result.host, 'test.example.com')
+        self.assertEqual(result.connection_name, "test_connection")
+        self.assertEqual(result.database_name, "test_db")
+        self.assertEqual(result.host, "test.example.com")
         self.assertEqual(result.port, 443)
         self.assertTrue(result.autosync_on)
 
@@ -280,33 +276,32 @@ class TestDataStoreProfileFromORM(unittest.TestCase):
             auth=Auth.cert,
             cloud=Cloud.aws,
             db=DB.postgresql,
-            connection_name='profile_test',
-            database_name='db',
-            host='localhost',
+            connection_name="profile_test",
+            database_name="db",
+            host="localhost",
             port=3306,
             autosync_on=False,
             kek_kid=uuid4(),
-            warehouse='secret_warehouse',
-            tenant_id=uuid4()
+            warehouse="secret_warehouse",
+            tenant_id=uuid4(),
         )
 
         result = datastore_profile_from_orm(datastore_orm)
 
-        self.assertFalse(hasattr(result, 'kek_kid'))
-        self.assertFalse(hasattr(result, 'warehouse'))
-        self.assertFalse(hasattr(result, 'organization_id'))
-        self.assertFalse(hasattr(result, 'user_id'))
+        self.assertFalse(hasattr(result, "kek_kid"))
+        self.assertFalse(hasattr(result, "warehouse"))
+        self.assertFalse(hasattr(result, "organization_id"))
+        self.assertFalse(hasattr(result, "user_id"))
 
 
 class TestDataStoreFromORM(unittest.TestCase):
-
     def setUp(self):
         self.datastore_id = uuid4()
         self.organization_id = uuid4()
         self.user_id = uuid4()
-        self.tenant_id = 'tenant_id'
-        self.client_id = 'client_id'
-        self.kek_kid = 'kek_kid'
+        self.tenant_id = "tenant_id"
+        self.client_id = "client_id"
+        self.kek_kid = "kek_kid"
 
     def test_converts_all_orm_fields(self):
         datastore_orm = DataStoreORM(
@@ -316,20 +311,20 @@ class TestDataStoreFromORM(unittest.TestCase):
             auth=Auth.password_native,
             cloud=Cloud.aws,
             db=DB.mysql,
-            connection_name='full_datastore',
-            host='prod.example.com',
-            database_name='prod_db',
+            connection_name="full_datastore",
+            host="prod.example.com",
+            database_name="prod_db",
             kek_kid=self.kek_kid,
             port=443,
-            warehouse='prod_warehouse',
+            warehouse="prod_warehouse",
             tenant_id=self.tenant_id,
             client_id=self.client_id,
-            region='us-west-2',
-            azure_cert_kid='cert_456',
-            azure_cert_name='azure_cert',
-            azure_public_key_pem='-----BEGIN PUBLIC KEY-----\nAZURE_KEY',
-            snowflake_public_key_pem='-----BEGIN PUBLIC KEY-----\nSNOWFLAKE_KEY',
-            autosync_on=True
+            region="us-west-2",
+            azure_cert_kid="cert_456",
+            azure_cert_name="azure_cert",
+            azure_public_key_pem="-----BEGIN PUBLIC KEY-----\nAZURE_KEY",
+            snowflake_public_key_pem="-----BEGIN PUBLIC KEY-----\nSNOWFLAKE_KEY",
+            autosync_on=True,
         )
 
         result = datastore_from_orm(datastore_orm)
@@ -341,19 +336,23 @@ class TestDataStoreFromORM(unittest.TestCase):
         self.assertEqual(result.auth, Auth.password_native)
         self.assertEqual(result.cloud, Cloud.aws)
         self.assertEqual(result.db, DB.mysql)
-        self.assertEqual(result.connection_name, 'full_datastore')
-        self.assertEqual(result.host, 'prod.example.com')
-        self.assertEqual(result.database_name, 'prod_db')
+        self.assertEqual(result.connection_name, "full_datastore")
+        self.assertEqual(result.host, "prod.example.com")
+        self.assertEqual(result.database_name, "prod_db")
         self.assertEqual(result.kek_kid, self.kek_kid)
         self.assertEqual(result.port, 443)
-        self.assertEqual(result.warehouse, 'prod_warehouse')
+        self.assertEqual(result.warehouse, "prod_warehouse")
         self.assertEqual(result.tenant_id, self.tenant_id)
         self.assertEqual(result.client_id, self.client_id)
-        self.assertEqual(result.region, 'us-west-2')
-        self.assertEqual(result.azure_cert_kid, 'cert_456')
-        self.assertEqual(result.azure_cert_name, 'azure_cert')
-        self.assertEqual(result.azure_public_key_pem, '-----BEGIN PUBLIC KEY-----\nAZURE_KEY')
-        self.assertEqual(result.snowflake_public_key_pem, '-----BEGIN PUBLIC KEY-----\nSNOWFLAKE_KEY')
+        self.assertEqual(result.region, "us-west-2")
+        self.assertEqual(result.azure_cert_kid, "cert_456")
+        self.assertEqual(result.azure_cert_name, "azure_cert")
+        self.assertEqual(
+            result.azure_public_key_pem, "-----BEGIN PUBLIC KEY-----\nAZURE_KEY"
+        )
+        self.assertEqual(
+            result.snowflake_public_key_pem, "-----BEGIN PUBLIC KEY-----\nSNOWFLAKE_KEY"
+        )
         self.assertTrue(result.autosync_on)
 
     def test_preserves_types(self):
@@ -364,9 +363,9 @@ class TestDataStoreFromORM(unittest.TestCase):
             auth=Auth.password_proxy,
             cloud=Cloud.gcp,
             db=DB.mysql,
-            connection_name='test',
-            host='localhost',
-            database_name='test_db',
+            connection_name="test",
+            host="localhost",
+            database_name="test_db",
             kek_kid=self.kek_kid,
             port=5432,
             warehouse=None,
@@ -377,7 +376,7 @@ class TestDataStoreFromORM(unittest.TestCase):
             azure_cert_name=None,
             azure_public_key_pem=None,
             snowflake_public_key_pem=None,
-            autosync_on=False
+            autosync_on=False,
         )
 
         result = datastore_from_orm(datastore_orm)
@@ -397,9 +396,9 @@ class TestDataStoreFromORM(unittest.TestCase):
             auth=Auth.password_native,
             cloud=Cloud.snowflake_managed,
             db=DB.snowflake,
-            connection_name='minimal',
-            host='localhost',
-            database_name='db',
+            connection_name="minimal",
+            host="localhost",
+            database_name="db",
             kek_kid=self.kek_kid,
             port=3306,
             warehouse=None,
@@ -410,7 +409,7 @@ class TestDataStoreFromORM(unittest.TestCase):
             azure_cert_name=None,
             azure_public_key_pem=None,
             snowflake_public_key_pem=None,
-            autosync_on=False
+            autosync_on=False,
         )
 
         result = datastore_from_orm(datastore_orm)
@@ -425,33 +424,32 @@ class TestDataStoreFromORM(unittest.TestCase):
 
 
 class TestConversionRoundTrip(unittest.TestCase):
-
     def test_dto_to_domain_to_orm_to_domain(self):
         organization_id = uuid4()
         user_id = uuid4()
-        tenant_id = 'tenant_id'
-        client_id = 'client_id'
-        kek_kid = 'kek_kid'
+        tenant_id = "tenant_id"
+        client_id = "client_id"
+        kek_kid = "kek_kid"
 
         original_dto = DataStoreCreateRequest(
             auth=Auth.cert,
             cloud=Cloud.azure,
             db=DB.sqlserver,
-            connection_name='roundtrip_test',
-            descr='test-descr',
-            host='test.example.com',
-            database_name='test_db',
+            connection_name="roundtrip_test",
+            descr="test-descr",
+            host="test.example.com",
+            database_name="test_db",
             kek_kid=kek_kid,
             port=443,
-            warehouse='test_warehouse',
+            warehouse="test_warehouse",
             tenant_id=tenant_id,
             client_id=client_id,
-            region='us-east-1',
-            azure_cert_kid='cert_789',
-            azure_cert_name='test_cert',
-            azure_public_key_pem='-----BEGIN PUBLIC KEY-----',
-            snowflake_public_key_pem='-----BEGIN PUBLIC KEY-----',
-            autosync_on=True
+            region="us-east-1",
+            azure_cert_kid="cert_789",
+            azure_cert_name="test_cert",
+            azure_public_key_pem="-----BEGIN PUBLIC KEY-----",
+            snowflake_public_key_pem="-----BEGIN PUBLIC KEY-----",
+            autosync_on=True,
         )
 
         domain = datastore_create_from_dto(original_dto)

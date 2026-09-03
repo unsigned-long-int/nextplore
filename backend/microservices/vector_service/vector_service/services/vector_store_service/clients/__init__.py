@@ -1,2 +1,2 @@
-from .vector_store_client import VectorStoreClient
 from .qdrant_store_client import QDrantStoreClient
+from .vector_store_client import VectorStoreClient

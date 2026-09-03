@@ -1,25 +1,21 @@
 import logging
-from typing import Tuple
 from uuid import UUID
+
 from sqlalchemy import quoted_name
 from sqlalchemy.engine.reflection import Inspector
 
-from integration_service.services.crawl.catalogs import (
-    SchemaCatalog,
-    TableCatalog
+from integration_service.services.crawl.catalogs import SchemaCatalog, TableCatalog
+from integration_service.services.crawl.filters.logic import (
+    HasSelectPermissionSpec,
+    Specification,
 )
-from integration_service.services.crawl.filters.logic import Specification, HasSelectPermissionSpec
 
 logger = logging.getLogger(__name__)
 
 
 def inspect_tables(
-    crawler: Inspector,
-    datastore_id: UUID,
-    schema_name: str,
-    table_spec: Specification
-) -> Tuple[TableCatalog, ...]:
-
+    crawler: Inspector, datastore_id: UUID, schema_name: str, table_spec: Specification
+) -> tuple[TableCatalog, ...]:
     table_names = crawler.get_table_names(schema=quoted_name(schema_name, quote=True))
     tables = []
 
@@ -32,15 +28,24 @@ def inspect_tables(
                 datastore_id=datastore_id,
                 name=table_name,
                 columns=crawler.get_columns(table_name=table_name, schema=schema_name),
-                primary_keys=crawler.get_pk_constraint(table_name=table_name, schema=schema_name),
-                foreign_keys=crawler.get_foreign_keys(table_name=table_name, schema=schema_name),
+                primary_keys=crawler.get_pk_constraint(
+                    table_name=table_name, schema=schema_name
+                ),
+                foreign_keys=crawler.get_foreign_keys(
+                    table_name=table_name, schema=schema_name
+                ),
                 indexes=crawler.get_indexes(table_name=table_name, schema=schema_name),
-                table_comment=crawler.get_table_comment(table_name=table_name, schema=schema_name)
+                table_comment=crawler.get_table_comment(
+                    table_name=table_name, schema=schema_name
+                ),
             )
             tables.append(table)
         except Exception as e:
-            logger.error(f'Failed to inspect table {schema_name}.{table_name}: {e}', exc_info=True)
-    
+            logger.error(
+                f"Failed to inspect table {schema_name}.{table_name}: {e}",
+                exc_info=True,
+            )
+
     return tuple(tables)
 
 
@@ -48,8 +53,8 @@ def inspect_schemas(
     crawler: Inspector,
     datastore_id: UUID,
     schema_spec: Specification,
-    table_spec: Specification
-) -> Tuple[SchemaCatalog, ...]:
+    table_spec: Specification,
+) -> tuple[SchemaCatalog, ...]:
     schema_names = crawler.get_schema_names()
     schemas = []
 
@@ -57,16 +62,22 @@ def inspect_schemas(
         schema_candidate = SchemaCatalog(datastore_id=datastore_id, name=schema_name)
         if not schema_spec.is_satisfied_by(schema_candidate):
             continue
-        if (permission_specs := HasSelectPermissionSpec(crawler, schema_name)).is_empty():
-            logger.info(f'Skipping schema {schema_name}: no accessible tables found')
+        if (
+            permission_specs := HasSelectPermissionSpec(crawler, schema_name)
+        ).is_empty():
+            logger.info(f"Skipping schema {schema_name}: no accessible tables found")
             continue
         tables = inspect_tables(
             crawler=crawler,
             datastore_id=datastore_id,
             schema_name=schema_name,
-            table_spec=table_spec & permission_specs
+            table_spec=table_spec & permission_specs,
         )
         if tables:
-            schemas.append(SchemaCatalog(datastore_id=datastore_id, name=schema_name, tables=tables))
+            schemas.append(
+                SchemaCatalog(
+                    datastore_id=datastore_id, name=schema_name, tables=tables
+                )
+            )
 
     return tuple(schemas)

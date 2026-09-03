@@ -1,7 +1,9 @@
-from typing import Dict, Any
+from typing import Any
 
 from llm_inference_service.domain.models.model_gateway_params import UserLlmParams
-from llm_inference_service.services.models_gateway.model_providers.lite_llm_provider import LiteLlmProvider
+from llm_inference_service.services.models_gateway.model_providers.lite_llm_provider import (
+    LiteLlmProvider,
+)
 
 
 class UserLlmProvider(LiteLlmProvider):
@@ -10,13 +12,13 @@ class UserLlmProvider(LiteLlmProvider):
         self.model = model
 
     def model_path(self) -> str:
-        return f'openai/{self.model.model_id}'
+        return f"openai/{self.model.model_id}"
 
-    def base_kwargs(self) -> Dict[str, Any]:
+    def base_kwargs(self) -> dict[str, Any]:
         return {
-            'model': self.model_path(),
-            'api_base': self.model.api_base,
-            **self.model.connection_params
+            "model": self.model_path(),
+            "api_base": self.model.api_base,
+            **self.model.connection_params,
         }
 
     def max_tokens(self) -> int:

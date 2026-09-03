@@ -1,5 +1,5 @@
-from uuid import UUID
 from dataclasses import dataclass
+from uuid import UUID
 
 from .table_meta import TableMeta
 
@@ -10,4 +10,3 @@ class VectorProfile:
     schema_name: str
     table_name: str
     table_meta: TableMeta
-    

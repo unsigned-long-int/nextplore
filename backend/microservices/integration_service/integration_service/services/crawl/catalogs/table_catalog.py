@@ -1,25 +1,27 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from sqlalchemy.engine.interfaces import (
     ReflectedColumn,
-    ReflectedPrimaryKeyConstraint,
     ReflectedForeignKeyConstraint,
     ReflectedIndex,
-    ReflectedTableComment
+    ReflectedPrimaryKeyConstraint,
+    ReflectedTableComment,
 )
+
 from .datastore_entity_identifier import DataStoreEntityIdentifier
 
 
 @dataclass(frozen=True)
 class TableCatalog(DataStoreEntityIdentifier):
     name: str
-    columns: Optional[List[ReflectedColumn]] = field(default_factory=list)
-    primary_keys: Optional[ReflectedPrimaryKeyConstraint] = field(default=None)
-    foreign_keys: Optional[List[ReflectedForeignKeyConstraint]] = field(default_factory=list)
-    indexes: Optional[List[ReflectedIndex]] = field(default_factory=list)
-    table_comment: Optional[ReflectedTableComment] = field(default=None)
+    columns: list[ReflectedColumn] | None = field(default_factory=list)
+    primary_keys: ReflectedPrimaryKeyConstraint | None = field(default=None)
+    foreign_keys: list[ReflectedForeignKeyConstraint] | None = field(
+        default_factory=list
+    )
+    indexes: list[ReflectedIndex] | None = field(default_factory=list)
+    table_comment: ReflectedTableComment | None = field(default=None)
 
     @property
-    def column_names(self) -> List[str]:
-        return [column['name'] for column in self.columns]
+    def column_names(self) -> list[str]:
+        return [column["name"] for column in self.columns]

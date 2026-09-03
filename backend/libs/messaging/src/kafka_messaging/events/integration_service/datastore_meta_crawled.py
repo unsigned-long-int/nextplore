@@ -1,7 +1,7 @@
-from typing import ClassVar, List
-from pydantic import BaseModel, UUID4
+from typing import ClassVar
 
 from kafka_messaging.events.base import BaseEvent
+from pydantic import UUID4, BaseModel
 
 
 class TableMeta(BaseModel):
@@ -10,14 +10,14 @@ class TableMeta(BaseModel):
     datastore_descr: str
     schema_name: str
     table_name: str
-    column_names: List[str]
+    column_names: list[str]
 
 
 class DataStoreMetaCrawled(BaseEvent):
-    event_name: ClassVar[str] = 'datastore.meta.crawled'
-    version: ClassVar[str] = 'v1'
+    event_name: ClassVar[str] = "datastore.meta.crawled"
+    version: ClassVar[str] = "v1"
 
-    table_metas: List[TableMeta]
+    table_metas: list[TableMeta]
 
-    def get_topics(self) -> List[str]:
+    def get_topics(self) -> list[str]:
         return [self.event_name]

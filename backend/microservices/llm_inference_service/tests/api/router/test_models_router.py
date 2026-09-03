@@ -1,18 +1,20 @@
 import unittest
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from svc_llm_inference_contracts.models import ModelInfo
 
 from llm_inference_service.api.router.models_router import router
-from llm_inference_service.services.models_gateway.models_registry import get_models_registry
 from llm_inference_service.cache import get_cache_service
-
+from llm_inference_service.services.models_gateway.models_registry import (
+    get_models_registry,
+)
 
 ORGANIZATION_ID = uuid.uuid4()
 USER_ID = uuid.uuid4()
-ENDPOINT = f'/v1/llm-inference/organizations/{ORGANIZATION_ID}/users/{USER_ID}/models'
+ENDPOINT = f"/v1/llm-inference/organizations/{ORGANIZATION_ID}/users/{USER_ID}/models"
 
 
 class TestGetModels(unittest.TestCase):
@@ -33,11 +35,18 @@ class TestGetModels(unittest.TestCase):
         self.mock_identity.user_id = USER_ID
 
         self.models = [
-            ModelInfo(provider='deepseek', model_id='deepseek-12-build', label='DeepSeek', tags=[]),
-            ModelInfo(provider='openai', model_id='gpt-4o', label='GPT-4o', tags=['vision']),
+            ModelInfo(
+                provider="deepseek",
+                model_id="deepseek-12-build",
+                label="DeepSeek",
+                tags=[],
+            ),
+            ModelInfo(
+                provider="openai", model_id="gpt-4o", label="GPT-4o", tags=["vision"]
+            ),
         ]
 
-    @patch('llm_inference_service.api.router.models_router.get_current_identity')
+    @patch("llm_inference_service.api.router.models_router.get_current_identity")
     def test_returns_cached_models(self, get_current_identity_mock):
         get_current_identity_mock.return_value = self.mock_identity
         self.cache_mock.get_models.return_value = self.models
@@ -50,7 +59,7 @@ class TestGetModels(unittest.TestCase):
         self.models_registry_mock.list_models.assert_not_called()
         self.cache_mock.set_models.assert_not_awaited()
 
-    @patch('llm_inference_service.api.router.models_router.get_current_identity')
+    @patch("llm_inference_service.api.router.models_router.get_current_identity")
     def test_processes_models_and_sets_cache(self, get_current_identity_mock):
         get_current_identity_mock.return_value = self.mock_identity
         self.cache_mock.get_models.return_value = None
@@ -65,11 +74,10 @@ class TestGetModels(unittest.TestCase):
         self.models_registry_mock.list_models.assert_called_once()
         self.cache_mock.get_models.assert_awaited_once_with(self.mock_identity)
         self.cache_mock.set_models.assert_awaited_once_with(
-            user_identity=self.mock_identity,
-            response=self.models
+            user_identity=self.mock_identity, response=self.models
         )
 
-    @patch('llm_inference_service.api.router.models_router.get_current_identity')
+    @patch("llm_inference_service.api.router.models_router.get_current_identity")
     def test_forbidden_when_organization_id_mismatch(self, get_current_identity_mock):
         mismatched_identity = MagicMock()
         mismatched_identity.organization_id = uuid.uuid4()
@@ -79,9 +87,9 @@ class TestGetModels(unittest.TestCase):
         response = self.client.get(ENDPOINT)
 
         self.assertEqual(403, response.status_code)
-        self.assertIn('Forbidden', response.json()['detail']['message'])
+        self.assertIn("Forbidden", response.json()["detail"]["message"])
 
-    @patch('llm_inference_service.api.router.models_router.get_current_identity')
+    @patch("llm_inference_service.api.router.models_router.get_current_identity")
     def test_forbidden_when_user_id_mismatch(self, get_current_identity_mock):
         mismatched_identity = MagicMock()
         mismatched_identity.organization_id = ORGANIZATION_ID
@@ -91,16 +99,18 @@ class TestGetModels(unittest.TestCase):
         response = self.client.get(ENDPOINT)
 
         self.assertEqual(403, response.status_code)
-        self.assertIn('Forbidden', response.json()['detail']['message'])
+        self.assertIn("Forbidden", response.json()["detail"]["message"])
 
-    @patch('llm_inference_service.api.router.models_router.get_current_identity')
+    @patch("llm_inference_service.api.router.models_router.get_current_identity")
     def test_raises_exception_if_registry_fails(self, get_current_identity_mock):
         get_current_identity_mock.return_value = self.mock_identity
         self.cache_mock.get_models.return_value = None
-        self.models_registry_mock.list_models.side_effect = RuntimeError('Unexpectedly failed')
+        self.models_registry_mock.list_models.side_effect = RuntimeError(
+            "Unexpectedly failed"
+        )
 
         response = self.client.get(ENDPOINT)
 
         self.assertEqual(500, response.status_code)
-        self.assertIn('Unexpectedly failed', response.json()['detail']['message'])
+        self.assertIn("Unexpectedly failed", response.json()["detail"]["message"])
         self.cache_mock.set_models.assert_not_awaited()

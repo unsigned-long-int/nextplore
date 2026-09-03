@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import Dict, Any, Optional
+from typing import Any
 
 
 @dataclass
 class CacheEntry:
-    jwks: Dict[str, Any]
-    kid_index: Dict[str, Dict[str, Any]]
+    jwks: dict[str, Any]
+    kid_index: dict[str, dict[str, Any]]
     expires_at: float
-    etag: Optional[str] = None
+    etag: str | None = None

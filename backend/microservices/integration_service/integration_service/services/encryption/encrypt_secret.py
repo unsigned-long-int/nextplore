@@ -1,10 +1,11 @@
 import json
-from typing import Any, Dict
+from typing import Any
 from uuid import UUID
 
-from integration_service.domain.models.secret import DataStoreSecret
 from nextplore_sdk.encryptor.client.crypto_client import CryptoClient
 from nextplore_sdk.encryptor.client.encrypted_secret import EncryptedSecret
+
+from integration_service.domain.models.secret import DataStoreSecret
 
 
 def encrypt_secret(
@@ -13,15 +14,15 @@ def encrypt_secret(
     datastore_id: UUID,
     plaintext: str,
     crypto_client: CryptoClient,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> DataStoreSecret:
     encrypted_secret = crypto_client.encrypt_secret(
         plaintext=plaintext,
         aad={
-            'organization_id': organization_id,
-            'user_id': user_id,
-            'datastore_id': datastore_id
-        }
+            "organization_id": organization_id,
+            "user_id": user_id,
+            "datastore_id": datastore_id,
+        },
     )
     return DataStoreSecret(
         organization_id=organization_id,
@@ -31,7 +32,7 @@ def encrypt_secret(
         nonce=encrypted_secret.nonce,
         tag=encrypted_secret.tag,
         wrapped_dek=encrypted_secret.wrapped_dek,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -41,17 +42,16 @@ def encrypt_conn_params(
     api_base: str,
     model_id: str,
     crypto_client: CryptoClient,
-    conn_params: Dict[str, Any],
+    conn_params: dict[str, Any],
 ) -> EncryptedSecret:
     encrypted_conn_params = crypto_client.encrypt_secret(
         plaintext=json.dumps(conn_params),
         aad={
-            'organization_id': organization_id,
-            'user_id': user_id,
-            'api_base': api_base,
-            'model_id': model_id,
-        }
+            "organization_id": organization_id,
+            "user_id": user_id,
+            "api_base": api_base,
+            "model_id": model_id,
+        },
     )
 
     return encrypted_conn_params
-

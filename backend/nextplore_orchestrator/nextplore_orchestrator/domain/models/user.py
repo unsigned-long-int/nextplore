@@ -10,4 +10,3 @@ class User:
     organization_id: UUID
     sub: str
     role: str
-    

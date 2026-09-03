@@ -1,6 +1,7 @@
-from nextplore_sdk.cache.utils.key_factory import get_cache_key
 from nextplore_sdk.cache.client.interface import Cache
+from nextplore_sdk.cache.utils.key_factory import get_cache_key
 from svc_embedding_contracts.models import EmbeddingResponse, QueryEmbeddingRequest
+
 from embedding_service.api.context import UserIdentity
 
 
@@ -9,40 +10,34 @@ class CacheService:
         self.cache = cache
 
     async def get_embedding(
-        self,
-        user_identity: UserIdentity,
-        request: QueryEmbeddingRequest
+        self, user_identity: UserIdentity, request: QueryEmbeddingRequest
     ) -> EmbeddingResponse:
-        cache_key = get_cache_key(model=request, prefix='query-embed')
+        cache_key = get_cache_key(model=request, prefix="query-embed")
         return await self.cache.get_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            model=EmbeddingResponse
+            model=EmbeddingResponse,
         )
-    
+
     async def set_embedding(
         self,
         user_identity: UserIdentity,
         request: QueryEmbeddingRequest,
-        response: EmbeddingResponse
+        response: EmbeddingResponse,
     ) -> None:
-        cache_key = get_cache_key(model=request, prefix='query-embed')
+        cache_key = get_cache_key(model=request, prefix="query-embed")
         await self.cache.set_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            value=response
+            value=response,
         )
 
     async def delete_embedding(
-        self,
-        user_identity: UserIdentity,
-        request: QueryEmbeddingRequest
+        self, user_identity: UserIdentity, request: QueryEmbeddingRequest
     ) -> None:
-        cache_key = get_cache_key(model=request, prefix='query-embed')
+        cache_key = get_cache_key(model=request, prefix="query-embed")
         await self.cache.delete(
-            user_identity.organization_id,
-            user_identity.user_id,
-            cache_key
+            user_identity.organization_id, user_identity.user_id, cache_key
         )

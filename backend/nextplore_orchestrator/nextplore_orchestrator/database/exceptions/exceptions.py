@@ -40,4 +40,3 @@ class OnboardingRequestUpdateFailed(Exception):
 
 class EmailOutboxCreateFailed(Exception):
     pass
-

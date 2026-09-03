@@ -1,3 +1,3 @@
 from .lifecycle import lifespan
 
-__all__ = ['lifespan']
+__all__ = ["lifespan"]

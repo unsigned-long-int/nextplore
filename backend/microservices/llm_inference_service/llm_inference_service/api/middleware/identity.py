@@ -1,4 +1,5 @@
 from uuid import UUID
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
@@ -12,8 +13,8 @@ class IdentityMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        user_id = request.headers.get('x-user-id')
-        org_id = request.headers.get('x-org-id')
+        user_id = request.headers.get("x-user-id")
+        org_id = request.headers.get("x-org-id")
 
         if user_id and org_id:
             identity = UserIdentity(user_id=UUID(user_id), organization_id=UUID(org_id))

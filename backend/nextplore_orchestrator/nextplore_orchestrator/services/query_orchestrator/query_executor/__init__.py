@@ -1,3 +1,3 @@
 from .query_executor import QueryExecutor
 
-__all__ = ['QueryExecutor']
+__all__ = ["QueryExecutor"]

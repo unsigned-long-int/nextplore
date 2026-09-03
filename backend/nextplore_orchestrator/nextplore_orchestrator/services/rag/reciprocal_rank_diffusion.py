@@ -1,14 +1,19 @@
 from collections import defaultdict
-from typing import List, Dict
 from uuid import UUID
 
-from nextplore_orchestrator.domain.models import VectorNeighbourCollection, VectorNeighbour, RankedVector
+from nextplore_orchestrator.domain.models import (
+    RankedVector,
+    VectorNeighbour,
+    VectorNeighbourCollection,
+)
 
-def reciprocal_rank_fusion(vector_collections: List[VectorNeighbourCollection], k: int = 60) -> List[RankedVector]:
-    scores: Dict[UUID, float] = defaultdict(float)
-    store: Dict[UUID, VectorNeighbour] = {}
-    source_queries: Dict[UUID, List[str]] = defaultdict(list)
 
+def reciprocal_rank_fusion(
+    vector_collections: list[VectorNeighbourCollection], k: int = 60
+) -> list[RankedVector]:
+    scores: dict[UUID, float] = defaultdict(float)
+    store: dict[UUID, VectorNeighbour] = {}
+    source_queries: dict[UUID, list[str]] = defaultdict(list)
 
     for collection in vector_collections:
         sorted_neighbours = sorted(
@@ -27,7 +32,7 @@ def reciprocal_rank_fusion(vector_collections: List[VectorNeighbourCollection], 
             vector=store[vid],
             rrf_score=score,
             rank=i,
-            source_queries=source_queries[vid]
+            source_queries=source_queries[vid],
         )
         for i, (vid, score) in enumerate(ranked)
     ]

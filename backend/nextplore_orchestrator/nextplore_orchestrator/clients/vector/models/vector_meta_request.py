@@ -1,6 +1,6 @@
-from pydantic import BaseModel, UUID4
-from typing import List
+
+from pydantic import UUID4, BaseModel
 
 
 class VectorMetaRequest(BaseModel):
-    vector_ids: List[UUID4]
+    vector_ids: list[UUID4]

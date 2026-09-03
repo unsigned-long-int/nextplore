@@ -1,8 +1,8 @@
-from typing import List, Dict, Any
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass(frozen=True)
 class SemanticCacheMeta:
-    embedding: List[float]
-    extra: Dict[str, Any] = field(default_factory=dict)
+    embedding: list[float]
+    extra: dict[str, Any] = field(default_factory=dict)

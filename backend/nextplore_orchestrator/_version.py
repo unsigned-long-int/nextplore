@@ -1,2 +1,2 @@
-version = '1.0.0'
-app_name = 'nextplore-orchestrator'
+version = "1.0.0"
+app_name = "nextplore-orchestrator"

@@ -1,40 +1,38 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from nextplore_orchestrator.api.router import (
+    ai_queries_router,
+    cert_profiles_router,
+    create_cert_router,
+    create_integration_router,
+    create_llm_model_router,
+    delete_integration_router,
+    description_enhancement_router,
+    email_token_verification_router,
+    gen_models_router,
+    integration_profiles_router,
+    register_router,
+    test_integration_router,
+    test_user_llm_router,
+    update_integration_router,
+    user_llm_profiles_router,
+    user_profile_router,
+    user_stats_router,
+    vector_profiles_router,
+)
+from nextplore_orchestrator.lifecycle import lifespan
 from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-
-from nextplore_orchestrator.lifecycle import lifespan
-from nextplore_orchestrator.api.router import (
-    ai_queries_router,
-    gen_models_router,
-    user_profile_router,
-    integration_profiles_router,
-    create_integration_router,
-    test_integration_router,
-    vector_profiles_router,
-    user_stats_router,
-    update_integration_router,
-    delete_integration_router,
-    cert_profiles_router,
-    create_cert_router,
-    create_llm_model_router,
-    description_enhancement_router,
-    user_llm_profiles_router,
-    test_user_llm_router,
-    register_router,
-    email_token_verification_router
-)
-
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=['*'],
-    allow_headers=['*']
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 app.add_middleware(SlowAPIMiddleware)
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

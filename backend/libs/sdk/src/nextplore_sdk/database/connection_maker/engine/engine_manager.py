@@ -1,22 +1,19 @@
 import threading
 import time
 from collections import OrderedDict
-from typing import Optional, Tuple, TypeAlias
-from sqlalchemy.engine import Engine
+from typing import TypeAlias
 
 from nextplore_sdk.database.connection_maker.engine.engine_build import build_engine
-from nextplore_sdk.database.connection_maker.models.connection_profile import ConnectionProfile
+from nextplore_sdk.database.connection_maker.models.connection_profile import (
+    ConnectionProfile,
+)
+from sqlalchemy.engine import Engine
 
-
-EngineSpecs: TypeAlias = Tuple[Engine, float]
+EngineSpecs: TypeAlias = tuple[Engine, float]
 
 
 class EngineManager:
-    def __init__(
-        self,
-        maxsize: int = 256,
-        idle_ttl: Optional[int] = 30 * 60
-    ) -> None:
+    def __init__(self, maxsize: int = 256, idle_ttl: int | None = 30 * 60) -> None:
         self._maxsize = maxsize
         self._idle_ttl = idle_ttl
         self._lock = threading.RLock()
@@ -41,13 +38,17 @@ class EngineManager:
             self._engines[profile] = (engine, now)
             return engine
 
-    def _prune_locked(self, now: Optional[float] = None) -> None:
+    def _prune_locked(self, now: float | None = None) -> None:
         if self._idle_ttl is None:
             return
         if now is None:
             now = time.monotonic()
 
-        to_evict = [key for key, (_, last_used) in self._engines.items() if now - last_used > self._idle_ttl]
+        to_evict = [
+            key
+            for key, (_, last_used) in self._engines.items()
+            if now - last_used > self._idle_ttl
+        ]
         for key in to_evict:
             engine, _ = self._engines.pop(key)
             engine.dispose()

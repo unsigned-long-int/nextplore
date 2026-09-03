@@ -1,7 +1,7 @@
-from uuid import UUID
-from typing import Optional
 from dataclasses import dataclass, field
 from datetime import datetime
+from uuid import UUID
+
 from svc_integration_contracts.models import CertState
 
 
@@ -16,6 +16,6 @@ class CertProfile:
     not_before: datetime
     not_after: datetime
     created_at: datetime
-    assigned_at: Optional[datetime] = field(default=None)
-    activated_at: Optional[datetime] = field(default=None)
-    revoked_at: Optional[datetime] = field(default=None)
+    assigned_at: datetime | None = field(default=None)
+    activated_at: datetime | None = field(default=None)
+    revoked_at: datetime | None = field(default=None)

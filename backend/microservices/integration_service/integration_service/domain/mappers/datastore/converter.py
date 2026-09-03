@@ -1,16 +1,17 @@
 from uuid import UUID
+
 from svc_integration_contracts.models import (
+    DataStoreCreateRequest,
     DataStoreUpdateRequest,
-    DataStoreCreateRequest
 )
 
+from integration_service.database.models import DataStoreORM
 from integration_service.domain.models.datastore import (
-    DataStoreUpdate,
+    DataStore,
     DataStoreCreate,
     DataStoreProfile,
-    DataStore
+    DataStoreUpdate,
 )
-from integration_service.database.models import DataStoreORM
 
 
 def datastore_update_from_dto(
@@ -21,7 +22,7 @@ def datastore_update_from_dto(
         host=payload.host,
         port=payload.port,
         database_name=payload.database_name,
-        autosync_on=payload.autosync_on
+        autosync_on=payload.autosync_on,
     )
 
 
@@ -44,14 +45,12 @@ def datastore_create_from_dto(payload: DataStoreCreateRequest) -> DataStoreCreat
         azure_cert_name=payload.azure_cert_name,
         azure_public_key_pem=payload.azure_public_key_pem,
         snowflake_public_key_pem=payload.snowflake_public_key_pem,
-        autosync_on=payload.autosync_on
+        autosync_on=payload.autosync_on,
     )
 
 
 def orm_from_datastore_create(
-    organization_id: UUID,
-    user_id: UUID,
-    datastore_create: DataStoreCreate
+    organization_id: UUID, user_id: UUID, datastore_create: DataStoreCreate
 ) -> DataStoreORM:
     return DataStoreORM(
         organization_id=organization_id,
@@ -73,7 +72,7 @@ def orm_from_datastore_create(
         azure_public_key_pem=datastore_create.azure_public_key_pem,
         snowflake_public_key_pem=datastore_create.snowflake_public_key_pem,
         kek_kid=datastore_create.kek_kid,
-        autosync_on=datastore_create.autosync_on
+        autosync_on=datastore_create.autosync_on,
     )
 
 
@@ -87,7 +86,7 @@ def datastore_profile_from_orm(datastore_orm: DataStoreORM) -> DataStoreProfile:
         database_name=datastore_orm.database_name,
         host=datastore_orm.host,
         port=datastore_orm.port,
-        autosync_on=datastore_orm.autosync_on
+        autosync_on=datastore_orm.autosync_on,
     )
 
 
@@ -112,5 +111,5 @@ def datastore_from_orm(datastore_orm: DataStoreORM) -> DataStore:
         azure_cert_name=datastore_orm.azure_cert_name,
         azure_public_key_pem=datastore_orm.azure_public_key_pem,
         snowflake_public_key_pem=datastore_orm.snowflake_public_key_pem,
-        autosync_on=datastore_orm.autosync_on
+        autosync_on=datastore_orm.autosync_on,
     )

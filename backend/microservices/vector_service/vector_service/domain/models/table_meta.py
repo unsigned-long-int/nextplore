@@ -1,6 +1,5 @@
-from uuid import UUID
-from typing import List
 from dataclasses import dataclass
+from uuid import UUID
 
 
 @dataclass(frozen=True)
@@ -8,4 +7,4 @@ class TableMeta:
     datastore_id: UUID
     schema_name: str
     table_name: str
-    column_names: List[str]
+    column_names: list[str]

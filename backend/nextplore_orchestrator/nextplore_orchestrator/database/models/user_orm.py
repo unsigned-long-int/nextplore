@@ -1,14 +1,15 @@
 import uuid
-from sqlalchemy import Column, Text, TIMESTAMP, ForeignKey, func
+
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 
-from .organization_orm import OrganizationORM
 from .base import Base
+from .organization_orm import OrganizationORM
 
 
 class UserORM(Base):
-    __tablename__ = 'users'
-    __table_args__ = {'schema': 'auth'}
+    __tablename__ = "users"
+    __table_args__ = {"schema": "auth"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     azure_user_id = Column(Text, nullable=False)

@@ -1,18 +1,13 @@
-from typing import Dict, Type
 
 from .factory import (
-    ProviderFactoryBase,
     HFProviderFactory,
     OpenAIProviderFactory,
-    UserLlmProviderFactory
+    ProviderFactoryBase,
+    UserLlmProviderFactory,
 )
 
-
-PROVIDER_FACTORY_REGISTRY: Dict[str, Type[ProviderFactoryBase]] = {
-    'huggingface': HFProviderFactory,
-    'openai': OpenAIProviderFactory,
-    'custom': UserLlmProviderFactory
+PROVIDER_FACTORY_REGISTRY: dict[str, type[ProviderFactoryBase]] = {
+    "huggingface": HFProviderFactory,
+    "openai": OpenAIProviderFactory,
+    "custom": UserLlmProviderFactory,
 }
-
-
-

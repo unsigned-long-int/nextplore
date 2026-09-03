@@ -1,8 +1,8 @@
-from .vector_client import VectorClient
 from .exceptions import (
-    VectorSearchDBRemoteError,
     VectorGetMetasRemoteError,
-    VectorGetStatsRemoteError,
     VectorGetProfilesRemoteError,
-    VectorGetSemanticMatchRemoteError
+    VectorGetSemanticMatchRemoteError,
+    VectorGetStatsRemoteError,
+    VectorSearchDBRemoteError,
 )
+from .vector_client import VectorClient

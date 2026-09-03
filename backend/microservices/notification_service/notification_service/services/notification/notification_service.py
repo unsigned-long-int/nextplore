@@ -1,7 +1,7 @@
-import os
 import logging
-from azure.communication.email.aio import EmailClient
+import os
 
+from azure.communication.email.aio import EmailClient
 
 logger = logging.getLogger(__name__)
 
@@ -12,28 +12,32 @@ class NotificationFailed(Exception):
 
 class NotificationService:
     def __init__(self) -> None:
-        conn_str = os.getenv('AZURE_COMMUNICATION_CONNECTION_STRING', '')
+        conn_str = os.getenv("AZURE_COMMUNICATION_CONNECTION_STRING", "")
         if not conn_str:
-            raise RuntimeError('AZURE_COMMUNICATION_CONNECTION_STRING environment variable not set')
+            raise RuntimeError(
+                "AZURE_COMMUNICATION_CONNECTION_STRING environment variable not set"
+            )
 
         self._client = EmailClient.from_connection_string(conn_str)
-        self._from = os.getenv('NEXTPLORE_FROM_EMAIL', 'DoNotReply@nextplore.co')
-        self._admin = os.getenv('NEXTPLORE_ADMIN_EMAIL', 'admin@nextplore.co')
-        self._app_url = os.getenv('NEXTPLORE_APP_URL', 'http://localhost:5173')
+        self._from = os.getenv("NEXTPLORE_FROM_EMAIL", "DoNotReply@nextplore.co")
+        self._admin = os.getenv("NEXTPLORE_ADMIN_EMAIL", "admin@nextplore.co")
+        self._app_url = os.getenv("NEXTPLORE_APP_URL", "http://localhost:5173")
 
     async def _send(self, to: str, subject: str, html: str) -> None:
         try:
-            poller = await self._client.begin_send({
-                'senderAddress': self._from,
-                'recipients': {'to': [{'address': to}]},
-                'content': {'subject': subject, 'html': html},
-            })
+            poller = await self._client.begin_send(
+                {
+                    "senderAddress": self._from,
+                    "recipients": {"to": [{"address": to}]},
+                    "content": {"subject": subject, "html": html},
+                }
+            )
             await poller.result()
         except Exception as e:
-            msg = f'Failed to send notification due to Azure client communication error: {str(e)}'
+            msg = f"Failed to send notification due to Azure client communication error: {e!s}"
             logger.error(
                 msg,
-                extra={'from': self._from, 'to': to},
+                extra={"from": self._from, "to": to},
                 exc_info=True,
             )
             raise NotificationFailed(msg) from e

@@ -1,6 +1,9 @@
-from typing import Dict, Any
+from typing import Any
 
-from nextplore_sdk.database.connection_maker.driver_adapters.driver_adapter import DriverAdapter
+from nextplore_sdk.database.connection_maker.driver_adapters.driver_adapter import (
+    DriverAdapter,
+)
+
 from .auth_strategy import AuthStrategy, DBAPICreator
 
 
@@ -13,10 +16,8 @@ class IamRequestSigningAuthStrategy(AuthStrategy):
                 database=self.profile.database,
                 username=self.profile.username,
             )
+
         return _creator
-    
-    def pool_settings(self) -> Dict[str, Any]:
-        return {
-            'pool_pre_ping': True, 
-            'pool_recycle': 3000
-        }
+
+    def pool_settings(self) -> dict[str, Any]:
+        return {"pool_pre_ping": True, "pool_recycle": 3000}

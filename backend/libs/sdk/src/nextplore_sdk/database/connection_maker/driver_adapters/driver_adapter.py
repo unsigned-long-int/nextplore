@@ -1,18 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any
+from typing import Any
 
 
 class DriverAdapter(ABC):
     @abstractmethod
     def connect(
         self,
-        host: str, 
-        database: str, 
-        port: Optional[int] = None, 
-        username: Optional[str] = None, 
-        password: Optional[str] = None, 
-        ca_path: Optional[str] = None,
+        host: str,
+        database: str,
+        port: int | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        ca_path: str | None = None,
         timeout: int = 10,
-        attrs_before: Optional[Dict[Any, Any]] = None,
-        **kwargs: Any
+        attrs_before: dict[Any, Any] | None = None,
+        **kwargs: Any,
     ): ...

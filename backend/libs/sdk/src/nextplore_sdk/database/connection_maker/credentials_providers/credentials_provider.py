@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from nextplore_sdk.database.connection_maker.models.connection_profile import ConnectionProfile
+from nextplore_sdk.database.connection_maker.models.connection_profile import (
+    ConnectionProfile,
+)
 
 
 class CredentialsProvider(ABC):

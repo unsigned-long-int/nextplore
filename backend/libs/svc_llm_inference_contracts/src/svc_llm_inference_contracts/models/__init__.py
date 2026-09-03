@@ -2,8 +2,9 @@
 #   filename:  openapi.patched.json
 #   timestamp: 2026-03-08T17:50:55+00:00
 
+from typing import Any, Dict, List, Optional
+
 from pydantic import UUID4, BaseModel, Field, RootModel
-from typing import List, Dict, Any, Optional
 
 
 class ModelInfo(BaseModel):
@@ -22,11 +23,14 @@ class ORMContextResponse(BaseModel):
     column_aggregates: list[dict[str, str]] = Field(..., title="Column Aggregates")
     column_filters: list[dict[str, str | int]] = Field(..., title="Column Filters")
 
+
 class SchemaEntry(BaseModel):
-    tables: Dict[str, List[str]]
+    tables: dict[str, list[str]]
+
 
 class DataStoreEntry(BaseModel):
-    schemas: Dict[str, SchemaEntry]
+    schemas: dict[str, SchemaEntry]
+
 
 class LlmOutputSpecs(BaseModel):
     datastore_registry_repr: str = Field(..., title="Data Store Registry Repr")
@@ -36,7 +40,9 @@ class LlmOutputSpecs(BaseModel):
     columns_enum: list[str] = Field(..., title="Columns Enum")
     filter_op_enum: list[str] = Field(..., title="Filter Op Enum")
     agg_funcs_enum: list[str] = Field(..., title="Agg Funcs Enum")
-    table_columns_registry: Dict[str, DataStoreEntry] = Field(..., title="Table Columns Registry")
+    table_columns_registry: dict[str, DataStoreEntry] = Field(
+        ..., title="Table Columns Registry"
+    )
 
 
 class ValidationError(BaseModel):
@@ -55,7 +61,7 @@ class HTTPValidationError(BaseModel):
 
 class UserLlmConfig(BaseModel):
     api_base: str = Field(..., title="API Base URL")
-    connection_params: Dict[str, Any] = Field(..., title="Connection Params")
+    connection_params: dict[str, Any] = Field(..., title="Connection Params")
     max_tokens: int = Field(..., title="Max Tokens")
 
 
@@ -64,7 +70,7 @@ class ORMContextRequest(BaseModel):
     model_id: str = Field(..., title="Model Id")
     query: str = Field(..., title="Query")
     llm_output_specs: LlmOutputSpecs
-    user_llm_config: Optional[UserLlmConfig] = Field(None, title="User Llm Config")
+    user_llm_config: UserLlmConfig | None = Field(None, title="User Llm Config")
 
 
 class MultiQueryRequest(BaseModel):
@@ -72,11 +78,12 @@ class MultiQueryRequest(BaseModel):
     model_id: str = Field(..., title="Model Id")
     multiplier: int = Field(..., title="Multiplier")
     query: str = Field(..., title="Query")
-    user_llm_config: Optional[UserLlmConfig] = Field(None, title="User Llm Config")
+    user_llm_config: UserLlmConfig | None = Field(None, title="User Llm Config")
+
 
 class MultiQueryResponse(BaseModel):
     original_query: str = Field(..., title="Original Query")
-    variants: List[str] = Field(..., title="Variants")
+    variants: list[str] = Field(..., title="Variants")
 
 
 class PromptRequest(BaseModel):
@@ -91,6 +98,5 @@ class UserLlmTestRequest(BaseModel):
     model_id: str = Field(..., title="Model Id")
     label: str = Field(..., title="Label")
     api_base: str = Field(..., title="API Base URL")
-    connection_params: Dict[str, Any] = Field(..., title="Litellm Params")
+    connection_params: dict[str, Any] = Field(..., title="Litellm Params")
     max_tokens: int = Field(..., title="Max Tokens")
-

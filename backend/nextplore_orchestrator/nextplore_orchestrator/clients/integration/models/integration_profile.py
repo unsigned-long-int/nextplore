@@ -1,8 +1,8 @@
-from typing import Optional
-from pydantic import BaseModel, UUID4, Field
 
-from .cloud import Cloud
+from pydantic import UUID4, BaseModel, Field
+
 from .auth import Auth
+from .cloud import Cloud
 from .db import DB
 
 
@@ -14,5 +14,5 @@ class IntegrationProfile(BaseModel):
     connection_name: str
     database_name: str
     host: str
-    port: Optional[int] = Field(default=None)
+    port: int | None = Field(default=None)
     autosync_on: bool = Field(default=True)

@@ -37,11 +37,14 @@ class CertGetProfilesRemoteError(Exception):
 class CertCreateRemoteError(Exception):
     pass
 
+
 class LlmCreateRemoteError(Exception):
     pass
 
+
 class LlmGetProfilesRemoteError(Exception):
     pass
+
 
 class LlmGetConfigRemoteError(Exception):
     pass

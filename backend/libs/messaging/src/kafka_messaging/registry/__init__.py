@@ -1,1 +1,1 @@
-from .registry import register_event, get_event_cls
+from .registry import get_event_cls, register_event

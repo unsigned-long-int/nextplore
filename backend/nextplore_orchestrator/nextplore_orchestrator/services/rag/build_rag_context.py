@@ -1,5 +1,4 @@
-import json 
-from typing import List, Dict
+import json
 from collections import defaultdict
 
 from nextplore_orchestrator.domain.models import RagContext, VectorNeighbour
@@ -11,18 +10,15 @@ def dictify(d):
     return d
 
 
-def build_rag_context(
-    vector_neighbours: List[VectorNeighbour]
-) -> RagContext:
+def build_rag_context(vector_neighbours: list[VectorNeighbour]) -> RagContext:
     datastores = {str(vn.orm_metadata.datastore_id) for vn in vector_neighbours}
     schemas = {str(vn.orm_metadata.schema_name) for vn in vector_neighbours}
     tables = {str(vn.orm_metadata.table_name) for vn in vector_neighbours}
     columns = {
-        str(col) for vn in vector_neighbours
-        for col in vn.orm_metadata.column_names
+        str(col) for vn in vector_neighbours for col in vn.orm_metadata.column_names
     }
 
-    registry: Dict[str, Dict[str, Dict[str, List[str]]]] = defaultdict(
+    registry: dict[str, dict[str, dict[str, list[str]]]] = defaultdict(
         lambda: defaultdict(lambda: defaultdict(list))
     )
 
@@ -42,5 +38,5 @@ def build_rag_context(
         schemas_enum=list(schemas),
         tables_enum=list(tables),
         columns_enum=list(columns),
-        table_columns_registry=clean_registry
+        table_columns_registry=clean_registry,
     )

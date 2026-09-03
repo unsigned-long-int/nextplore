@@ -1,7 +1,7 @@
-from typing import List
-from pydantic import BaseModel, UUID4
+
+from pydantic import UUID4, BaseModel
 
 
 class IntegrationStatsResponse(BaseModel):
-    integration_ids: List[UUID4]
+    integration_ids: list[UUID4]
     integration_count: int

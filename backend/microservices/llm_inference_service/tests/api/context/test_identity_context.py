@@ -2,8 +2,12 @@ import unittest
 import uuid
 from contextvars import copy_context
 
-from llm_inference_service.api.context import set_current_identity, get_current_identity, UserIdentity, \
-    UserIdentityContextError
+from llm_inference_service.api.context import (
+    UserIdentity,
+    UserIdentityContextError,
+    get_current_identity,
+    set_current_identity,
+)
 
 
 class TestIdentityContext(unittest.TestCase):

@@ -1,5 +1,6 @@
 import uuid
-from sqlalchemy import Column, Text, Boolean, TIMESTAMP, Integer, Enum, func
+
+from sqlalchemy import TIMESTAMP, Boolean, Column, Enum, Integer, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from svc_integration_contracts.models import DB, Auth, Cloud
 
@@ -7,8 +8,8 @@ from .base import Base
 
 
 class DataStoreORM(Base):
-    __tablename__ = 'datastores'
-    __table_args__ = {'schema': 'integration'}
+    __tablename__ = "datastores"
+    __table_args__ = {"schema": "integration"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organization_id = Column(UUID(as_uuid=True), nullable=False)
@@ -16,35 +17,35 @@ class DataStoreORM(Base):
     auth = Column(
         Enum(
             Auth,
-            name='auth',
-            schema='integration',
+            name="auth",
+            schema="integration",
             native_enum=True,
             create_type=False,
-            validate_strings=True
+            validate_strings=True,
         ),
-        nullable=False
+        nullable=False,
     )
     cloud = Column(
         Enum(
-        Cloud,
-            name='cloud',
-            schema='integration',
+            Cloud,
+            name="cloud",
+            schema="integration",
             native_enum=True,
             create_type=False,
-            validate_strings=True
+            validate_strings=True,
         ),
-        nullable=False
+        nullable=False,
     )
     db = Column(
         Enum(
-        DB,
-            name='db',
-            schema='integration',
+            DB,
+            name="db",
+            schema="integration",
             native_enum=True,
             create_type=False,
-            validate_strings=True
+            validate_strings=True,
         ),
-        nullable=False
+        nullable=False,
     )
     connection_name = Column(Text, nullable=False)
     descr = Column(Text, nullable=False)

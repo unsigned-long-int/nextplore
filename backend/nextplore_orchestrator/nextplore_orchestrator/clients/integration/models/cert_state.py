@@ -2,9 +2,9 @@ from enum import Enum
 
 
 class CertState(Enum):
-    PENDING = 'PENDING'
-    ASSIGNED = 'ASSIGNED'
-    ACTIVE = 'ACTIVE'
-    REVOKED = 'REVOKED'
-    EXPIRED = 'EXPIRED'
-    ORPHANED = 'ORPHANED'
+    PENDING = "PENDING"
+    ASSIGNED = "ASSIGNED"
+    ACTIVE = "ACTIVE"
+    REVOKED = "REVOKED"
+    EXPIRED = "EXPIRED"
+    ORPHANED = "ORPHANED"

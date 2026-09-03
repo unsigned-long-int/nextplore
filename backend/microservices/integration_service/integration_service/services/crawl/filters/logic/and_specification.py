@@ -7,4 +7,6 @@ class AndSpecification(Specification):
         self.right = right
 
     def is_satisfied_by(self, candidate: Specification) -> bool:
-        return self.left.is_satisfied_by(candidate) and self.right.is_satisfied_by(candidate)
+        return self.left.is_satisfied_by(candidate) and self.right.is_satisfied_by(
+            candidate
+        )

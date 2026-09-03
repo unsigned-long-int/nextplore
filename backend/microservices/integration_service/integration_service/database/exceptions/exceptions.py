@@ -41,5 +41,6 @@ class CertGetFailed(Exception):
 class UserLlmCreateFailed(Exception):
     pass
 
+
 class UserLlmGetFailed(Exception):
     pass

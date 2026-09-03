@@ -1,9 +1,9 @@
 import logging
-from typing import Iterator
+from collections.abc import Iterator
 from contextlib import contextmanager
-from sqlalchemy import Engine
-from sqlalchemy.orm import Session, sessionmaker, scoped_session
 
+from sqlalchemy import Engine
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 logger = logging.getLogger(__name__)
 

@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 from nextplore_orchestrator.clients.embedding import EmbeddingClient
 from nextplore_orchestrator.clients.integration import IntegrationClient
-from nextplore_orchestrator.clients.vector import VectorClient
 from nextplore_orchestrator.clients.llm_inference import LlmInferenceClient
+from nextplore_orchestrator.clients.vector import VectorClient
 
 
 @dataclass

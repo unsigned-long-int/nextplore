@@ -1,13 +1,14 @@
 import uuid
-from sqlalchemy import Column, Text, TIMESTAMP, JSON, func
+
+from sqlalchemy import JSON, TIMESTAMP, Column, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 
 from .base import Base
 
 
 class VectorORM(Base):
-    __tablename__ = 'datastore_vectors'
-    __table_args__ = {'schema': 'vector'}
+    __tablename__ = "datastore_vectors"
+    __table_args__ = {"schema": "vector"}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organization_id = Column(UUID(as_uuid=True), nullable=False)
     user_id = Column(UUID(as_uuid=True), nullable=False)

@@ -1,17 +1,13 @@
 import unittest
-from uuid import uuid4
-from fastapi import FastAPI
 from unittest.mock import AsyncMock, MagicMock, patch
-from fastapi.testclient import TestClient
-from svc_integration_contracts.models import (
-    DataStoreProfile,
-    Auth,
-    DB,
-    Cloud
-)
+from uuid import uuid4
 
-from integration_service.api.router.datastore_profiles_router import router
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from svc_integration_contracts.models import DB, Auth, Cloud, DataStoreProfile
+
 from integration_service.api.dependencies import get_backend_connector
+from integration_service.api.router.datastore_profiles_router import router
 from integration_service.cache import get_cache_service
 from integration_service.database.exceptions import DataStoreGetFailed
 
@@ -35,11 +31,11 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
             auth=Auth.password_native,
             cloud=Cloud.aws,
             db=DB.postgresql,
-            connection_name='test-connection-1',
-            database_name='testdb1',
-            host='localhost',
+            connection_name="test-connection-1",
+            database_name="testdb1",
+            host="localhost",
             port=5432,
-            autosync_on=True
+            autosync_on=True,
         )
 
         self.datastore_profile_2 = DataStoreProfile(
@@ -47,22 +43,19 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
             auth=Auth.iam,
             cloud=Cloud.azure,
             db=DB.mysql,
-            connection_name='test-connection-2',
-            database_name='testdb2',
-            host='localhost',
+            connection_name="test-connection-2",
+            database_name="testdb2",
+            host="localhost",
             port=3306,
-            autosync_on=False
+            autosync_on=False,
         )
 
-        self.profiles_response = [
-            self.datastore_profile_1,
-            self.datastore_profile_2
-        ]
+        self.profiles_response = [self.datastore_profile_1, self.datastore_profile_2]
 
     def _url(self, org_id, user_id) -> str:
         return (
-            f'/v1/integration/organizations/{org_id}/'
-            f'users/{user_id}/datastores/profiles'
+            f"/v1/integration/organizations/{org_id}/"
+            f"users/{user_id}/datastores/profiles"
         )
 
     def _create_domain_datastore_mock(self, profile: DataStoreProfile):
@@ -79,7 +72,9 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
 
         return datastore_mock
 
-    @patch('integration_service.api.router.datastore_profiles_router.get_current_identity')
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.get_current_identity"
+    )
     def test_returns_cached_profiles(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -100,17 +95,19 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
 
         response_data = response.json()
         self.assertEqual(len(response_data), 2)
-        self.assertEqual(response_data[0]['connection_name'], 'test-connection-1')
-        self.assertEqual(response_data[1]['connection_name'], 'test-connection-2')
+        self.assertEqual(response_data[0]["connection_name"], "test-connection-1")
+        self.assertEqual(response_data[1]["connection_name"], "test-connection-2")
 
         self.cache_mock.set_datastore_profiles.assert_not_awaited()
 
-    @patch('integration_service.api.router.datastore_profiles_router.DataStoreRepository')
-    @patch('integration_service.api.router.datastore_profiles_router.get_current_identity')
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.DataStoreRepository"
+    )
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.get_current_identity"
+    )
     def test_fetches_and_caches_profiles_when_cache_miss(
-        self,
-        get_current_identity_mock,
-        datastore_repo_mock
+        self, get_current_identity_mock, datastore_repo_mock
     ):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -119,13 +116,17 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
 
         self.cache_mock.get_datastore_profiles.return_value = None
 
-        domain_datastore_1 = self._create_domain_datastore_mock(self.datastore_profile_1)
-        domain_datastore_2 = self._create_domain_datastore_mock(self.datastore_profile_2)
+        domain_datastore_1 = self._create_domain_datastore_mock(
+            self.datastore_profile_1
+        )
+        domain_datastore_2 = self._create_domain_datastore_mock(
+            self.datastore_profile_2
+        )
 
         repo_instance = AsyncMock()
         repo_instance.get_datastore_profiles.return_value = [
             domain_datastore_1,
-            domain_datastore_2
+            domain_datastore_2,
         ]
         datastore_repo_mock.return_value = repo_instance
 
@@ -141,19 +142,23 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
 
         repo_instance.get_datastore_profiles.assert_awaited_once_with(
             user_id=user_identity_mock.user_id,
-            organization_id=user_identity_mock.organization_id
+            organization_id=user_identity_mock.organization_id,
         )
 
         self.cache_mock.set_datastore_profiles.assert_awaited_once()
-        cached_response = self.cache_mock.set_datastore_profiles.call_args[1]['response']
+        cached_response = self.cache_mock.set_datastore_profiles.call_args[1][
+            "response"
+        ]
         self.assertEqual(len(cached_response), 2)
 
         response_data = response.json()
         self.assertEqual(len(response_data), 2)
-        self.assertEqual(response_data[0]['connection_name'], 'test-connection-1')
-        self.assertEqual(response_data[1]['connection_name'], 'test-connection-2')
+        self.assertEqual(response_data[0]["connection_name"], "test-connection-1")
+        self.assertEqual(response_data[1]["connection_name"], "test-connection-2")
 
-    @patch('integration_service.api.router.datastore_profiles_router.get_current_identity')
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.get_current_identity"
+    )
     def test_returns_forbidden_when_user_id_mismatch(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -167,11 +172,13 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
         )
 
         self.assertEqual(403, response.status_code)
-        self.assertEqual('Forbidden', response.json()['detail']['message'])
+        self.assertEqual("Forbidden", response.json()["detail"]["message"])
 
         self.cache_mock.get_datastore_profiles.assert_not_awaited()
 
-    @patch('integration_service.api.router.datastore_profiles_router.get_current_identity')
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.get_current_identity"
+    )
     def test_returns_forbidden_when_org_id_mismatch(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -185,16 +192,18 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
         )
 
         self.assertEqual(403, response.status_code)
-        self.assertEqual('Forbidden', response.json()['detail']['message'])
+        self.assertEqual("Forbidden", response.json()["detail"]["message"])
 
         self.cache_mock.get_datastore_profiles.assert_not_awaited()
 
-    @patch('integration_service.api.router.datastore_profiles_router.DataStoreRepository')
-    @patch('integration_service.api.router.datastore_profiles_router.get_current_identity')
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.DataStoreRepository"
+    )
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.get_current_identity"
+    )
     def test_raises_exception_when_datastore_get_failed(
-        self,
-        get_current_identity_mock,
-        datastore_repo_mock
+        self, get_current_identity_mock, datastore_repo_mock
     ):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -205,7 +214,7 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
 
         repo_instance = AsyncMock()
         repo_instance.get_datastore_profiles.side_effect = DataStoreGetFailed(
-            'Database connection error'
+            "Database connection error"
         )
         datastore_repo_mock.return_value = repo_instance
 
@@ -215,18 +224,20 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
 
         self.assertEqual(424, response.status_code)
         self.assertIn(
-            'Database error: Database connection error',
-            response.json()['detail']['message']
+            "Database error: Database connection error",
+            response.json()["detail"]["message"],
         )
 
         self.cache_mock.set_datastore_profiles.assert_not_awaited()
 
-    @patch('integration_service.api.router.datastore_profiles_router.DataStoreRepository')
-    @patch('integration_service.api.router.datastore_profiles_router.get_current_identity')
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.DataStoreRepository"
+    )
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.get_current_identity"
+    )
     def test_raises_exception_when_generic_error(
-        self,
-        get_current_identity_mock,
-        datastore_repo_mock
+        self, get_current_identity_mock, datastore_repo_mock
     ):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -237,7 +248,7 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
 
         repo_instance = AsyncMock()
         repo_instance.get_datastore_profiles.side_effect = RuntimeError(
-            'Unexpected error occurred'
+            "Unexpected error occurred"
         )
         datastore_repo_mock.return_value = repo_instance
 
@@ -247,18 +258,20 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
 
         self.assertEqual(500, response.status_code)
         self.assertIn(
-            'Unexpected error: Unexpected error occurred',
-            response.json()['detail']['message']
+            "Unexpected error: Unexpected error occurred",
+            response.json()["detail"]["message"],
         )
 
         self.cache_mock.set_datastore_profiles.assert_not_awaited()
 
-    @patch('integration_service.api.router.datastore_profiles_router.DataStoreRepository')
-    @patch('integration_service.api.router.datastore_profiles_router.get_current_identity')
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.DataStoreRepository"
+    )
+    @patch(
+        "integration_service.api.router.datastore_profiles_router.get_current_identity"
+    )
     def test_returns_empty_list_when_no_profiles_exist(
-        self,
-        get_current_identity_mock,
-        datastore_repo_mock
+        self, get_current_identity_mock, datastore_repo_mock
     ):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -279,5 +292,7 @@ class TestDataStoreProfilesRouter(unittest.TestCase):
         self.assertEqual(response.json(), [])
 
         self.cache_mock.set_datastore_profiles.assert_awaited_once()
-        cached_response = self.cache_mock.set_datastore_profiles.call_args[1]['response']
+        cached_response = self.cache_mock.set_datastore_profiles.call_args[1][
+            "response"
+        ]
         self.assertEqual(len(cached_response), 0)

@@ -3,10 +3,10 @@ import uuid
 from contextvars import copy_context
 
 from embedding_service.api.context import (
-    set_current_identity,
-    get_current_identity,
     UserIdentity,
-    UserIdentityContextError
+    UserIdentityContextError,
+    get_current_identity,
+    set_current_identity,
 )
 
 

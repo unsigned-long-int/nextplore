@@ -1,19 +1,19 @@
-from typing import Dict, Any, Union
 from dataclasses import dataclass
+from typing import Any, Union
 
 
 @dataclass(frozen=True)
 class PlatformLlmParams:
     provider: str
     model_id: str
-    meta: Dict[str, Any]
+    meta: dict[str, Any]
 
 
 @dataclass(frozen=True)
 class UserLlmParams:
     model_id: str
     api_base: str
-    connection_params: Dict[str, Any]
+    connection_params: dict[str, Any]
     max_tokens: int = 4096
 
 

@@ -1,12 +1,12 @@
 from dataclasses import dataclass
-from typing import List
 
-from .vector_neighbour_collection import VectorNeighbourCollection, RankedVector
 from .rag_context import RagContext
+from .vector_neighbour_collection import RankedVector, VectorNeighbourCollection
+
 
 @dataclass
 class RagPipelineResult:
-    sub_queries: List[str]
-    neighbour_collections: List[VectorNeighbourCollection]
-    ranked: List[RankedVector]
+    sub_queries: list[str]
+    neighbour_collections: list[VectorNeighbourCollection]
+    ranked: list[RankedVector]
     rag_context: RagContext

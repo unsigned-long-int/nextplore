@@ -1,12 +1,12 @@
-from pydantic import BaseModel, UUID4
-from typing import List
+
+from pydantic import UUID4, BaseModel
 
 
 class TableMeta(BaseModel):
     integration_id: UUID4
     schema_name: str
     table_name: str
-    column_names: List[str]
+    column_names: list[str]
 
 
 class VectorMetaResponse(BaseModel):

@@ -1,2 +1,2 @@
-version = '1.0.0'
-app_name = 'vector-service'
+version = "1.0.0"
+app_name = "vector-service"

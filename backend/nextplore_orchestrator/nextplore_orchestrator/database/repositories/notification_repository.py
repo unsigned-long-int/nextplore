@@ -1,5 +1,6 @@
 import logging
 from uuid import UUID
+
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
@@ -13,7 +14,6 @@ class NotificationRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-
     async def create_email_outbox(
         self,
         recipient: str,
@@ -22,15 +22,12 @@ class NotificationRepository:
     ) -> UUID:
         try:
             mail_outbox_orm = EmailOutboxORM(
-                recipient=recipient,
-                subject=subject,
-                html=html
+                recipient=recipient, subject=subject, html=html
             )
             self._session.add(mail_outbox_orm)
             await self._session.flush()
             return mail_outbox_orm.id
         except SQLAlchemyError as e:
-            msg = f'Create mail outbox failed with database error: {str(e)}'
+            msg = f"Create mail outbox failed with database error: {e!s}"
             logger.error(msg, exc_info=True)
             raise EmailOutboxCreateFailed(msg) from e
-

@@ -1,13 +1,23 @@
-from contextlib import asynccontextmanager
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from notification_service.services.polling.polling_service import EmailOutboxPoller, BACKOFF_MINUTES, MAX_ATTEMPTS
 from notification_service.services.notification import NotificationFailed
+from notification_service.services.polling.polling_service import (
+    BACKOFF_MINUTES,
+    MAX_ATTEMPTS,
+    EmailOutboxPoller,
+)
 
 
-def _make_row(id='row-1', recipient='user@example.com', subject='Subject', html='<p>Hi</p>', attempts=0):
+def _make_row(
+    id="row-1",
+    recipient="user@example.com",
+    subject="Subject",
+    html="<p>Hi</p>",
+    attempts=0,
+):
     row = MagicMock()
     row.id = id
     row.recipient = recipient
@@ -47,7 +57,9 @@ def _make_poller(poll_session=None, dispatch_sessions=None):
         dispatch_sessions = []
     db_connector = _make_db_connector([poll_session] + dispatch_sessions)
     notification_svc = AsyncMock()
-    poller = EmailOutboxPoller(db_connector=db_connector, notification_service=notification_svc)
+    poller = EmailOutboxPoller(
+        db_connector=db_connector, notification_service=notification_svc
+    )
     return poller, notification_svc, poll_session
 
 
@@ -56,12 +68,13 @@ def _make_dispatch_poller(dispatch_sessions=None):
         dispatch_sessions = [_make_session()]
     db_connector = _make_db_connector(dispatch_sessions)
     notification_svc = AsyncMock()
-    poller = EmailOutboxPoller(db_connector=db_connector, notification_service=notification_svc)
+    poller = EmailOutboxPoller(
+        db_connector=db_connector, notification_service=notification_svc
+    )
     return poller, notification_svc, dispatch_sessions[0]
 
 
 class TestEmailOutboxPollerStop(unittest.IsolatedAsyncioTestCase):
-
     def test_stop_sets_running_false(self):
         poller, _, _ = _make_poller()
         poller._running = True
@@ -70,19 +83,20 @@ class TestEmailOutboxPollerStop(unittest.IsolatedAsyncioTestCase):
 
 
 class TestEmailOutboxPollerPoll(unittest.IsolatedAsyncioTestCase):
-
     async def test_poll_dispatches_each_row(self):
         poll_session = _make_session()
-        rows = [_make_row(id='row-1'), _make_row(id='row-2')]
+        rows = [_make_row(id="row-1"), _make_row(id="row-2")]
 
         mock_result = MagicMock()
         mock_result.fetchall.return_value = rows
         poll_session.execute = AsyncMock(return_value=mock_result)
 
         dispatch_sessions = [_make_session(), _make_session()]
-        poller, _, _ = _make_poller(poll_session=poll_session, dispatch_sessions=dispatch_sessions)
+        poller, _, _ = _make_poller(
+            poll_session=poll_session, dispatch_sessions=dispatch_sessions
+        )
 
-        with patch.object(poller, '_dispatch', new_callable=AsyncMock) as mock_dispatch:
+        with patch.object(poller, "_dispatch", new_callable=AsyncMock) as mock_dispatch:
             await poller._poll()
             self.assertEqual(mock_dispatch.await_count, 2)
             dispatched_rows = [c.args[0] for c in mock_dispatch.await_args_list]
@@ -97,13 +111,12 @@ class TestEmailOutboxPollerPoll(unittest.IsolatedAsyncioTestCase):
 
         poller, _, _ = _make_poller(poll_session=poll_session)
 
-        with patch.object(poller, '_dispatch', new_callable=AsyncMock) as mock_dispatch:
+        with patch.object(poller, "_dispatch", new_callable=AsyncMock) as mock_dispatch:
             await poller._poll()
             mock_dispatch.assert_not_awaited()
 
 
 class TestEmailOutboxPollerDispatch(unittest.IsolatedAsyncioTestCase):
-
     async def test_dispatch_success_marks_sent(self):
         poller, notification_svc, dispatch_session = _make_dispatch_poller()
         dispatch_session.execute = AsyncMock()
@@ -111,37 +124,39 @@ class TestEmailOutboxPollerDispatch(unittest.IsolatedAsyncioTestCase):
 
         await poller._dispatch(row)
 
-        notification_svc.send_email.assert_awaited_once_with(row.recipient, row.subject, row.html)
+        notification_svc.send_email.assert_awaited_once_with(
+            row.recipient, row.subject, row.html
+        )
         sql, params = dispatch_session.execute.await_args.args
-        self.assertIn('sent', sql.text)
-        self.assertEqual(params['attempt'], 1)
-        self.assertEqual(params['id'], row.id)
-        self.assertIn('now', params)
+        self.assertIn("sent", sql.text)
+        self.assertEqual(params["attempt"], 1)
+        self.assertEqual(params["id"], row.id)
+        self.assertIn("now", params)
 
     async def test_dispatch_failure_marks_pending_with_backoff(self):
         poller, notification_svc, dispatch_session = _make_dispatch_poller()
         dispatch_session.execute = AsyncMock()
-        notification_svc.send_email.side_effect = NotificationFailed('timeout')
+        notification_svc.send_email.side_effect = NotificationFailed("timeout")
         row = _make_row(attempts=0)
 
         await poller._dispatch(row)
 
         params = dispatch_session.execute.await_args.args[1]
-        self.assertEqual(params['status'], 'pending')
-        self.assertEqual(params['attempt'], 1)
-        self.assertIn('timeout', params['error'])
+        self.assertEqual(params["status"], "pending")
+        self.assertEqual(params["attempt"], 1)
+        self.assertIn("timeout", params["error"])
 
     async def test_dispatch_marks_failed_on_max_attempts(self):
         poller, notification_svc, dispatch_session = _make_dispatch_poller()
         dispatch_session.execute = AsyncMock()
-        notification_svc.send_email.side_effect = NotificationFailed('timeout')
+        notification_svc.send_email.side_effect = NotificationFailed("timeout")
         row = _make_row(attempts=MAX_ATTEMPTS - 1)
 
         await poller._dispatch(row)
 
         params = dispatch_session.execute.await_args.args[1]
-        self.assertEqual(params['status'], 'failed')
-        self.assertEqual(params['attempt'], MAX_ATTEMPTS)
+        self.assertEqual(params["status"], "failed")
+        self.assertEqual(params["attempt"], MAX_ATTEMPTS)
 
     async def test_dispatch_backoff_increases_with_attempts(self):
         fixed_now = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
@@ -149,15 +164,19 @@ class TestEmailOutboxPollerDispatch(unittest.IsolatedAsyncioTestCase):
         for attempt_index, expected_backoff in enumerate(BACKOFF_MINUTES):
             dispatch_session = _make_session()
             dispatch_session.execute = AsyncMock()
-            poller, notification_svc, _ = _make_dispatch_poller(dispatch_sessions=[dispatch_session])
-            notification_svc.send_email.side_effect = NotificationFailed('err')
+            poller, notification_svc, _ = _make_dispatch_poller(
+                dispatch_sessions=[dispatch_session]
+            )
+            notification_svc.send_email.side_effect = NotificationFailed("err")
             row = _make_row(attempts=attempt_index)
 
-            with patch('notification_service.services.polling.polling_service.datetime') as mock_dt:
+            with patch(
+                "notification_service.services.polling.polling_service.datetime"
+            ) as mock_dt:
                 mock_dt.now.return_value = fixed_now
                 mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
 
                 await poller._dispatch(row)
                 params = dispatch_session.execute.await_args.args[1]
                 expected_next = fixed_now + timedelta(minutes=expected_backoff)
-                self.assertEqual(params['next_attempt'], expected_next)
+                self.assertEqual(params["next_attempt"], expected_next)

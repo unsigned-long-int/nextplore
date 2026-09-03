@@ -1,24 +1,26 @@
 import uuid
-from sqlalchemy import Column, Text, TIMESTAMP, func
+
+from sqlalchemy import TIMESTAMP, Column, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 
 from .base import Base
 
 
 class OrganizationORM(Base):
-    __tablename__ = 'organizations'
-    __table_args__ = {'schema': 'auth'}
+    __tablename__ = "organizations"
+    __table_args__ = {"schema": "auth"}
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    id = Column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+    )
     azure_tenant_id = Column(Text, unique=True, nullable=False)
     name = Column(Text, nullable=False)
     domain = Column(Text, nullable=False)
-    plan = Column(Text, nullable=True, default='standard')
+    plan = Column(Text, nullable=True, default="standard")
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     kek_kid = Column(Text, nullable=False)
     onboarding_request_id = Column(UUID(as_uuid=True), nullable=False)
-    status = Column(Text, nullable=False, default='active')
+    status = Column(Text, nullable=False, default="active")
     activated_at = Column(TIMESTAMP(timezone=True), nullable=True)
     suspended_at = Column(TIMESTAMP(timezone=True), nullable=True)
     suspend_reason = Column(Text, nullable=True)
-    

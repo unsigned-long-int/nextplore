@@ -1,19 +1,19 @@
 import asyncio
-from typing import List, Optional
 
+from svc_vector_contracts.models import EmbeddingQuery, VectorMetadataQuery
+
+from nextplore_orchestrator.api.context import UserIdentity
 from nextplore_orchestrator.clients.embedding import EmbeddingClient
 from nextplore_orchestrator.clients.vector import VectorClient
-from nextplore_orchestrator.api.context import UserIdentity
-from nextplore_orchestrator.domain.models import VectorNeighbourCollection
 from nextplore_orchestrator.domain.mappers import vector_neighbours_from_dto
-from svc_vector_contracts.models import VectorMetadataQuery, EmbeddingQuery
+from nextplore_orchestrator.domain.models import VectorNeighbourCollection
 
 
 class VectorSearcher:
     def __init__(
-            self,
-            embedding_client: EmbeddingClient,
-            vector_client: VectorClient,
+        self,
+        embedding_client: EmbeddingClient,
+        vector_client: VectorClient,
     ) -> None:
         self.embedding_client = embedding_client
         self.vector_client = vector_client
@@ -22,12 +22,12 @@ class VectorSearcher:
         self,
         query: str,
         user_identity: UserIdentity,
-        base_prompt_embedding: Optional[List[float]] = None
+        base_prompt_embedding: list[float] | None = None,
     ) -> VectorNeighbourCollection:
         if base_prompt_embedding is None:
             embedding_response = await self.embedding_client.embed(query)
             base_prompt_embedding = embedding_response.embedding
-            
+
         vector_hits = await self.vector_client.get_nearest_neighbours(
             organization_id=user_identity.organization_id,
             user_id=user_identity.user_id,
@@ -43,5 +43,9 @@ class VectorSearcher:
             vector_neighbours=vector_neighbours_from_dto(meta, vector_hits),
         )
 
-    async def search_many(self, queries: List[str], user_identity: UserIdentity) -> List[VectorNeighbourCollection]:
-        return list(await asyncio.gather(*(self.search(q, user_identity) for q in queries)))
+    async def search_many(
+        self, queries: list[str], user_identity: UserIdentity
+    ) -> list[VectorNeighbourCollection]:
+        return list(
+            await asyncio.gather(*(self.search(q, user_identity) for q in queries))
+        )

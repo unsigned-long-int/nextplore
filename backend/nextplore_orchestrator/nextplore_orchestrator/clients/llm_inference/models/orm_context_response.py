@@ -1,5 +1,5 @@
-from typing import List, Dict
-from pydantic import BaseModel, UUID4
+
+from pydantic import UUID4, BaseModel
 
 
 class ORMContextResponse(BaseModel):
@@ -7,7 +7,6 @@ class ORMContextResponse(BaseModel):
     schema_name: str
     class_name: str
     table_name: str
-    column_names: List[str]
-    column_aggregates: List[Dict[str, str]]
-    column_filters: List[Dict[str, str | int]]
-    
+    column_names: list[str]
+    column_aggregates: list[dict[str, str]]
+    column_filters: list[dict[str, str | int]]

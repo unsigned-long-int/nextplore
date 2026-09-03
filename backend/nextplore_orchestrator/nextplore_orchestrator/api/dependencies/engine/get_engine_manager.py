@@ -1,5 +1,4 @@
 from fastapi import Request
-
 from nextplore_sdk.database.connection_maker.engine.engine_manager import EngineManager
 
 

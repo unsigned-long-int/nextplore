@@ -1,10 +1,12 @@
-import httpx
 import json
-from datetime import datetime, date
-from uuid import UUID
+from datetime import date, datetime
 from enum import Enum
-from typing import Dict, Any, Optional
+from typing import Any
+from uuid import UUID
+
+import httpx
 from pydantic import BaseModel, SecretStr
+
 from nextplore_orchestrator.api.context import get_current_identity
 
 
@@ -25,61 +27,77 @@ class BaseServiceClient:
     def __init__(self, base_url: str):
         self.client = httpx.AsyncClient(
             base_url=base_url,
-            timeout=httpx.Timeout(
-                read=60.0, 
-                write=20.0,
-                connect=3.0,
-                pool=5.0
-            ),
-            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20)    
+            timeout=httpx.Timeout(read=60.0, write=20.0, connect=3.0, pool=5.0),
+            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
 
-    async def post(self, path: str, payload: BaseModel, headers: Optional[Dict[str, Any]] = None):
+    async def post(
+        self, path: str, payload: BaseModel, headers: dict[str, Any] | None = None
+    ):
         adapted_headers = self._inject_identity_headers(headers)
-        response = await self.client.post(path, json=self._serialize(payload), headers=adapted_headers)
+        response = await self.client.post(
+            path, json=self._serialize(payload), headers=adapted_headers
+        )
         response.raise_for_status()
-        return response 
-    
-    async def get(self, path: str, params: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, Any]] = None):
+        return response
+
+    async def get(
+        self,
+        path: str,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
+    ):
         adapted_headers = self._inject_identity_headers(headers)
         response = await self.client.get(path, params=params, headers=adapted_headers)
         return response
-    
+
     async def delete(
         self,
         path: str,
-        params: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, Any]] = None
+        params: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
     ):
         adapted_headers = self._inject_identity_headers(headers)
-        response = await self.client.delete(path, params=params, headers=adapted_headers)
-        return response
-    
-    async def put(self, path: str, payload: BaseModel, headers: Optional[Dict[str, Any]] = None):
-        adapted_headers = self._inject_identity_headers(headers)
-        response = await self.client.put(path, json=self._serialize(payload), headers=adapted_headers)
+        response = await self.client.delete(
+            path, params=params, headers=adapted_headers
+        )
         return response
 
-    async def patch(self, path: str, payload: BaseModel, headers: Optional[Dict[str, Any]] = None):
+    async def put(
+        self, path: str, payload: BaseModel, headers: dict[str, Any] | None = None
+    ):
         adapted_headers = self._inject_identity_headers(headers)
-        response = await self.client.patch(path, json=self._serialize(payload), headers=adapted_headers)
+        response = await self.client.put(
+            path, json=self._serialize(payload), headers=adapted_headers
+        )
         return response
-    
+
+    async def patch(
+        self, path: str, payload: BaseModel, headers: dict[str, Any] | None = None
+    ):
+        adapted_headers = self._inject_identity_headers(headers)
+        response = await self.client.patch(
+            path, json=self._serialize(payload), headers=adapted_headers
+        )
+        return response
+
     async def close(self) -> None:
         await self.client.aclose()
 
     @staticmethod
-    def _inject_identity_headers(headers: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def _inject_identity_headers(
+        headers: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         identity = get_current_identity()
         if identity is None:
-            raise RuntimeError('UserIdentity is missing in context')
+            raise RuntimeError("UserIdentity is missing in context")
 
         base_headers = headers.copy() if headers else {}
-        base_headers.setdefault('x-user-id', str(identity.user_id))
-        base_headers.setdefault('x-org-id', str(identity.organization_id))
+        base_headers.setdefault("x-user-id", str(identity.user_id))
+        base_headers.setdefault("x-org-id", str(identity.organization_id))
         return base_headers
 
     @staticmethod
-    def _serialize(payload: BaseModel | Dict[str, Any]) -> Dict[str, Any]:
+    def _serialize(payload: BaseModel | dict[str, Any]) -> dict[str, Any]:
         raw = payload.model_dump() if isinstance(payload, BaseModel) else payload
         return json.loads(json.dumps(raw, cls=PayloadEncoder))

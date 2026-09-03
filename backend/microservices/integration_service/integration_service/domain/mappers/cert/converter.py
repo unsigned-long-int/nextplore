@@ -1,24 +1,21 @@
 from uuid import UUID
-from svc_integration_contracts.models import CertCreateRequest
-from nextplore_sdk.encryptor.models.cert import Cert
 
-from integration_service.domain.models.cert import CertCreate, CertProfile
+from nextplore_sdk.encryptor.models.cert import Cert
+from svc_integration_contracts.models import CertCreateRequest
+
 from integration_service.database.models import CertORM
+from integration_service.domain.models.cert import CertCreate, CertProfile
 
 
 def cert_create_from_dto(cert_create_request: CertCreateRequest) -> CertCreate:
     return CertCreate(
         purpose=cert_create_request.purpose,
         key_size=cert_create_request.key_size,
-        validity_in_months=cert_create_request.validity_in_months
+        validity_in_months=cert_create_request.validity_in_months,
     )
 
 
-def orm_from_cert(
-    organization_id: UUID,
-    user_id: UUID,
-    cert: Cert
-) -> CertORM:
+def orm_from_cert(organization_id: UUID, user_id: UUID, cert: Cert) -> CertORM:
     return CertORM(
         organization_id=organization_id,
         user_id=user_id,
@@ -31,9 +28,7 @@ def orm_from_cert(
     )
 
 
-def cert_profile_from_orm(
-    cert_orm: CertORM
-) -> CertProfile:
+def cert_profile_from_orm(cert_orm: CertORM) -> CertProfile:
     return CertProfile(
         id=cert_orm.id,
         state=cert_orm.state,
@@ -45,5 +40,5 @@ def cert_profile_from_orm(
         cert_name=cert_orm.cert_name,
         created_at=cert_orm.created_at,
         assigned_at=cert_orm.assigned_at,
-        revoked_at=cert_orm.revoked_at
+        revoked_at=cert_orm.revoked_at,
     )

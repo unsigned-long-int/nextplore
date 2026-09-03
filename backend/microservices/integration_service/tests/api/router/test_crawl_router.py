@@ -1,20 +1,22 @@
 import unittest
-from uuid import uuid4
-from fastapi import FastAPI
 from unittest.mock import AsyncMock, MagicMock, patch
+from uuid import uuid4
+
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from svc_integration_contracts.models import (
-    FilteredCrawlRequest,
     CrawlResponse,
-)
-from integration_service.services.crawl.exceptions import CrawlDataStoresFailed
-from integration_service.cache import get_cache_service
-from integration_service.api.router.datastore_crawl_router import router
-from integration_service.api.dependencies import(
-    get_backend_connector, get_engine_manager,
-    get_data_stores_integration_repo
+    FilteredCrawlRequest,
 )
 
+from integration_service.api.dependencies import (
+    get_backend_connector,
+    get_data_stores_integration_repo,
+    get_engine_manager,
+)
+from integration_service.api.router.datastore_crawl_router import router
+from integration_service.cache import get_cache_service
+from integration_service.services.crawl.exceptions import CrawlDataStoresFailed
 
 
 class TestCrawlRouter(unittest.TestCase):
@@ -36,27 +38,26 @@ class TestCrawlRouter(unittest.TestCase):
 
         self.request = FilteredCrawlRequest(
             datastores=[uuid4(), uuid4()],
-            schemas={str(uuid4()): ['schema1', 'schema2']},
-            tables={str(uuid4()): ['table1', 'table2']},
+            schemas={str(uuid4()): ["schema1", "schema2"]},
+            tables={str(uuid4()): ["table1", "table2"]},
         )
 
         self.response = CrawlResponse(
-            datastore_registry_repr='test-data_store',
-            datastores_enum=['datastore1', 'datastore2'],
-            schemas_enum=['schemas_1', 'schemas_2'],
-            tables_enum=['table1', 'table2'],
-            columns_enum=['column1', 'column2'],
-            filter_op_enum=['filter1', 'filter2'],
-            agg_funcs_enum=['agg_func1', 'agg_func2'],
+            datastore_registry_repr="test-data_store",
+            datastores_enum=["datastore1", "datastore2"],
+            schemas_enum=["schemas_1", "schemas_2"],
+            tables_enum=["table1", "table2"],
+            columns_enum=["column1", "column2"],
+            filter_op_enum=["filter1", "filter2"],
+            agg_funcs_enum=["agg_func1", "agg_func2"],
         )
 
     def _url(self, org_id, user_id) -> str:
         return (
-            f'/v1/integration/organizations/{org_id}/'
-            f'users/{user_id}/datastores/crawl'
+            f"/v1/integration/organizations/{org_id}/users/{user_id}/datastores/crawl"
         )
 
-    @patch('integration_service.api.router.datastore_crawl_router.get_current_identity')
+    @patch("integration_service.api.router.datastore_crawl_router.get_current_identity")
     def test_returns_cached_datastore(self, get_current_identity_mock):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -68,19 +69,20 @@ class TestCrawlRouter(unittest.TestCase):
         self.cache_mock.get_filtered_datastore.return_value = cached
         response = self.client.post(
             self._url(user_identity_mock.organization_id, user_identity_mock.user_id),
-            json=self.request.model_dump(mode='json')
+            json=self.request.model_dump(mode="json"),
         )
 
         self.assertEqual(200, response.status_code)
         self.cache_mock.get_filtered_datastore.assert_awaited_once()
         self.assertEqual(response.json(), cached.model_dump())
 
-    @patch('integration_service.api.router.datastore_crawl_router.crawl_filtered_datastore_metadata', new_callable=AsyncMock)
-    @patch('integration_service.api.router.datastore_crawl_router.get_current_identity')
+    @patch(
+        "integration_service.api.router.datastore_crawl_router.crawl_filtered_datastore_metadata",
+        new_callable=AsyncMock,
+    )
+    @patch("integration_service.api.router.datastore_crawl_router.get_current_identity")
     def test_filters_datastore_and_sets_cache(
-        self,
-        get_current_identity_mock,
-        crawl_filtered_datastore_metadata_mock
+        self, get_current_identity_mock, crawl_filtered_datastore_metadata_mock
     ):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -91,7 +93,7 @@ class TestCrawlRouter(unittest.TestCase):
         crawl_filtered_datastore_metadata_mock.return_value = self.response
         response = self.client.post(
             self._url(user_identity_mock.organization_id, user_identity_mock.user_id),
-            json=self.request.model_dump(mode='json')
+            json=self.request.model_dump(mode="json"),
         )
 
         crawl_filtered_datastore_metadata_mock.assert_awaited_once()
@@ -99,13 +101,13 @@ class TestCrawlRouter(unittest.TestCase):
         self.assertEqual(response.json(), self.response.model_dump())
         self.cache_mock.set_filtered_datastore.assert_awaited_once()
 
-
-    @patch('integration_service.api.router.datastore_crawl_router.crawl_filtered_datastore_metadata', new_callable=AsyncMock)
-    @patch('integration_service.api.router.datastore_crawl_router.get_current_identity')
+    @patch(
+        "integration_service.api.router.datastore_crawl_router.crawl_filtered_datastore_metadata",
+        new_callable=AsyncMock,
+    )
+    @patch("integration_service.api.router.datastore_crawl_router.get_current_identity")
     def test_raises_exception_when_datastore_crawl_failed(
-        self,
-        get_current_identity_mock,
-        crawl_filtered_datastore_metadata_mock
+        self, get_current_identity_mock, crawl_filtered_datastore_metadata_mock
     ):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -113,21 +115,24 @@ class TestCrawlRouter(unittest.TestCase):
         get_current_identity_mock.return_value = user_identity_mock
         self.cache_mock.get_filtered_datastore.return_value = None
 
-        crawl_filtered_datastore_metadata_mock.side_effect = CrawlDataStoresFailed('boom!')
+        crawl_filtered_datastore_metadata_mock.side_effect = CrawlDataStoresFailed(
+            "boom!"
+        )
         response = self.client.post(
             self._url(user_identity_mock.organization_id, user_identity_mock.user_id),
-            json=self.request.model_dump(mode='json')
+            json=self.request.model_dump(mode="json"),
         )
         self.assertEqual(424, response.status_code)
-        self.assertIn('boom', response.json()['detail']['message'])
+        self.assertIn("boom", response.json()["detail"]["message"])
         self.cache_mock.set_filtered_datastore.assert_not_awaited()
 
-    @patch('integration_service.api.router.datastore_crawl_router.crawl_filtered_datastore_metadata', new_callable=AsyncMock)
-    @patch('integration_service.api.router.datastore_crawl_router.get_current_identity')
+    @patch(
+        "integration_service.api.router.datastore_crawl_router.crawl_filtered_datastore_metadata",
+        new_callable=AsyncMock,
+    )
+    @patch("integration_service.api.router.datastore_crawl_router.get_current_identity")
     def test_raises_exception_when_generic_error(
-        self,
-        get_current_identity_mock,
-        crawl_filtered_datastore_metadata_mock
+        self, get_current_identity_mock, crawl_filtered_datastore_metadata_mock
     ):
         user_identity_mock = MagicMock()
         user_identity_mock.user_id = uuid4()
@@ -135,11 +140,11 @@ class TestCrawlRouter(unittest.TestCase):
         get_current_identity_mock.return_value = user_identity_mock
         self.cache_mock.get_filtered_datastore.return_value = None
 
-        crawl_filtered_datastore_metadata_mock.side_effect = RuntimeError('boom!')
+        crawl_filtered_datastore_metadata_mock.side_effect = RuntimeError("boom!")
         response = self.client.post(
             self._url(user_identity_mock.organization_id, user_identity_mock.user_id),
-            json=self.request.model_dump(mode='json')
+            json=self.request.model_dump(mode="json"),
         )
         self.assertEqual(500, response.status_code)
-        self.assertIn('Unexpected error: boom', response.json()['detail']['message'])
+        self.assertIn("Unexpected error: boom", response.json()["detail"]["message"])
         self.cache_mock.set_filtered_datastore.assert_not_awaited()

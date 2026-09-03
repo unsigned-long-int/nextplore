@@ -1,3 +1,3 @@
+from .get_models_registry import get_models_registry
 from .models_registry import ModelsRegistry
 from .setup_models_registry import setup_models_registry
-from .get_models_registry import get_models_registry

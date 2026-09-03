@@ -1,41 +1,44 @@
 import logging
 from uuid import UUID
-from typing import List
-from fastapi import APIRouter, HTTPException, status, Depends
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from nextplore_sdk.database.backend.database_backend_connector import (
+    DatabaseBackendConnector,
+)
 from svc_integration_contracts.models import CertProfile
-from nextplore_sdk.database.backend.database_backend_connector import DatabaseBackendConnector
 
 from integration_service.api.context import get_current_identity
 from integration_service.api.dependencies import get_backend_connector
-from integration_service.database.repositories import DataStoreRepository
+from integration_service.cache import CacheService, get_cache_service
 from integration_service.database.exceptions import CertGetFailed
-from integration_service.cache import get_cache_service, CacheService
+from integration_service.database.repositories import DataStoreRepository
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix='/v1/integration', tags=['CertProfiles'])
+router = APIRouter(prefix="/v1/integration", tags=["CertProfiles"])
 
 
 @router.get(
-    '/organizations/{organization_id}/users/{user_id}/datastores/certificates/profiles',
-    response_model=List[CertProfile]
+    "/organizations/{organization_id}/users/{user_id}/datastores/certificates/profiles",
+    response_model=list[CertProfile],
 )
 async def get_cert_profiles(
     organization_id: UUID,
     user_id: UUID,
     backend_connector: DatabaseBackendConnector = Depends(get_backend_connector),
-    cache_service: CacheService = Depends(get_cache_service)
-) -> List[CertProfile]:
+    cache_service: CacheService = Depends(get_cache_service),
+) -> list[CertProfile]:
     user_identity = get_current_identity()
 
-    if organization_id != user_identity.organization_id or user_id != user_identity.user_id:
+    if (
+        organization_id != user_identity.organization_id
+        or user_id != user_identity.user_id
+    ):
         logger.error(
-            'Forbidden request',
-            extra={'org_id': organization_id, 'user_id': user_id}
+            "Forbidden request", extra={"org_id": organization_id, "user_id": user_id}
         )
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={'message': 'Forbidden'}
+            status_code=status.HTTP_403_FORBIDDEN, detail={"message": "Forbidden"}
         )
     try:
         cached = await cache_service.get_datastore_cert_profiles(
@@ -46,8 +49,7 @@ async def get_cert_profiles(
 
         data_store_repo = DataStoreRepository(backend_connector)
         cert_profiles = await data_store_repo.get_datastore_cert_profiles(
-            organization_id=user_identity.organization_id,
-            user_id=user_identity.user_id
+            organization_id=user_identity.organization_id, user_id=user_identity.user_id
         )
         response = [
             CertProfile(
@@ -62,30 +64,28 @@ async def get_cert_profiles(
                 created_at=profile.created_at,
                 assigned_at=profile.assigned_at,
                 activated_at=profile.activated_at,
-                revoked_at=profile.revoked_at
+                revoked_at=profile.revoked_at,
             )
             for profile in cert_profiles
         ]
         await cache_service.set_datastore_cert_profiles(
-            user_identity=user_identity,
-            response=response
+            user_identity=user_identity, response=response
         )
         return response
     except CertGetFailed as e:
         logger.error(
-            f'Get certificate profiles failed with DB error: {str(e)}',
-            exc_info=True
+            f"Get certificate profiles failed with DB error: {e!s}", exc_info=True
         )
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY,
-            detail={'message': f'Database error: {str(e)}'}
+            detail={"message": f"Database error: {e!s}"},
         )
     except Exception as e:
         logger.error(
-            f'Get certificate profiles failed with unexpected error: {str(e)}',
-            exc_info=True
+            f"Get certificate profiles failed with unexpected error: {e!s}",
+            exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={'message': f'Unexpected error: {str(e)}'}
+            detail={"message": f"Unexpected error: {e!s}"},
         )

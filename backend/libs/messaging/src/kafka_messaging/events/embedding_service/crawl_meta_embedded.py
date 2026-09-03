@@ -1,7 +1,7 @@
-from typing import ClassVar, List
-from pydantic import BaseModel, UUID4
+from typing import ClassVar
 
 from kafka_messaging.events.base import BaseEvent
+from pydantic import UUID4, BaseModel
 
 
 class TableMeta(BaseModel):
@@ -10,7 +10,7 @@ class TableMeta(BaseModel):
     datastore_descr: str
     schema_name: str
     table_name: str
-    column_names: List[str]
+    column_names: list[str]
 
 
 class ORMEmbedding(BaseModel):
@@ -18,14 +18,14 @@ class ORMEmbedding(BaseModel):
     schema_name: str
     table_name: str
     table_meta: TableMeta
-    embedding: List[float]
+    embedding: list[float]
 
 
 class CrawlMetaEmbedded(BaseEvent):
-    event_name: ClassVar[str] = 'crawlmeta.embedded'
-    version: ClassVar[str] = 'v1'
+    event_name: ClassVar[str] = "crawlmeta.embedded"
+    version: ClassVar[str] = "v1"
 
-    orm_embedding: List[ORMEmbedding]
+    orm_embedding: list[ORMEmbedding]
 
-    def get_topics(self) -> List[str]:
+    def get_topics(self) -> list[str]:
         return [self.event_name]

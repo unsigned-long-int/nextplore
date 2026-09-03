@@ -1,19 +1,17 @@
-from typing import List
 
+from nextplore_sdk.cache.client.interface import Cache
+from nextplore_sdk.cache.utils.key_factory import get_cache_key, get_string_cache_key
 from svc_llm_inference_contracts.models import (
     ModelInfo,
-    ORMContextRequest,
-    ORMContextResponse,
     MultiQueryRequest,
     MultiQueryResponse,
+    ORMContextRequest,
+    ORMContextResponse,
     PromptRequest,
-    PromptResponse
+    PromptResponse,
 )
-from nextplore_sdk.cache.utils.key_factory import get_string_cache_key, get_cache_key
-from nextplore_sdk.cache.client.interface import Cache
 
 from llm_inference_service.api.context import UserIdentity
-
 
 
 class CacheService:
@@ -23,69 +21,61 @@ class CacheService:
     async def get_models(
         self,
         user_identity: UserIdentity,
-    ) -> List[ModelInfo]:
-        cache_key = get_string_cache_key(value='available-models', prefix='models')
+    ) -> list[ModelInfo]:
+        cache_key = get_string_cache_key(value="available-models", prefix="models")
         return await self.cache.get_many(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            model=ModelInfo
+            model=ModelInfo,
         )
-    
+
     async def set_models(
-        self,
-        user_identity: UserIdentity,
-        response: List[ModelInfo],
-        ttl: int = 600
+        self, user_identity: UserIdentity, response: list[ModelInfo], ttl: int = 600
     ) -> None:
-        cache_key = get_string_cache_key(value='available-models', prefix='models')
+        cache_key = get_string_cache_key(value="available-models", prefix="models")
         await self.cache.set_many(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
             value=response,
-            ttl=ttl
+            ttl=ttl,
         )
 
     async def get_orm_context(
-        self, 
-        user_identity: UserIdentity,
-        request: ORMContextRequest
+        self, user_identity: UserIdentity, request: ORMContextRequest
     ) -> ORMContextResponse:
-        
-        cache_key = get_cache_key(model=request, prefix='orm-context')
+        cache_key = get_cache_key(model=request, prefix="orm-context")
         return await self.cache.get_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            model=ORMContextResponse
+            model=ORMContextResponse,
         )
-    
+
     async def set_orm_context(
-        self, 
+        self,
         user_identity: UserIdentity,
         request: ORMContextRequest,
-        response: ORMContextResponse
+        response: ORMContextResponse,
     ) -> None:
-        cache_key = get_cache_key(model=request, prefix='orm-context')
+        cache_key = get_cache_key(model=request, prefix="orm-context")
         await self.cache.set_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            value=response
+            value=response,
         )
 
     async def get_expanded_query(
-        self,
-        user_identity: UserIdentity,
-        request: MultiQueryRequest
+        self, user_identity: UserIdentity, request: MultiQueryRequest
     ) -> MultiQueryResponse:
-        cache_key = get_cache_key(model=request, prefix='multi-query-response')
+        cache_key = get_cache_key(model=request, prefix="multi-query-response")
         return await self.cache.get_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            model=MultiQueryResponse
+            model=MultiQueryResponse,
         )
 
     async def set_expanded_query(
@@ -94,38 +84,35 @@ class CacheService:
         request: MultiQueryRequest,
         response: MultiQueryResponse,
     ) -> None:
-        cache_key = get_cache_key(model=request, prefix='multi-query-response')
+        cache_key = get_cache_key(model=request, prefix="multi-query-response")
         await self.cache.set_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            value=response
+            value=response,
         )
 
     async def get_prompt_response(
-        self,
-        user_identity: UserIdentity,
-        request: PromptRequest
+        self, user_identity: UserIdentity, request: PromptRequest
     ) -> PromptResponse:
-        cache_key = get_cache_key(model=request, prefix='prompt-response')
+        cache_key = get_cache_key(model=request, prefix="prompt-response")
         return await self.cache.get_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            model=PromptResponse
+            model=PromptResponse,
         )
 
     async def set_prompt_response(
         self,
         user_identity: UserIdentity,
         request: PromptRequest,
-        response: PromptResponse
+        response: PromptResponse,
     ) -> None:
-        cache_key = get_cache_key(model=request, prefix='prompt-response')
+        cache_key = get_cache_key(model=request, prefix="prompt-response")
         await self.cache.set_one(
             user_identity.organization_id,
             user_identity.user_id,
             cache_key,
-            value=response
+            value=response,
         )
-

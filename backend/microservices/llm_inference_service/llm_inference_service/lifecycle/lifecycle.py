@@ -1,14 +1,16 @@
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
 from pathlib import Path
 
+from _version import app_name, version
+from fastapi import FastAPI
 from nextplore_sdk.cache.client.base_redis_client import BaseCache
 from nextplore_sdk.logging.setup import setup_logger
-from llm_inference_service.cache import CacheService
-from llm_inference_service.services.models_gateway.models_registry import setup_models_registry
-from _version import version, app_name
 
+from llm_inference_service.cache import CacheService
+from llm_inference_service.services.models_gateway.models_registry import (
+    setup_models_registry,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -16,13 +18,13 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logger(
-        service_meta={'version': version, 'app_name': app_name},
-        config_path=Path(__file__).parents[1] / 'config' / 'logging-prod.conf'
+        service_meta={"version": version, "app_name": app_name},
+        config_path=Path(__file__).parents[1] / "config" / "logging-prod.conf",
     )
     models_registry = setup_models_registry()
     app.state.models_registry = models_registry
 
-    cache = BaseCache(namespace='ai_orm_context_cache_service', version='v1')
+    cache = BaseCache(namespace="ai_orm_context_cache_service", version="v1")
     app.state.cache_service = CacheService(cache)
 
     yield

@@ -1,11 +1,11 @@
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
+from typing import Any
+
 
 @dataclass(frozen=True)
 class CacheLookupResult:
-    embedding: List[float]
-    json_payload: Optional[Dict[str, Any]] = field(default=None)
-
+    embedding: list[float]
+    json_payload: dict[str, Any] | None = field(default=None)
 
     @property
     def hit(self) -> bool:

@@ -3,9 +3,10 @@
 #   timestamp: 2026-03-05T12:31:24+00:00
 
 from enum import StrEnum
+from typing import Any, Dict
 
 from pydantic import UUID4, AwareDatetime, BaseModel, Field, RootModel, SecretStr
-from typing import Dict, Any
+
 
 class CertCreateRequest(BaseModel):
     purpose: str | None = Field(default=None, title="Purpose")
@@ -187,9 +188,10 @@ class UserLlmCreateRequest(BaseModel):
     model_id: str = Field(..., title="Model Id")
     label: str = Field(..., title="Label")
     api_base: str = Field(..., title="API Base URL")
-    connection_params: Dict[str, Any] = Field(..., title="Connection Params")
+    connection_params: dict[str, Any] = Field(..., title="Connection Params")
     max_tokens: int = Field(..., title="Max Tokens")
     kek_kid: str | None = Field(default=None, title="Kek Kid")
+
 
 class UserLlmProfile(BaseModel):
     model_ref_id: UUID4 = Field(..., title="Model Ref Id")
@@ -198,7 +200,8 @@ class UserLlmProfile(BaseModel):
     label: str = Field(..., title="Label")
     max_tokens: int = Field(..., title="Max Tokens")
 
+
 class UserLlmConfig(BaseModel):
     api_base: str = Field(..., title="API Base URL")
-    connection_params: Dict[str, Any] = Field(..., title="Connection Params")
+    connection_params: dict[str, Any] = Field(..., title="Connection Params")
     max_tokens: int = Field(..., title="Max Tokens")

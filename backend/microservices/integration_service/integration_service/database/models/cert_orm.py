@@ -1,5 +1,6 @@
 import uuid
-from sqlalchemy import Column, ForeignKey, Text, CHAR, TIMESTAMP, func, Enum, text
+
+from sqlalchemy import CHAR, TIMESTAMP, Column, Enum, ForeignKey, Text, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from svc_integration_contracts.models import CertState
 
@@ -7,23 +8,24 @@ from .base import Base
 from .datastore_orm import DataStoreORM
 
 
-
 class CertORM(Base):
-    __tablename__ = 'datastore_certificates'
-    __table_args__ = {'schema': 'integration'}
+    __tablename__ = "datastore_certificates"
+    __table_args__ = {"schema": "integration"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     organization_id = Column(UUID(as_uuid=True), nullable=False)
     user_id = Column(UUID(as_uuid=True), nullable=False)
-    datastore_id = Column(UUID(as_uuid=True), ForeignKey(DataStoreORM.id), nullable=True)
+    datastore_id = Column(
+        UUID(as_uuid=True), ForeignKey(DataStoreORM.id), nullable=True
+    )
     state = Column(
         Enum(
             CertState,
-            name='cert_state',
-            schema='integration',
+            name="cert_state",
+            schema="integration",
             native_enum=True,
             create_type=False,
-            validate_strings=True
+            validate_strings=True,
         ),
         nullable=False,
         server_default=text("'PENDING'::integration.cert_state"),

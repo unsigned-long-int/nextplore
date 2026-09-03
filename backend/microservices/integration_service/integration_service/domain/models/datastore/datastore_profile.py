@@ -1,6 +1,6 @@
-from uuid import UUID
-from typing import Optional
 from dataclasses import dataclass, field
+from uuid import UUID
+
 from svc_integration_contracts.models import DB, Auth, Cloud
 
 
@@ -13,5 +13,5 @@ class DataStoreProfile:
     connection_name: str
     database_name: str
     host: str
-    port: Optional[int] = field(default=None)
-    autosync_on: Optional[bool] = field(default=True)
+    port: int | None = field(default=None)
+    autosync_on: bool | None = field(default=True)

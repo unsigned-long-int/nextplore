@@ -1,6 +1,5 @@
 import os
 import threading
-from typing import Optional
 
 from google.cloud.sql.connector import Connector
 from google.oauth2 import service_account
@@ -8,16 +7,18 @@ from google.oauth2 import service_account
 
 class GcpCloudSqlConnector:
     _lock = threading.RLock()
-    _connector: Optional[Connector] = None
-    _creds_path: Optional[str] = None
+    _connector: Connector | None = None
+    _creds_path: str | None = None
 
     @classmethod
-    def get(cls, credentials_path: str = os.getenv('GCP_ACCESS_KEY')) -> Connector:
+    def get(cls, credentials_path: str = os.getenv("GCP_ACCESS_KEY")) -> Connector:
         with cls._lock:
             if cls._connector is not None:
                 return cls._connector
-            
-            creds = service_account.Credentials.from_service_account_file(credentials_path)
+
+            creds = service_account.Credentials.from_service_account_file(
+                credentials_path
+            )
             cls._connector = Connector(credentials=creds)
             cls._creds_path = credentials_path
             return cls._connector

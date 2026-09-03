@@ -1,3 +1,3 @@
-from .specification import Specification
 from .always_true_specification import AlwaysTrueSpec
 from .has_select_perm_specification import HasSelectPermissionSpec
+from .specification import Specification

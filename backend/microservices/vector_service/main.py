@@ -1,23 +1,22 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from vector_service.lifecycle import lifespan
 from vector_service.api.middleware import IdentityMiddleware
 from vector_service.api.router import (
-    meta_router, 
-    stats_router, 
+    meta_router,
     nearest_neighbours_router,
     profiles_router,
+    semantic_cache_lookup_router,
     semantic_cache_store_router,
-    semantic_cache_lookup_router
+    stats_router,
 )
-
+from vector_service.lifecycle import lifespan
 
 app = FastAPI(
-    title='Vector Handling Service',
-    description='Handles vectors retrieval and upserts',
-    version = '1.0.0',
-    lifespan=lifespan
+    title="Vector Handling Service",
+    description="Handles vectors retrieval and upserts",
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(IdentityMiddleware)

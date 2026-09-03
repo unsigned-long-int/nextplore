@@ -4,60 +4,58 @@ from unittest.mock import MagicMock
 from svc_llm_inference_contracts.models import (
     MultiQueryRequest,
     ORMContextRequest,
-    UserLlmTestRequest,
     UserLlmConfig,
+    UserLlmTestRequest,
 )
 
-from llm_inference_service.domain.models.model_gateway_params import (
-    UserLlmParams,
-    PlatformLlmParams,
-)
 from llm_inference_service.domain.mappers.model_gateway_params import (
-    user_llm_params_from_dto,
     resolve_llm_provider_params,
+    user_llm_params_from_dto,
+)
+from llm_inference_service.domain.models.model_gateway_params import (
+    PlatformLlmParams,
+    UserLlmParams,
 )
 
 
 def make_user_llm_test_request(**overrides) -> UserLlmTestRequest:
     defaults = {
-        'model_id': 'openai/gpt-4o',
-        'api_base': 'https://api.openai.com/v1',
-        'connection_params': {'api_key': 'sk-test'},
-        'max_tokens': 4096,
-        'label': 'Test Model',
+        "model_id": "openai/gpt-4o",
+        "api_base": "https://api.openai.com/v1",
+        "connection_params": {"api_key": "sk-test"},
+        "max_tokens": 4096,
+        "label": "Test Model",
     }
     return UserLlmTestRequest(**{**defaults, **overrides})
 
 
 def make_multi_query_request(**overrides) -> MultiQueryRequest:
     defaults = {
-        'provider': 'openai',
-        'model_id': 'gpt-4o',
-        'multiplier': 3,
-        'query': 'Show me all Klingon characters',
-        'user_llm_config': None,
+        "provider": "openai",
+        "model_id": "gpt-4o",
+        "multiplier": 3,
+        "query": "Show me all Klingon characters",
+        "user_llm_config": None,
     }
     return MultiQueryRequest(**{**defaults, **overrides})
 
 
 def make_user_llm_config(**overrides) -> UserLlmConfig:
     defaults = {
-        'api_base': 'https://custom.endpoint.com/v1',
-        'connection_params': {'api_key': 'custom-key'},
-        'max_tokens': 8192,
+        "api_base": "https://custom.endpoint.com/v1",
+        "connection_params": {"api_key": "custom-key"},
+        "max_tokens": 8192,
     }
     return UserLlmConfig(**{**defaults, **overrides})
 
 
 def make_models_registry(meta=None) -> MagicMock:
     registry = MagicMock()
-    registry.get_model.return_value = meta or {'model': 'gpt-4o-config'}
+    registry.get_model.return_value = meta or {"model": "gpt-4o-config"}
     return registry
 
 
-
 class TestUserLlmParamsFromDto(unittest.TestCase):
-
     def setUp(self):
         self.request = make_user_llm_test_request()
 
@@ -82,17 +80,19 @@ class TestUserLlmParamsFromDto(unittest.TestCase):
         self.assertEqual(result.max_tokens, self.request.max_tokens)
 
     def test_maps_custom_model_id(self):
-        request = make_user_llm_test_request(model_id='meta-llama/Llama-3-8b')
+        request = make_user_llm_test_request(model_id="meta-llama/Llama-3-8b")
         result = user_llm_params_from_dto(request)
-        self.assertEqual(result.model_id, 'meta-llama/Llama-3-8b')
+        self.assertEqual(result.model_id, "meta-llama/Llama-3-8b")
 
     def test_maps_custom_api_base(self):
-        request = make_user_llm_test_request(api_base='https://router.huggingface.co/v1')
+        request = make_user_llm_test_request(
+            api_base="https://router.huggingface.co/v1"
+        )
         result = user_llm_params_from_dto(request)
-        self.assertEqual(result.api_base, 'https://router.huggingface.co/v1')
+        self.assertEqual(result.api_base, "https://router.huggingface.co/v1")
 
     def test_maps_custom_connection_params(self):
-        params = {'api_key': 'hf-abc123', 'timeout': 30}
+        params = {"api_key": "hf-abc123", "timeout": 30}
         request = make_user_llm_test_request(connection_params=params)
         result = user_llm_params_from_dto(request)
         self.assertEqual(result.connection_params, params)
@@ -103,11 +103,9 @@ class TestUserLlmParamsFromDto(unittest.TestCase):
         self.assertEqual(result.max_tokens, 2048)
 
 
-
 class TestResolveLlmProviderParamsPlatform(unittest.TestCase):
-
     def setUp(self):
-        self.mock_meta = {'model': 'gpt-4o-config'}
+        self.mock_meta = {"model": "gpt-4o-config"}
         self.registry = make_models_registry(meta=self.mock_meta)
         self.request = make_multi_query_request()
 
@@ -140,12 +138,13 @@ class TestResolveLlmProviderParamsPlatform(unittest.TestCase):
 
     def test_works_with_orm_context_request(self):
         from svc_llm_inference_contracts.models import LlmOutputSpecs
+
         orm_request = ORMContextRequest(
-            provider='deepseek',
-            model_id='deepseek-14b',
-            query='Count marvel characters',
+            provider="deepseek",
+            model_id="deepseek-14b",
+            query="Count marvel characters",
             llm_output_specs=LlmOutputSpecs(
-                datastore_registry_repr='general',
+                datastore_registry_repr="general",
                 datastores_enum=[],
                 schemas_enum=[],
                 tables_enum=[],
@@ -157,12 +156,10 @@ class TestResolveLlmProviderParamsPlatform(unittest.TestCase):
         )
         result = resolve_llm_provider_params(orm_request, self.registry)
         self.assertIsInstance(result, PlatformLlmParams)
-        self.assertEqual(result.provider, 'deepseek')
-
+        self.assertEqual(result.provider, "deepseek")
 
 
 class TestResolveLlmProviderParamsCustom(unittest.TestCase):
-
     def setUp(self):
         self.registry = make_models_registry()
         self.user_llm_config = make_user_llm_config()
@@ -182,7 +179,9 @@ class TestResolveLlmProviderParamsCustom(unittest.TestCase):
 
     def test_maps_connection_params_from_config(self):
         result = resolve_llm_provider_params(self.request, self.registry)
-        self.assertEqual(result.connection_params, self.user_llm_config.connection_params)
+        self.assertEqual(
+            result.connection_params, self.user_llm_config.connection_params
+        )
 
     def test_maps_max_tokens_from_config(self):
         result = resolve_llm_provider_params(self.request, self.registry)

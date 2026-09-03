@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 from uuid import UUID
 
 
@@ -8,7 +7,7 @@ class OrmMetadata:
     datastore_id: UUID
     schema_name: str
     table_name: str
-    column_names: List[str]
+    column_names: list[str]
 
 
 @dataclass(frozen=True)
@@ -19,8 +18,7 @@ class VectorNeighbour:
 
     @property
     def snippet(self) -> str:
-        return ','.join(self.orm_metadata.column_names)
-
+        return ",".join(self.orm_metadata.column_names)
 
     def __hash__(self):
         return hash(self.id)
@@ -34,7 +32,7 @@ class VectorNeighbour:
 @dataclass(frozen=True)
 class VectorNeighbourCollection:
     query: str
-    vector_neighbours: List[VectorNeighbour]
+    vector_neighbours: list[VectorNeighbour]
 
 
 @dataclass(frozen=True)
@@ -42,4 +40,4 @@ class RankedVector:
     vector: VectorNeighbour
     rrf_score: float
     rank: int
-    source_queries: List[str]
+    source_queries: list[str]

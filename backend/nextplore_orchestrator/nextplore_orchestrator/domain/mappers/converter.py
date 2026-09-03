@@ -1,38 +1,46 @@
+from typing import Any
 from uuid import UUID
-from typing import Dict, Any, List, Optional
+
+from svc_integration_contracts.models import UserLlmProfile
+from svc_llm_inference_contracts.models import (
+    DataStoreEntry,
+    LlmOutputSpecs,
+    ModelInfo,
+    SchemaEntry,
+    UserLlmConfig,
+)
+from svc_nextplore_orchestrator_contracts.models import (
+    LlmProfile,
+    LlmSource,
+    RegisterRequest,
+)
+from svc_vector_contracts.models import VectorMetadata, VectorSearchResult
 
 from nextplore_orchestrator.api.models.ai_query_request import AIQueryRequest
-from nextplore_orchestrator.domain.models import (
-    Organization,
-    User,
-    OrmMetadata,
-    VectorNeighbour,
-    RagContext,
-    LlmSpec,
-    OnboardingRequest, UserLlmSpec
-)
 from nextplore_orchestrator.database.models import OnboardingRequestORM, OrganizationORM
+from nextplore_orchestrator.domain.models import (
+    LlmSpec,
+    OnboardingRequest,
+    Organization,
+    OrmMetadata,
+    RagContext,
+    User,
+    UserLlmSpec,
+    VectorNeighbour,
+)
 
-from svc_nextplore_orchestrator_contracts.models import LlmProfile, LlmSource, RegisterRequest
-from svc_integration_contracts.models import UserLlmProfile
-from svc_vector_contracts.models import VectorMetadata, VectorSearchResult
-from svc_llm_inference_contracts.models import LlmOutputSpecs, DataStoreEntry, SchemaEntry, ModelInfo, UserLlmConfig
 
-
-def organization_from_dto(
-    user: Dict[str, Any],
-    onboarding_id: UUID
-) -> Organization:
-    name = user.get('name')
-    azure_tenant_id = user.get('tid')
-    email = user.get('preferred_username')
-    domain = email.split('@')[-1]
+def organization_from_dto(user: dict[str, Any], onboarding_id: UUID) -> Organization:
+    name = user.get("name")
+    azure_tenant_id = user.get("tid")
+    email = user.get("preferred_username")
+    domain = email.split("@")[-1]
 
     return Organization(
         azure_tenant_id=azure_tenant_id,
         name=name,
         domain=domain,
-        onboarding_request_id=onboarding_id
+        onboarding_request_id=onboarding_id,
     )
 
 
@@ -51,12 +59,12 @@ def organization_from_orm(organization: OrganizationORM) -> Organization:
     )
 
 
-def user_from_dto(user: Dict[str, Any], organization_id: UUID) -> User:
-    name = user.get('name')
-    azure_user_id = user.get('oid')
-    sub = user.get('sub')
-    email = user.get('preferred_username')
-    roles = user.get('roles', [])
+def user_from_dto(user: dict[str, Any], organization_id: UUID) -> User:
+    name = user.get("name")
+    azure_user_id = user.get("oid")
+    sub = user.get("sub")
+    email = user.get("preferred_username")
+    roles = user.get("roles", [])
 
     return User(
         azure_user_id=azure_user_id,
@@ -64,13 +72,16 @@ def user_from_dto(user: Dict[str, Any], organization_id: UUID) -> User:
         name=name,
         organization_id=organization_id,
         sub=sub,
-        role=','.join(roles) if roles else None
+        role=",".join(roles) if roles else None,
     )
 
 
-def vector_neighbours_from_dto(vector_hits_meta: List[VectorMetadata], vector_hits: List[VectorSearchResult]) -> List[VectorNeighbour]:
-
-    vector_meta_by_id = {vector_meta.vector_id: vector_meta for vector_meta in vector_hits_meta}
+def vector_neighbours_from_dto(
+    vector_hits_meta: list[VectorMetadata], vector_hits: list[VectorSearchResult]
+) -> list[VectorNeighbour]:
+    vector_meta_by_id = {
+        vector_meta.vector_id: vector_meta for vector_meta in vector_hits_meta
+    }
     vector_hits_by_id = {vector_hit.vector_id: vector_hit for vector_hit in vector_hits}
 
     return [
@@ -81,10 +92,10 @@ def vector_neighbours_from_dto(vector_hits_meta: List[VectorMetadata], vector_hi
                 datastore_id=vector_meta_by_id[vid].datastore_id,
                 schema_name=vector_meta_by_id[vid].schema_name,
                 table_name=vector_meta_by_id[vid].table_name,
-                column_names=vector_meta_by_id[vid].table_metadata.column_names
-            )
+                column_names=vector_meta_by_id[vid].table_metadata.column_names,
+            ),
         )
-        for vid in vector_hits_by_id.keys()
+        for vid in vector_hits_by_id
     ]
 
 
@@ -98,13 +109,16 @@ def llm_output_specs_dto_from_rag_context(rag_context: RagContext) -> LlmOutputS
         filter_op_enum=rag_context.filter_op_enum,
         agg_funcs_enum=rag_context.agg_funcs_enum,
         table_columns_registry={
-            datastore_id: DataStoreEntry(schemas={
-                schema_name: SchemaEntry(tables=tables)
-                for schema_name, tables in schemas.items()
-            })
+            datastore_id: DataStoreEntry(
+                schemas={
+                    schema_name: SchemaEntry(tables=tables)
+                    for schema_name, tables in schemas.items()
+                }
+            )
             for datastore_id, schemas in rag_context.table_columns_registry.items()
-        }
+        },
     )
+
 
 def llm_profile_from_platform_model(platform_model: ModelInfo) -> LlmProfile:
     return LlmProfile(
@@ -113,38 +127,38 @@ def llm_profile_from_platform_model(platform_model: ModelInfo) -> LlmProfile:
         label=platform_model.label,
         tags=platform_model.tags,
         model_id=platform_model.model_id,
-        model_ref_id=None
+        model_ref_id=None,
     )
 
 
 def llm_profile_from_user_model(user_model: UserLlmProfile) -> LlmProfile:
     return LlmProfile(
         source=LlmSource.user,
-        provider='custom',
+        provider="custom",
         label=user_model.label,
         tags=[],
         model_id=user_model.model_id,
-        model_ref_id=user_model.model_ref_id
+        model_ref_id=user_model.model_ref_id,
     )
 
 
 def base_llm_spec_from_query_request(
-        query_request: AIQueryRequest,
-        base_prompt_embedding: Optional[List[float]] = None
+    query_request: AIQueryRequest, base_prompt_embedding: list[float] | None = None
 ) -> LlmSpec:
     return LlmSpec(
         provider=query_request.provider,
         model_id=query_request.model_id,
         prompt=query_request.prompt,
-        base_prompt_embedding=base_prompt_embedding
+        base_prompt_embedding=base_prompt_embedding,
     )
 
-def user_llm_config_from_llm_spec(llm_spec: LlmSpec) -> Optional[UserLlmConfig]:
+
+def user_llm_config_from_llm_spec(llm_spec: LlmSpec) -> UserLlmConfig | None:
     if llm_spec.user_llm_config:
         return UserLlmConfig(
             api_base=llm_spec.user_llm_config.api_base,
             connection_params=llm_spec.user_llm_config.connection_params,
-            max_tokens=llm_spec.user_llm_config.max_tokens
+            max_tokens=llm_spec.user_llm_config.max_tokens,
         )
     return None
 
@@ -153,7 +167,7 @@ def user_llm_spec_from_llm_config(llm_config: UserLlmConfig) -> UserLlmSpec:
     return UserLlmSpec(
         api_base=llm_config.api_base,
         connection_params=llm_config.connection_params,
-        max_tokens=llm_config.max_tokens
+        max_tokens=llm_config.max_tokens,
     )
 
 
@@ -175,11 +189,12 @@ def onboarding_request_from_orm(req: OnboardingRequestORM) -> OnboardingRequest:
         verification_token_expires_at=req.verification_token_expires_at,
     )
 
+
 def onboarding_request_from_dto(req: RegisterRequest) -> OnboardingRequest:
-    email_domain = str(req.contact_email).split('@')[1].lower()
+    email_domain = str(req.contact_email).split("@")[1].lower()
     return OnboardingRequest(
         company_name=req.company_name,
         contact_email=str(req.contact_email),
         email_domain=email_domain,
-        plan=req.plan
+        plan=req.plan,
     )

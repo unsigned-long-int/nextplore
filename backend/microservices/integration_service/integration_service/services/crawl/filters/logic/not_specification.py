@@ -7,4 +7,3 @@ class NotSpecification(Specification):
 
     def is_satisfied_by(self, candidate) -> bool:
         return not self.spec.is_satisfied_by(candidate)
-    

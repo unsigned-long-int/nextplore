@@ -1,7 +1,7 @@
-from typing import Dict, Any 
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass(frozen=True)
 class SemanticMatch:
-    json_payload: Dict[str, Any]
+    json_payload: dict[str, Any]

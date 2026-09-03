@@ -1,4 +1,3 @@
-from .notification_service import NotificationService, NotificationFailed
+from .notification_service import NotificationFailed, NotificationService
 
-
-__all__ = ['NotificationService', 'NotificationFailed']
+__all__ = ["NotificationFailed", "NotificationService"]

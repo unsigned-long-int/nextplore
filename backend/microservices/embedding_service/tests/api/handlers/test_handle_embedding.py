@@ -1,11 +1,12 @@
 import datetime
 import unittest
 import uuid
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from embedding_service.api.handlers import handle_crawl_meta_embedding
 from kafka_messaging.events.embedding_service import CrawlMetaEmbedded
 from kafka_messaging.events.integration_service import DataStoreMetaCrawled, TableMeta
+
+from embedding_service.api.handlers import handle_crawl_meta_embedding
 
 
 class TestHandleEmbedding(unittest.IsolatedAsyncioTestCase):
@@ -22,30 +23,31 @@ class TestHandleEmbedding(unittest.IsolatedAsyncioTestCase):
             table_metas=[
                 TableMeta(
                     datastore_id=uuid.uuid4(),
-                    datastore_name='marvel-data_store',
-                    datastore_descr='Store contains information about Marvel universe',
-                    schema_name='marvel',
-                    table_name='characters',
-                    column_names=['age', 'skills', 'power']
+                    datastore_name="marvel-data_store",
+                    datastore_descr="Store contains information about Marvel universe",
+                    schema_name="marvel",
+                    table_name="characters",
+                    column_names=["age", "skills", "power"],
                 ),
                 TableMeta(
                     datastore_id=uuid.uuid4(),
-                    datastore_name='marvel-data_store',
-                    datastore_descr='Store contains information about Marvel universe',
-                    schema_name='dc',
-                    table_name='villains',
-                    column_names=['partner', 'crimes']
+                    datastore_name="marvel-data_store",
+                    datastore_descr="Store contains information about Marvel universe",
+                    schema_name="dc",
+                    table_name="villains",
+                    column_names=["partner", "crimes"],
                 ),
-            ]
+            ],
         )
 
-    @patch('embedding_service.api.handlers.handle_embedding.dispatch_embedder')
-    @patch('embedding_service.api.handlers.handle_embedding.get_kafka_message_bus')
-    async def test_handles_embedding(self, get_kafka_message_bus_mock, dispatch_embedder_mock):
+    @patch("embedding_service.api.handlers.handle_embedding.dispatch_embedder")
+    @patch("embedding_service.api.handlers.handle_embedding.get_kafka_message_bus")
+    async def test_handles_embedding(
+        self, get_kafka_message_bus_mock, dispatch_embedder_mock
+    ):
         get_kafka_message_bus_mock.return_value = self.kafka_message_bus_mock
         dispatch_embedder_mock.return_value = self.embedder_mock
         await handle_crawl_meta_embedding(self.datastore_meta)
-
 
         get_kafka_message_bus_mock.assert_called_once()
         dispatch_embedder_mock.assert_called_once()
@@ -53,23 +55,37 @@ class TestHandleEmbedding(unittest.IsolatedAsyncioTestCase):
         published_event = self.kafka_message_bus_mock.publish.await_args.args[0]
         self.assertIsInstance(published_event, CrawlMetaEmbedded)
         self.assertEqual(published_event.user_id, self.datastore_meta.user_id)
-        self.assertEqual(published_event.organization_id, self.datastore_meta.organization_id)
-        self.assertEqual(len(published_event.orm_embedding), len(self.datastore_meta.table_metas))
+        self.assertEqual(
+            published_event.organization_id, self.datastore_meta.organization_id
+        )
+        self.assertEqual(
+            len(published_event.orm_embedding), len(self.datastore_meta.table_metas)
+        )
 
-        first_in, first_out = self.datastore_meta.table_metas[0], published_event.orm_embedding[0]
+        first_in, first_out = (
+            self.datastore_meta.table_metas[0],
+            published_event.orm_embedding[0],
+        )
         self.assertEqual(first_in.datastore_id, first_out.datastore_id)
         self.assertEqual(first_in.schema_name, first_out.schema_name)
         self.assertEqual(first_in.table_name, first_out.table_name)
 
-        second_in, second_out = self.datastore_meta.table_metas[0], published_event.orm_embedding[0]
+        second_in, second_out = (
+            self.datastore_meta.table_metas[0],
+            published_event.orm_embedding[0],
+        )
         self.assertEqual(second_in.datastore_id, second_out.datastore_id)
         self.assertEqual(second_in.schema_name, second_out.schema_name)
         self.assertEqual(second_in.table_name, second_out.table_name)
 
-    @patch('embedding_service.api.handlers.handle_embedding.dispatch_embedder')
-    @patch('embedding_service.api.handlers.handle_embedding.get_kafka_message_bus')
-    async def test_failed_embedding_not_published(self, get_kafka_message_bus_mock, dispatch_embedder_mock):
-        self.embedder_instance_mock.generate_embedding.side_effect = RuntimeError('boom')
+    @patch("embedding_service.api.handlers.handle_embedding.dispatch_embedder")
+    @patch("embedding_service.api.handlers.handle_embedding.get_kafka_message_bus")
+    async def test_failed_embedding_not_published(
+        self, get_kafka_message_bus_mock, dispatch_embedder_mock
+    ):
+        self.embedder_instance_mock.generate_embedding.side_effect = RuntimeError(
+            "boom"
+        )
         get_kafka_message_bus_mock.return_value = self.kafka_message_bus_mock
         dispatch_embedder_mock.return_value = self.embedder_mock
         with self.assertRaises(RuntimeError):

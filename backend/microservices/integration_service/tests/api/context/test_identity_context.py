@@ -3,11 +3,12 @@ import uuid
 from contextvars import copy_context
 
 from integration_service.api.context import (
-    set_current_identity,
-    get_current_identity,
     UserIdentity,
-    UserIdentityContextError
+    UserIdentityContextError,
+    get_current_identity,
+    set_current_identity,
 )
+
 
 class TestIdentityContext(unittest.TestCase):
     def test_none_context(self):

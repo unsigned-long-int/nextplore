@@ -6,7 +6,10 @@ from nextplore_sdk.database.connection_maker.engine.engine_manager import Engine
 
 class EngineManagerTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
-        self.patcher_build = patch('nextplore_sdk.database.connection_maker.engine.engine_manager.build_engine', new_callable=AsyncMock)
+        self.patcher_build = patch(
+            "nextplore_sdk.database.connection_maker.engine.engine_manager.build_engine",
+            new_callable=AsyncMock,
+        )
         self.mock_build_engine = self.patcher_build.start()
 
         self.current_time = 1000.0
@@ -14,21 +17,24 @@ class EngineManagerTests(unittest.IsolatedAsyncioTestCase):
         def fake_monotonic():
             return self.current_time
 
-        self.patcher_time = patch('nextplore_sdk.database.connection_maker.engine.engine_manager.time.monotonic', side_effect=fake_monotonic)
+        self.patcher_time = patch(
+            "nextplore_sdk.database.connection_maker.engine.engine_manager.time.monotonic",
+            side_effect=fake_monotonic,
+        )
         self.mock_monotonic = self.patcher_time.start()
 
         self.addCleanup(self.patcher_build.stop)
         self.addCleanup(self.patcher_time.stop)
 
     @staticmethod
-    def _make_engine(name='engine'):
+    def _make_engine(name="engine"):
         eng = MagicMock(name=name)
-        eng.dispose = MagicMock(name=f'{name}.dispose')
+        eng.dispose = MagicMock(name=f"{name}.dispose")
         return eng
 
     async def test_reuse_same_profile_without_rebuild(self):
         manager = EngineManager(maxsize=8, idle_ttl=60)
-        engine1 = self._make_engine('engine1')
+        engine1 = self._make_engine("engine1")
         self.mock_build_engine.return_value = engine1
 
         profile = MagicMock()
@@ -45,10 +51,10 @@ class EngineManagerTests(unittest.IsolatedAsyncioTestCase):
     async def test_lru_eviction_disposes_oldest_engines_when_maxsize_exceeded(self):
         manager = EngineManager(maxsize=2, idle_ttl=None)
 
-        e_a = self._make_engine('engineA')
-        e_b = self._make_engine('engineB')
-        e_c = self._make_engine('engineC')
-        e_d = self._make_engine('engineD')
+        e_a = self._make_engine("engineA")
+        e_b = self._make_engine("engineB")
+        e_c = self._make_engine("engineC")
+        e_d = self._make_engine("engineD")
         self.mock_build_engine.side_effect = [e_a, e_b, e_c, e_d]
 
         a, b, c, d = MagicMock(), MagicMock(), MagicMock(), MagicMock()
@@ -79,8 +85,8 @@ class EngineManagerTests(unittest.IsolatedAsyncioTestCase):
         idle_ttl = 10
         manager = EngineManager(maxsize=8, idle_ttl=idle_ttl)
 
-        e_old = self._make_engine('engineOld')
-        e_new = self._make_engine('engineNew')
+        e_old = self._make_engine("engineOld")
+        e_new = self._make_engine("engineNew")
         self.mock_build_engine.side_effect = [e_old, e_new]
 
         old_profile = MagicMock()
@@ -100,8 +106,8 @@ class EngineManagerTests(unittest.IsolatedAsyncioTestCase):
     async def test_shutdown_disposes_all(self):
         manager = EngineManager(maxsize=8, idle_ttl=None)
 
-        e1 = self._make_engine('engine1')
-        e2 = self._make_engine('engine2')
+        e1 = self._make_engine("engine1")
+        e2 = self._make_engine("engine2")
         self.mock_build_engine.side_effect = [e1, e2]
 
         p1, p2 = MagicMock(), MagicMock()
@@ -114,7 +120,7 @@ class EngineManagerTests(unittest.IsolatedAsyncioTestCase):
 
         e1.dispose.assert_called_once()
         e2.dispose.assert_called_once()
-        e3 = self._make_engine('engine3')
+        e3 = self._make_engine("engine3")
         self.mock_build_engine.side_effect = [e3]
         got = await manager.acquire_engine(p1)
         self.assertIs(got, e3)

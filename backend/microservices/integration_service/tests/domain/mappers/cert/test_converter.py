@@ -1,17 +1,18 @@
 import unittest
-from uuid import uuid4
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
+from uuid import uuid4
+
+from nextplore_sdk.encryptor.models.cert import Cert
 from svc_integration_contracts.models import CertCreateRequest, CertState
 
+from integration_service.database.models import CertORM
 from integration_service.domain.mappers.cert import (
     cert_create_from_dto,
+    cert_profile_from_orm,
     orm_from_cert,
-    cert_profile_from_orm
 )
 from integration_service.domain.models.cert import CertCreate, CertProfile
-from integration_service.database.models import CertORM
-from nextplore_sdk.encryptor.models.cert import Cert
 
 
 class TestCertMappers(unittest.TestCase):
@@ -22,23 +23,19 @@ class TestCertMappers(unittest.TestCase):
 
     def test_cert_create_from_dto_maps_all_fields(self):
         cert_create_request = CertCreateRequest(
-            purpose='authentication',
-            key_size=2048,
-            validity_in_months=12
+            purpose="authentication", key_size=2048, validity_in_months=12
         )
 
         result = cert_create_from_dto(cert_create_request)
 
         self.assertIsInstance(result, CertCreate)
-        self.assertEqual(result.purpose, 'authentication')
+        self.assertEqual(result.purpose, "authentication")
         self.assertEqual(result.key_size, 2048)
         self.assertEqual(result.validity_in_months, 12)
 
     def test_cert_create_from_dto_with_default_purpose(self):
         cert_create_request = CertCreateRequest(
-            purpose=None,
-            key_size=4096,
-            validity_in_months=24
+            purpose=None, key_size=4096, validity_in_months=24
         )
 
         result = cert_create_from_dto(cert_create_request)
@@ -50,9 +47,7 @@ class TestCertMappers(unittest.TestCase):
     def test_cert_create_from_dto_with_different_key_sizes(self):
         for key_size in [2048, 3072, 4096]:
             cert_create_request = CertCreateRequest(
-                purpose='test',
-                key_size=key_size,
-                validity_in_months=12
+                purpose="test", key_size=key_size, validity_in_months=12
             )
 
             result = cert_create_from_dto(cert_create_request)
@@ -61,27 +56,28 @@ class TestCertMappers(unittest.TestCase):
 
     def test_orm_from_cert_maps_all_fields(self):
         cert = Cert(
-            cert_kid='cert-kid-123',
-            cert_name='test-cert',
-            public_cert_pem='-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----',
-            thumbprint_sha256='abc123def456',
+            cert_kid="cert-kid-123",
+            cert_name="test-cert",
+            public_cert_pem="-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----",
+            thumbprint_sha256="abc123def456",
             not_before=self.now,
-            not_after=self.now
+            not_after=self.now,
         )
 
         result = orm_from_cert(
-            organization_id=self.organization_id,
-            user_id=self.user_id,
-            cert=cert
+            organization_id=self.organization_id, user_id=self.user_id, cert=cert
         )
 
         self.assertIsInstance(result, CertORM)
         self.assertEqual(result.organization_id, self.organization_id)
         self.assertEqual(result.user_id, self.user_id)
-        self.assertEqual(result.cert_kid, 'cert-kid-123')
-        self.assertEqual(result.cert_name, 'test-cert')
-        self.assertEqual(result.public_cert_pem, '-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----')
-        self.assertEqual(result.thumbprint_sha256, 'abc123def456')
+        self.assertEqual(result.cert_kid, "cert-kid-123")
+        self.assertEqual(result.cert_name, "test-cert")
+        self.assertEqual(
+            result.public_cert_pem,
+            "-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----",
+        )
+        self.assertEqual(result.thumbprint_sha256, "abc123def456")
         self.assertEqual(result.not_before, self.now)
         self.assertEqual(result.not_after, self.now)
 
@@ -90,16 +86,20 @@ class TestCertMappers(unittest.TestCase):
         org_id_2 = uuid4()
 
         cert = Cert(
-            cert_kid='cert-kid',
-            cert_name='cert-name',
-            public_cert_pem='cert-pem',
-            thumbprint_sha256='thumbprint',
+            cert_kid="cert-kid",
+            cert_name="cert-name",
+            public_cert_pem="cert-pem",
+            thumbprint_sha256="thumbprint",
             not_before=self.now,
-            not_after=self.now
+            not_after=self.now,
         )
 
-        result_1 = orm_from_cert(organization_id=org_id_1, user_id=self.user_id, cert=cert)
-        result_2 = orm_from_cert(organization_id=org_id_2, user_id=self.user_id, cert=cert)
+        result_1 = orm_from_cert(
+            organization_id=org_id_1, user_id=self.user_id, cert=cert
+        )
+        result_2 = orm_from_cert(
+            organization_id=org_id_2, user_id=self.user_id, cert=cert
+        )
 
         self.assertEqual(result_1.organization_id, org_id_1)
         self.assertEqual(result_2.organization_id, org_id_2)
@@ -109,12 +109,14 @@ class TestCertMappers(unittest.TestCase):
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()
         cert_orm.state = CertState.active
-        cert_orm.public_cert_pem = '-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----'
-        cert_orm.thumbprint_sha256 = 'abc123def456'
+        cert_orm.public_cert_pem = (
+            "-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----"
+        )
+        cert_orm.thumbprint_sha256 = "abc123def456"
         cert_orm.not_before = self.now
         cert_orm.not_after = self.now
-        cert_orm.cert_kid = 'cert-kid-123'
-        cert_orm.cert_name = 'test-cert'
+        cert_orm.cert_kid = "cert-kid-123"
+        cert_orm.cert_name = "test-cert"
         cert_orm.created_at = self.now
         cert_orm.assigned_at = self.now
         cert_orm.revoked_at = None
@@ -128,8 +130,8 @@ class TestCertMappers(unittest.TestCase):
         self.assertEqual(result.thumbprint_sha256, cert_orm.thumbprint_sha256)
         self.assertEqual(result.not_before, self.now)
         self.assertEqual(result.not_after, self.now)
-        self.assertEqual(result.cert_kid, 'cert-kid-123')
-        self.assertEqual(result.cert_name, 'test-cert')
+        self.assertEqual(result.cert_kid, "cert-kid-123")
+        self.assertEqual(result.cert_name, "test-cert")
         self.assertEqual(result.created_at, self.now)
         self.assertEqual(result.assigned_at, self.now)
         self.assertIsNone(result.revoked_at)
@@ -138,12 +140,12 @@ class TestCertMappers(unittest.TestCase):
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()
         cert_orm.state = CertState.pending
-        cert_orm.public_cert_pem = 'cert-pem'
-        cert_orm.thumbprint_sha256 = 'thumbprint'
+        cert_orm.public_cert_pem = "cert-pem"
+        cert_orm.thumbprint_sha256 = "thumbprint"
         cert_orm.not_before = self.now
         cert_orm.not_after = self.now
-        cert_orm.cert_kid = 'cert-kid'
-        cert_orm.cert_name = 'cert-name'
+        cert_orm.cert_kid = "cert-kid"
+        cert_orm.cert_name = "cert-name"
         cert_orm.created_at = self.now
         cert_orm.assigned_at = None
         cert_orm.revoked_at = None
@@ -160,12 +162,12 @@ class TestCertMappers(unittest.TestCase):
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()
         cert_orm.state = CertState.revoked
-        cert_orm.public_cert_pem = 'cert-pem'
-        cert_orm.thumbprint_sha256 = 'thumbprint'
+        cert_orm.public_cert_pem = "cert-pem"
+        cert_orm.thumbprint_sha256 = "thumbprint"
         cert_orm.not_before = self.now
         cert_orm.not_after = self.now
-        cert_orm.cert_kid = 'cert-kid'
-        cert_orm.cert_name = 'cert-name'
+        cert_orm.cert_kid = "cert-kid"
+        cert_orm.cert_name = "cert-name"
         cert_orm.created_at = self.now
         cert_orm.assigned_at = self.now
         cert_orm.revoked_at = revoked_time
@@ -179,12 +181,12 @@ class TestCertMappers(unittest.TestCase):
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()
         cert_orm.state = CertState.pending
-        cert_orm.public_cert_pem = 'cert-pem'
-        cert_orm.thumbprint_sha256 = 'thumbprint'
+        cert_orm.public_cert_pem = "cert-pem"
+        cert_orm.thumbprint_sha256 = "thumbprint"
         cert_orm.not_before = self.now
         cert_orm.not_after = self.now
-        cert_orm.cert_kid = 'cert-kid'
-        cert_orm.cert_name = 'cert-name'
+        cert_orm.cert_kid = "cert-kid"
+        cert_orm.cert_name = "cert-name"
         cert_orm.created_at = self.now
         cert_orm.assigned_at = None
         cert_orm.revoked_at = None
@@ -203,12 +205,12 @@ class TestCertMappers(unittest.TestCase):
         cert_orm = MagicMock(spec=CertORM)
         cert_orm.id = uuid4()
         cert_orm.state = CertState.active
-        cert_orm.public_cert_pem = 'cert-pem'
-        cert_orm.thumbprint_sha256 = 'thumbprint'
+        cert_orm.public_cert_pem = "cert-pem"
+        cert_orm.thumbprint_sha256 = "thumbprint"
         cert_orm.not_before = not_before_time
         cert_orm.not_after = not_after_time
-        cert_orm.cert_kid = 'cert-kid'
-        cert_orm.cert_name = 'cert-name'
+        cert_orm.cert_kid = "cert-kid"
+        cert_orm.cert_name = "cert-name"
         cert_orm.created_at = created_time
         cert_orm.assigned_at = assigned_time
         cert_orm.revoked_at = None
@@ -222,9 +224,7 @@ class TestCertMappers(unittest.TestCase):
 
     def test_cert_create_from_dto_with_minimum_validity(self):
         cert_create_request = CertCreateRequest(
-            purpose='test',
-            key_size=2048,
-            validity_in_months=1
+            purpose="test", key_size=2048, validity_in_months=1
         )
 
         result = cert_create_from_dto(cert_create_request)
@@ -233,9 +233,7 @@ class TestCertMappers(unittest.TestCase):
 
     def test_cert_create_from_dto_with_maximum_validity(self):
         cert_create_request = CertCreateRequest(
-            purpose='test',
-            key_size=2048,
-            validity_in_months=120
+            purpose="test", key_size=2048, validity_in_months=120
         )
 
         result = cert_create_from_dto(cert_create_request)
@@ -244,38 +242,34 @@ class TestCertMappers(unittest.TestCase):
 
     def test_orm_from_cert_with_special_characters_in_cert_name(self):
         cert = Cert(
-            cert_kid='cert-kid-123',
-            cert_name='cert-name-with-special-chars-@#$',
-            public_cert_pem='-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',
-            thumbprint_sha256='thumbprint',
+            cert_kid="cert-kid-123",
+            cert_name="cert-name-with-special-chars-@#$",
+            public_cert_pem="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+            thumbprint_sha256="thumbprint",
             not_before=self.now,
-            not_after=self.now
+            not_after=self.now,
         )
 
         result = orm_from_cert(
-            organization_id=self.organization_id,
-            user_id=self.user_id,
-            cert=cert
+            organization_id=self.organization_id, user_id=self.user_id, cert=cert
         )
 
-        self.assertEqual(result.cert_name, 'cert-name-with-special-chars-@#$')
+        self.assertEqual(result.cert_name, "cert-name-with-special-chars-@#$")
 
     def test_orm_from_cert_with_long_thumbprint(self):
-        long_thumbprint = 'a' * 64
+        long_thumbprint = "a" * 64
 
         cert = Cert(
-            cert_kid='cert-kid',
-            cert_name='cert-name',
-            public_cert_pem='cert-pem',
+            cert_kid="cert-kid",
+            cert_name="cert-name",
+            public_cert_pem="cert-pem",
             thumbprint_sha256=long_thumbprint,
             not_before=self.now,
-            not_after=self.now
+            not_after=self.now,
         )
 
         result = orm_from_cert(
-            organization_id=self.organization_id,
-            user_id=self.user_id,
-            cert=cert
+            organization_id=self.organization_id, user_id=self.user_id, cert=cert
         )
 
         self.assertEqual(result.thumbprint_sha256, long_thumbprint)
@@ -288,12 +282,12 @@ class TestCertMappers(unittest.TestCase):
             cert_orm = MagicMock(spec=CertORM)
             cert_orm.id = uuid4()
             cert_orm.state = state
-            cert_orm.public_cert_pem = 'cert-pem'
-            cert_orm.thumbprint_sha256 = 'thumbprint'
+            cert_orm.public_cert_pem = "cert-pem"
+            cert_orm.thumbprint_sha256 = "thumbprint"
             cert_orm.not_before = self.now
             cert_orm.not_after = self.now
-            cert_orm.cert_kid = 'cert-kid'
-            cert_orm.cert_name = 'cert-name'
+            cert_orm.cert_kid = "cert-kid"
+            cert_orm.cert_name = "cert-name"
             cert_orm.created_at = self.now
             cert_orm.assigned_at = self.now if state != CertState.pending else None
             cert_orm.revoked_at = self.now if state == CertState.revoked else None
@@ -307,18 +301,16 @@ class TestCertMappers(unittest.TestCase):
         not_after = datetime(2025, 1, 1, 0, 0, 0)
 
         cert = Cert(
-            cert_kid='cert-kid',
-            cert_name='cert-name',
-            public_cert_pem='cert-pem',
-            thumbprint_sha256='thumbprint',
+            cert_kid="cert-kid",
+            cert_name="cert-name",
+            public_cert_pem="cert-pem",
+            thumbprint_sha256="thumbprint",
             not_before=not_before,
-            not_after=not_after
+            not_after=not_after,
         )
 
         result = orm_from_cert(
-            organization_id=self.organization_id,
-            user_id=self.user_id,
-            cert=cert
+            organization_id=self.organization_id, user_id=self.user_id, cert=cert
         )
 
         self.assertEqual(result.not_before, not_before)

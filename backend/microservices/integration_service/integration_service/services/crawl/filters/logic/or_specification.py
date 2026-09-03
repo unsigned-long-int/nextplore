@@ -7,5 +7,6 @@ class OrSpecification(Specification):
         self.right = right
 
     def is_satisfied_by(self, candidate) -> bool:
-        return self.left.is_satisfied_by(candidate) or self.right.is_satisfied_by(candidate)
-    
+        return self.left.is_satisfied_by(candidate) or self.right.is_satisfied_by(
+            candidate
+        )

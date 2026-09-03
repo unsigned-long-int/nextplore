@@ -1,5 +1,5 @@
-from typing import List, Dict, Any
 from dataclasses import dataclass, field
+from typing import Any
 from uuid import UUID
 
 
@@ -8,5 +8,5 @@ class VectorPoint:
     id: UUID
     user_id: UUID
     organization_id: UUID
-    vector: List[float]
-    extra: Dict[str, Any] = field(default_factory=dict)
+    vector: list[float]
+    extra: dict[str, Any] = field(default_factory=dict)
