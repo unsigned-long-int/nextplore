@@ -57,7 +57,7 @@ class TestAvroCodec(unittest.TestCase):
         self.schema_dispatcher_mock.assert_called_once_with(self.topic)
         self.schema_registry_client_mock.register.assert_called_once_with(self.topic)
         schemaless_writer_mock.assert_called_once()
-        args, kwargs = schemaless_writer_mock.call_args
+        args, _kwargs = schemaless_writer_mock.call_args
         self.assertIsInstance(args[0], io.BytesIO)
         self.assertIsNotNone(args[1])
         self.assertIsInstance(args[2], dict)

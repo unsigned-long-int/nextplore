@@ -230,7 +230,7 @@ class TestSecretsFromDTO(unittest.TestCase):
         extra_kwarg1 = "value1"
         extra_kwarg2 = 42
 
-        result = secrets_from_dto(
+        secrets_from_dto(
             self.organization_id,
             self.user_id,
             self.datastore_id,
@@ -369,7 +369,7 @@ class TestSecretsFromORM(unittest.TestCase):
         self.assertIn("api_key", result)
         self.assertIn("client_secret", result)
 
-        for secret_type, secret in result.items():
+        for secret in result.values():
             self.assertIsInstance(secret, DataStoreSecret)
             self.assertEqual(secret.organization_id, self.organization_id)
 

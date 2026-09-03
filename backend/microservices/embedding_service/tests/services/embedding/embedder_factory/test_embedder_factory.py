@@ -24,6 +24,6 @@ class TestEmbedderFactory(unittest.TestCase):
     def test_raises_missing_engine(self, embedder_registry_mock):
         embedder_registry_mock.get.return_value = None
         with self.assertRaises(MissingEmbedderEngine) as ctx:
-            embedder = dispatch_embedder("open_ai")
+            dispatch_embedder("open_ai")
 
         self.assertIn("open_ai: not found", str(ctx.exception))

@@ -48,7 +48,7 @@ class TestGetCryptoClient(unittest.TestCase):
         kek_kid = "https://test-vault.vault.azure.net/keys/test-key/version"
 
         factory = get_crypto_client("azure")
-        client = factory(kek_kid)
+        factory(kek_kid)
 
         mock_crypto_client.assert_called_once()
         call_args = mock_crypto_client.call_args
@@ -194,7 +194,7 @@ class TestCryptoClientsRegistry(unittest.TestCase):
         self.assertGreater(len(CRYPTO_CLIENTS_REGISTRY), 0)
 
     def test_registry_keys_are_strings(self):
-        for key in CRYPTO_CLIENTS_REGISTRY.keys():
+        for key in CRYPTO_CLIENTS_REGISTRY:
             self.assertIsInstance(key, str)
 
     def test_registry_values_are_classes(self):

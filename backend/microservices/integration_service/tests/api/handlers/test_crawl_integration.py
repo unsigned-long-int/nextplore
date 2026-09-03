@@ -269,7 +269,7 @@ class TestCrawlFilteredIntegrationMetadata(unittest.IsolatedAsyncioTestCase):
 
         with patch(f"{MODULE}.CrawlResponse") as mock_response:
             mock_response.return_value = MagicMock(spec=CrawlResponse)
-            result = await crawl_filtered_datastore_metadata(
+            await crawl_filtered_datastore_metadata(
                 self.user_id,
                 self.organization_id,
                 self.request,

@@ -95,7 +95,6 @@ class AsyncKafkaMessageBus:
             )
             logger.error(
                 f"Event failed and sent to DLQ; topic={topic} offset={record.offset}: {e}",
-                exc_info=True,
             )
         except Exception:
             logger.error(

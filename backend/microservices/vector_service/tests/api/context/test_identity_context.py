@@ -14,7 +14,7 @@ class TestIdentityContext(unittest.TestCase):
     def test_none_context(self):
         ctx = copy_context()
         with self.assertRaises(UserIdentityContextError):
-            result = ctx.run(get_current_identity)
+            ctx.run(get_current_identity)
 
     def test_set_and_get_identity(self):
         organization_id = uuid.uuid4()

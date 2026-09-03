@@ -19,7 +19,7 @@ from integration_service.domain.mappers.user_llm.converter import (
 )
 from integration_service.domain.models.user_llm import UserLlm, UserLlmProfile
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class LlmRepository:

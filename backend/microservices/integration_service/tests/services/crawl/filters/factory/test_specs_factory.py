@@ -95,13 +95,13 @@ class TestCreateSpecs(unittest.TestCase):
         schemas = {datastore_id_str: ["public"]}
         tables = {datastore_id_str: ["users"]}
 
-        datastore_spec, schema_spec, table_spec = create_specs(
+        _datastore_spec, schema_spec, table_spec = create_specs(
             datastores, schemas, tables
         )
 
-        for key in schema_spec.allowed.keys():
+        for key in schema_spec.allowed:
             self.assertIsInstance(key, UUID)
-        for key in table_spec.allowed.keys():
+        for key in table_spec.allowed:
             self.assertIsInstance(key, UUID)
 
     def test_create_specs_deduplicates_datastore_ids(self):
@@ -110,7 +110,7 @@ class TestCreateSpecs(unittest.TestCase):
         schemas = {str(datastore_id): ["public"]}
         tables = {str(datastore_id): ["users"]}
 
-        datastore_spec, schema_spec, table_spec = create_specs(
+        datastore_spec, _schema_spec, _table_spec = create_specs(
             datastores, schemas, tables
         )
 
@@ -123,7 +123,7 @@ class TestCreateSpecs(unittest.TestCase):
         schemas = {str(datastore_id): ["public-schema", "test.schema", "my_schema"]}
         tables = {str(datastore_id): ["user-data", "order.details", "product_info"]}
 
-        datastore_spec, schema_spec, table_spec = create_specs(
+        _datastore_spec, schema_spec, table_spec = create_specs(
             datastores, schemas, tables
         )
 
@@ -197,7 +197,7 @@ class TestCreateSpecs(unittest.TestCase):
         schemas = {str(datastore_id): ["public", "analytics", "public"]}
         tables = {str(datastore_id): ["users"]}
 
-        datastore_spec, schema_spec, table_spec = create_specs(
+        _datastore_spec, schema_spec, _table_spec = create_specs(
             datastores, schemas, tables
         )
 
@@ -212,7 +212,7 @@ class TestCreateSpecs(unittest.TestCase):
         schemas = {str(datastore_id): ["public"]}
         tables = {str(datastore_id): ["users", "orders", "users"]}
 
-        datastore_spec, schema_spec, table_spec = create_specs(
+        _datastore_spec, _schema_spec, table_spec = create_specs(
             datastores, schemas, tables
         )
 

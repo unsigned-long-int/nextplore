@@ -37,7 +37,7 @@ class TestProviderFactoryBase(unittest.TestCase):
 
 
 class TestHFProviderFactory(unittest.TestCase):
-    def _make_factory(self, meta: dict = None) -> HFProviderFactory:
+    def _make_factory(self, meta: dict | None = None) -> HFProviderFactory:
         return HFProviderFactory(meta or HF_META)
 
     @patch(
@@ -112,7 +112,7 @@ class TestHFProviderFactory(unittest.TestCase):
 
 
 class TestOpenAIProviderFactory(unittest.TestCase):
-    def _make_factory(self, meta: dict = None) -> OpenAIProviderFactory:
+    def _make_factory(self, meta: dict | None = None) -> OpenAIProviderFactory:
         return OpenAIProviderFactory(meta or OPENAI_META)
 
     @patch(
