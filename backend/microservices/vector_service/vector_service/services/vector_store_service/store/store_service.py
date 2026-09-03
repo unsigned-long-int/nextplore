@@ -17,6 +17,21 @@ from vector_service.services.vector_store_service.models import Vector, VectorPo
 logger = logging.getLogger(__name__)
 
 
+def _to_vector(hit) -> Vector | None:
+    payload = hit.payload or {}
+    raw_id = payload.get("qdrant_vector_id")
+    if raw_id is None:
+        return None
+    try:
+        return Vector(id=UUID(str(raw_id)), score=hit.score)
+    except (TypeError, ValueError):
+        logger.warning(
+            "Skipping point with unparseable qdrant_vector_id",
+            extra={"raw_id": raw_id},
+        )
+        return None
+
+
 class VectorStoreService:
     def __init__(self, client: VectorStoreClient) -> None:
         self.client = client
@@ -28,6 +43,12 @@ class VectorStoreService:
         organization_id: str,
         collection: str = "nextplore",
     ) -> None:
+        if not vector_ids:
+            logger.debug(
+                "Delete skipped: no vector ids supplied",
+                extra={"org_id": organization_id, "user_id": user_id},
+            )
+            return
         try:
             await self.client.delete_vectors(
                 vector_ids=vector_ids,
@@ -39,8 +60,8 @@ class VectorStoreService:
             raise
         except Exception as e:
             msg = f"Delete vectors via {self.client.__class__.__name__} failed: {e}"
-            logger.error(msg, exc_info=True)
-            raise DeleteVectorDBFailed(msg)
+            logger.exception(msg)
+            raise DeleteVectorDBFailed(msg) from e
 
     async def lookup_semantic_cache(
         self,
@@ -60,35 +81,43 @@ class VectorStoreService:
                 score_threshold=score_threshold,
                 refine_filters=refine_filters,
             )
-            logger.info("Store hits: %s", hits.points)
+            logger.debug("Store hits: %s", hits.points)
 
             if not hits.points:
                 return None
 
             best = hits.points[0]
-            logger.info(
+            logger.debug(
                 "Semantic cache best hit: score=%.4f payload=%s",
                 best.score,
                 best.payload,
             )
 
             expires_at_raw = best.payload.get("expires_at")
-            logger.info(
-                "Semantic cache expires_at raw: %r (type=%s)",
-                expires_at_raw,
-                type(expires_at_raw).__name__,
-            )
-            if expires_at_raw:
+            if not expires_at_raw:
+                return None
+            try:
                 expires_at = datetime.fromisoformat(expires_at_raw)
-                if datetime.now(timezone.utc) < expires_at:
-                    return SemanticMatch(json_payload=best.payload["json_payload"])
-            return None
+            except (TypeError, ValueError):
+                logger.debug("Cache entry has unparseable expires_at; treating as miss")
+                return None
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+            if datetime.now(timezone.utc) >= expires_at:
+                return None
+
+            payload = best.payload.get("json_payload")
+            if payload is None:
+                return None
+
+            return SemanticMatch(json_payload=payload)
         except SearchVectorDBFailed:
             raise
         except Exception as e:
             msg = f"Search semantic cache match via {self.client.__class__.__name__} failed: {e}"
-            logger.error(msg, exc_info=True)
-            raise SearchVectorDBFailed(msg)
+            logger.exception(msg)
+            raise SearchVectorDBFailed(msg) from e
 
     async def store_semantic_cache_entry(
         self,
@@ -112,8 +141,8 @@ class VectorStoreService:
             raise
         except Exception as e:
             msg = f"Upsert semantic fetch via {self.client.__class__.__name__} failed: {e}"
-            logger.error(msg, exc_info=True)
-            raise UpsertVectorDBFailed(msg)
+            logger.exception(msg)
+            raise UpsertVectorDBFailed(msg) from e
 
     async def search_nearest_vectors(
         self,
@@ -134,22 +163,23 @@ class VectorStoreService:
                 return []
 
             return [
-                Vector(id=UUID(chunk_id), score=hit.score)
-                for hit in hits.points
-                if (chunk_id := hit.payload.get("qdrant_vector_id")) is not None
+                vector for hit in hits.points if (vector := _to_vector(hit)) is not None
             ]
         except SearchVectorDBFailed:
             raise
         except Exception as e:
             msg = f"Search vectors via {self.client.__class__.__name__} failed: {e}"
-            logger.error(msg, exc_info=True)
-            raise SearchVectorDBFailed(msg)
+            logger.exception(msg)
+            raise SearchVectorDBFailed(msg) from e
 
     async def upsert_vectors(
         self,
         vector_points: list[VectorPoint],
         collection: str = "nextplore",
     ) -> None:
+        if not vector_points:
+            logger.debug("Upsert skipped: no vector points supplied")
+            return
         try:
             await self.client.upsert_vectors(
                 vector_points=vector_points,
@@ -159,8 +189,8 @@ class VectorStoreService:
             raise
         except Exception as e:
             msg = f"Upsert vectors via {self.client.__class__.__name__} failed: {e}"
-            logger.error(msg, exc_info=True)
-            raise UpsertVectorDBFailed(msg)
+            logger.exception(msg)
+            raise UpsertVectorDBFailed(msg) from e
 
     async def aclose(self) -> None:
         try:

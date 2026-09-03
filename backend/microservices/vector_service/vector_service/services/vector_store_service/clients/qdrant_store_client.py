@@ -61,15 +61,15 @@ class QDrantStoreClient:
             )
         except ResponseHandlingException as e:
             msg = f"QDrant response handling failed: {e}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise SearchVectorDBFailed(msg) from e
         except UnexpectedResponse as e:
             msg = f"QDrant unexpected response failed with status code {e.status_code}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise SearchVectorDBFailed(msg) from e
         except Exception as e:
             msg = f"QDrant search failed with unexpected exception: {e}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise SearchVectorDBFailed(msg) from e
 
     async def delete_vectors(
@@ -79,6 +79,12 @@ class QDrantStoreClient:
         organization_id: str,
         collection: str = "nextplore",
     ) -> None:
+        if not vector_ids:
+            logger.debug(
+                "Delete skipped: no vector ids supplied",
+                extra={"org_id": organization_id, "user_id": user_id},
+            )
+            return
         try:
             conditions = [
                 FieldCondition(key="qdrant_vector_id", match=MatchAny(any=vector_ids)),
@@ -96,22 +102,25 @@ class QDrantStoreClient:
             )
         except Exception as e:
             msg = f"QDrant delete failed with unexpected exception: {e}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise DeleteVectorDBFailed(msg) from e
 
     async def upsert_vectors(
         self, vector_points: list[VectorPoint], collection: str = "nextplore"
     ) -> None:
+        if not vector_points:
+            logger.debug("Upsert skipped: no vector points supplied")
+            return
         try:
             points = [
                 PointStruct(
                     id=str(point.id),
                     vector=point.vector,
                     payload={
+                        **point.extra,
                         "qdrant_vector_id": str(point.id),
                         "user_id": str(point.user_id),
                         "organization_id": str(point.organization_id),
-                        **point.extra,
                     },
                 )
                 for point in vector_points
@@ -119,7 +128,7 @@ class QDrantStoreClient:
             await self._client.upsert(collection_name=collection, points=points)
         except Exception as e:
             msg = f"QDrant upsert failed with unexpected exception: {e}"
-            logger.error(msg, exc_info=True)
+            logger.exception(msg)
             raise UpsertVectorDBFailed(msg) from e
 
     async def aclose(self) -> None:
