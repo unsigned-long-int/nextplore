@@ -12,7 +12,7 @@ async def get_azure_user(
     try:
         claims = await request.app.state.token_verifier.verify_token(token)
         return claims
-    except ValueError:
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
-        )
+        ) from e

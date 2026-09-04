@@ -3,11 +3,10 @@ import asyncio
 from nextplore_orchestrator.api.context import UserIdentity
 from nextplore_orchestrator.domain.models import LlmSpec, RagPipelineResult
 from nextplore_orchestrator.services.model_gateway import ModelGateway
-from nextplore_orchestrator.services.rag import (
-    build_rag_context,
-    reciprocal_rank_fusion,
-)
 from nextplore_orchestrator.services.vector_searcher import VectorSearcher
+
+from .build_rag_context import build_rag_context
+from .reciprocal_rank_fusion import reciprocal_rank_fusion
 
 
 class RagPipeline:

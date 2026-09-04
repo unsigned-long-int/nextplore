@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import date, datetime
 from enum import Enum
 from typing import Any
@@ -8,9 +9,7 @@ import httpx
 from pydantic import BaseModel, SecretStr
 
 from nextplore_orchestrator.api.context import get_current_identity
-import os
 
-_INTERNAL_TOKEN = os.environ["INTERNAL_SERVICE_TOKEN"]
 
 class PayloadEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -88,8 +87,9 @@ class BaseServiceClient:
 
     @staticmethod
     def _inject_identity_headers(
-            headers: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        _INTERNAL_TOKEN = os.environ["INTERNAL_SERVICE_TOKEN"]
         identity = get_current_identity()
         base_headers = headers.copy() if headers else {}
         base_headers.setdefault("x-user-id", str(identity.user_id))

@@ -11,6 +11,7 @@ EMBEDDING_SERVICE := microservices/embedding_service
 INTEGRATION_SERVICE := microservices/integration_service
 VECTOR_SERVICE := microservices/vector_service
 NOTIFICATION_SERVICE := microservices/notification_service
+ORCHESTRATOR_SERVICE := nextplore_orchestrator
 MESSAGING_LIB := libs/messaging
 SDK_LIB := libs/sdk
 
@@ -73,6 +74,9 @@ run-tests: install-libs
 	@echo "Running tests for notification_service..."
 	cd $(NOTIFICATION_SERVICE) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
 	@echo ""
+	@echo "Running tests for orchestrator_service..."
+	cd $(ORCHESTRATOR_SERVICE) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
+	@echo ""
 	@echo "Running tests for messaging library..."
 	@cd $(MESSAGING_LIB) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
 	@echo ""
@@ -104,6 +108,10 @@ run-tests-cov: install-libs install-test-deps
 	@echo "Testing notification_service..."
 	@cd $(NOTIFICATION_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
 	@mv $(NOTIFICATION_SERVICE)/.coverage .coverage.vector 2>/dev/null || true
+	@echo ""
+	@echo "Testing orchestrator_service..."
+	@cd $(ORCHESTRATOR_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
+	@mv $(ORCHESTRATOR_SERVICE)/.coverage .coverage.vector 2>/dev/null || true
 	@echo ""
 	@echo "Testing messaging library..."
 	@cd $(MESSAGING_LIB) && PYTHONPATH=src $(PYTHON) -m coverage run --source=$$(pwd)/src --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s tests -p "$(TEST_PATTERN)" -t . -v || exit 1
@@ -157,6 +165,10 @@ test-sdk: install-libs
 	@echo "Running tests for sdk library..."
 	@cd $(SDK_LIB) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v
 
+test-orchestrator: install-libs
+	@echo "Running tests for orchestrator service..."
+	@cd $(ORCHESTRATOR_SERVICE) && $(PYTHON) -m unittest discover -s . -p "$(TEST_PATTERN)" -v
+
 test-ai-cov: install-libs install-test-deps
 	@cd $(AI_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py" -m unittest discover -s . -p "$(TEST_PATTERN)" -v
 	@cd $(AI_SERVICE) && $(PYTHON) -m coverage report
@@ -191,6 +203,11 @@ test-sdk-cov: install-libs install-test-deps
 	@cd $(SDK_LIB) && $(PYTHON) -m coverage run --source=. --omit="test_*.py" -m unittest discover -s . -p "$(TEST_PATTERN)" -v
 	@cd $(SDK_LIB) && $(PYTHON) -m coverage report
 	@cd $(SDK_LIB) && $(PYTHON) -m coverage html
+
+test-orchestrator-cov: install-libs install-test-deps
+	@cd $(ORCHESTRATOR_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py" -m unittest discover -s . -p "$(TEST_PATTERN)" -v
+	@cd $(ORCHESTRATOR_SERVICE) && $(PYTHON) -m coverage report
+	@cd $(ORCHESTRATOR_SERVICE) && $(PYTHON) -m coverage html
 
 clean-libs:
 	@echo "Cleaning wheels..."

@@ -29,20 +29,19 @@ async def create_certificate(
         )
         return Response(status_code=status.HTTP_201_CREATED)
     except CertCreateRemoteError as e:
-        logger.error(
+        logger.exception(
             "Create certificate failed (remote)",
             extra={"org_id": org_id, "user_id": user_id},
-            exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY, detail={"message": str(e)}
         )
-    except Exception as e:
-        logger.error(
+    except Exception:
+        logger.exception(
             "Create certificate failed (unexpected)",
             extra={"org_id": org_id, "user_id": user_id},
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"message": f"Unexpected error: {e!s}"},
+            detail={"message": "Unexpected server error."},
         )

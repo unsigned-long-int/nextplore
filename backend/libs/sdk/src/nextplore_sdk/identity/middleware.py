@@ -34,9 +34,7 @@ class IdentityMiddleware(BaseHTTPMiddleware):
             return _UNAUTHORIZED
 
         try:
-            identity = UserIdentity(
-                user_id=UUID(user_id), organization_id=UUID(org_id)
-            )
+            identity = UserIdentity(user_id=UUID(user_id), organization_id=UUID(org_id))
         except ValueError:
             return _UNAUTHORIZED
 

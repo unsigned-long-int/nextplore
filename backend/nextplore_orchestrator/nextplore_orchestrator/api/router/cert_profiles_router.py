@@ -26,20 +26,19 @@ async def get_cert_profiles(
         )
         return response
     except CertGetProfilesRemoteError as e:
-        logger.error(
+        logger.exception(
             "Certificate get profiles failed (remote)",
             extra={"org_id": org_id, "user_id": user_id},
-            exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_424_FAILED_DEPENDENCY, detail={"message": str(e)}
         )
-    except Exception as e:
-        logger.error(
+    except Exception:
+        logger.exception(
             "Certificate get profiles failed (unexpected)",
             extra={"org_id": org_id, "user_id": user_id},
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"message": f"Unexpected error: {e!s}"},
+            detail={"message": "Unexpected server error"},
         )
