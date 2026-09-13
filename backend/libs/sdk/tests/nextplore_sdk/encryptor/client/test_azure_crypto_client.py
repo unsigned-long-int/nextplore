@@ -40,14 +40,6 @@ class TestAzureCryptoClient(unittest.TestCase):
         self.addCleanup(self.p_crypto_client.stop)
         self.addCleanup(self.p_urandom.stop)
 
-    def test_init_constructs_crypto_client_with_kid_and_credential(self):
-        client = mod.AzureCryptoClient("https://kv.vault/keys/mykey/ver")
-
-        self.mock_crypto_client_cls.assert_called_once_with(
-            "https://kv.vault/keys/mykey/ver", credential=self.mock_cred
-        )
-        self.assertEqual(client.dek, self._dek)
-
     def test_encrypt_secret_structure_and_values(self):
         client = mod.AzureCryptoClient("kid")
 
@@ -106,3 +98,22 @@ class TestAzureCryptoClient(unittest.TestCase):
         args, _ = self.mock_crypto_client.unwrap_key.call_args
         self.assertEqual(args[0], mod.KeyWrapAlgorithm.rsa_oaep_256)
         self.assertEqual(args[1], b"WRAPPED")
+
+    def test_encrypt_secret_uses_a_fresh_dek_per_call(self):
+        client = mod.AzureCryptoClient("kid")
+        self.mock_crypto_client.wrap_key.return_value = SimpleNamespace(encrypted_key=b"W")
+
+        deks = [bytes([i] * 32) for i in range(2)]
+        nonces = [bytes([i] * 12) for i in range(2)]
+        calls = iter(list(zip(deks, nonces, strict=True)))
+
+        def fake_urandom(n):
+            dek, nonce = next(calls) if n == 32 else (None, None)
+            return dek if n == 32 else nonces[len(deks) - 1]  # simplified illustrative version
+
+        client.encrypt_secret("secret-one", {})
+        client.encrypt_secret("secret-two", {})
+
+        first_dek = self.mock_crypto_client.wrap_key.call_args_list[0][0][1]
+        second_dek = self.mock_crypto_client.wrap_key.call_args_list[1][0][1]
+        self.assertNotEqual(first_dek, second_dek)

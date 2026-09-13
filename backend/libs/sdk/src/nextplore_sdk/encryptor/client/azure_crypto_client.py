@@ -16,18 +16,18 @@ class AzureCryptoClient(CryptoClient):
         self.crypto_client = CryptographyClient(
             kek_kid, credential=DefaultAzureCredential()
         )
-        self.dek = os.urandom(32)
 
     def encrypt_secret(
         self, plaintext: str, aad: dict[str, str | UUID]
     ) -> EncryptedSecret:
+        dek = os.urandom(32)
         nonce = os.urandom(12)
-        aesgcm = AESGCM(self.dek)
+        aesgcm = AESGCM(dek)
 
         aad_bytes = serialize_aad(aad)
         cipher_bytes = aesgcm.encrypt(nonce, plaintext.encode(), aad_bytes)
         wrapped_res = self.crypto_client.wrap_key(
-            KeyWrapAlgorithm.rsa_oaep_256, self.dek
+            KeyWrapAlgorithm.rsa_oaep_256, dek
         )
         wrapped_dek = wrapped_res.encrypted_key
 
