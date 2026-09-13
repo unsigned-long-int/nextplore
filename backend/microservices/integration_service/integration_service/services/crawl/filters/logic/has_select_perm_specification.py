@@ -1,6 +1,6 @@
 import logging
 
-from sqlalchemy import text, select, literal, table
+from sqlalchemy import literal, select, table, text
 from sqlalchemy.engine.reflection import Inspector
 
 from .specification import Specification
@@ -101,5 +101,7 @@ class HasSelectPermissionSpec(Specification):
                 conn.execute(probe)
                 accessible.add(table_name)
             except Exception:
-                logger.debug(f"No SELECT access on {schema_name}.{table_name}, skipping")
+                logger.debug(
+                    f"No SELECT access on {schema_name}.{table_name}, skipping"
+                )
         return accessible
