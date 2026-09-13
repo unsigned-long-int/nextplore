@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from svc_nextplore_orchestrator_contracts.models import AIQueryRequest, AIQueryResponse
 
 from nextplore_orchestrator.api.context import UserIdentity
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
@@ -17,8 +18,6 @@ from nextplore_orchestrator.api.dependencies.microservices import (
     get_integration_client,
 )
 from nextplore_orchestrator.api.limiter import get_identity_key, limiter
-from nextplore_orchestrator.api.models.ai_query_request import AIQueryRequest
-from nextplore_orchestrator.api.models.ai_query_response import AIQueryResponse
 from nextplore_orchestrator.cache.orchestrator_cache import OrchestratorCacheService
 from nextplore_orchestrator.cache.semantic_cache_service import SemanticCacheService
 from nextplore_orchestrator.clients.embedding import (

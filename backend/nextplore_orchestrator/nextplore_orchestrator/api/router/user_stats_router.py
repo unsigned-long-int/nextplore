@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from svc_nextplore_orchestrator_contracts.models import UserStats
 
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
 from nextplore_orchestrator.api.dependencies.cache import get_orchestrator_cache_service
@@ -9,7 +10,6 @@ from nextplore_orchestrator.api.dependencies.microservices import (
     get_integration_client,
     get_vector_client,
 )
-from nextplore_orchestrator.api.models.user_stats import UserStats
 from nextplore_orchestrator.cache.orchestrator_cache import OrchestratorCacheService
 from nextplore_orchestrator.clients.integration import DataStoreGetStatsRemoteError
 from nextplore_orchestrator.clients.vector import VectorGetStatsRemoteError

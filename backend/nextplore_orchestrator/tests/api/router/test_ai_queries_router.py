@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from svc_nextplore_orchestrator_contracts.models import AIQueryResponse, AIQueryRequest, QueryMode
 from nextplore_orchestrator.api.context import UserIdentity
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
 from nextplore_orchestrator.api.dependencies.cache import (
@@ -18,8 +19,6 @@ from nextplore_orchestrator.api.dependencies.microservices import (
     get_integration_client,
 )
 from nextplore_orchestrator.api.limiter import limiter
-from nextplore_orchestrator.api.models.ai_query_request import AIQueryRequest, QueryMode
-from nextplore_orchestrator.api.models.ai_query_response import AIQueryResponse
 from nextplore_orchestrator.api.router.ai_queries_router import router
 from nextplore_orchestrator.clients.embedding import EmbeddingResponseRemoteError
 from nextplore_orchestrator.clients.integration import DataStoreGetRemoteError

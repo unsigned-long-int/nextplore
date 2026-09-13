@@ -16,15 +16,51 @@ from pydantic import (
 )
 
 
+class QueryMode(StrEnum):
+    SIMPLE = "simple"
+    EXPANDED = "expanded"
+
+
 class AIQueryRequest(BaseModel):
     provider: str = Field(..., title="Provider")
     model_id: str = Field(..., title="Model Id")
     prompt: str = Field(..., title="Prompt")
+    is_user_model: bool = Field(..., title="Is user model")
+    model_ref_id: UUID4 | None = Field(..., title="Model Ref Id")
+    mode: QueryMode = Field(title="Mode", default=QueryMode.EXPANDED)
+    bypass_cache: bool = Field(default=False, title="Bypass Cache")
+
+
+class VectorHit(BaseModel):
+    table: str = Field(..., title="Table")
+    score: float = Field(..., title="Score")
+    snippet: str = Field(..., title="Snippet")
+
+
+class SubQuerySearchResult(BaseModel):
+    sub_query: str = Field(..., title="Sub Query")
+    vector_hits: list[VectorHit] = Field(..., title="Vector Hits")
+
+
+class RrfEntry(BaseModel):
+    table: str = Field(..., title="Table")
+    rrf_score: float = Field(..., title="Rrf Score")
+    rank: int = Field(..., title="Rank")
+
+
+class PipelineTrace(BaseModel):
+    original_query: str = Field(..., title="Original Query")
+    sub_queries: list[str] = Field(..., title="Sub Queries")
+    vector_hits: list[SubQuerySearchResult] = Field(..., title="Vector Hits")
+    rrf_ranking: list[RrfEntry] = Field(..., title="Rrf Ranking")
+    schema_context: list[str] = Field(..., title="Schema Context")
 
 
 class AIQueryResponse(BaseModel):
     sql: str = Field(..., title="Sql")
     data: list[dict[str, str]] = Field(..., title="Data")
+    trace: PipelineTrace | None = Field(None, title="PipelineTrace")
+    cache_hit: bool = Field(default=False, title="CacheHit")
 
 
 class CertCreateRequest(BaseModel):
@@ -220,29 +256,15 @@ class LlmProfile(BaseModel):
     tags: list[str] = Field(..., title="Tags")
 
 
-class QueryMode(StrEnum):
-    SIMPLE = "simple"
-    EXPANDED = "expanded"
-
-
-class AIQueryRequest(BaseModel):
-    provider: str
-    model_id: str
-    prompt: str
-    is_user_model: bool
-    model_ref_id: UUID4 | None = Field(..., title="Model Ref Id")
-    mode: QueryMode = QueryMode.EXPANDED
-
-
 class RegisterRequest(BaseModel):
-    company_name: str
-    contact_email: EmailStr
-    plan: str
+    company_name: str = Field(..., title="Company Name")
+    contact_email: EmailStr = Field(..., title="Contact Email")
+    plan: str = Field(..., title="Plan")
 
 
 class RegisterResponse(BaseModel):
-    message: str
+    message: str = Field(..., title="Message")
 
 
 class EmailVerificationStatusResponse(BaseModel):
-    status: str
+    status: str = Field(..., title="Status")

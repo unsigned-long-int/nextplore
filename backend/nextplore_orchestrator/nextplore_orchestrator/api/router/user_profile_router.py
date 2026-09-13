@@ -1,6 +1,7 @@
 import os
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from svc_nextplore_orchestrator_contracts.models import UserProfile
 from nextplore_sdk.database.backend.database_backend_connector import (
     DatabaseBackendConnector,
 )
@@ -11,7 +12,6 @@ from nextplore_sdk.encryptor.provider.azure_vault_key_provider import (
 from nextplore_orchestrator.api.dependencies.authentication import get_azure_user
 from nextplore_orchestrator.api.dependencies.cache import get_orchestrator_cache_service
 from nextplore_orchestrator.api.dependencies.connector import get_backend_connector
-from nextplore_orchestrator.api.models.user_profile import UserProfile
 from nextplore_orchestrator.cache.orchestrator_cache import OrchestratorCacheService
 from nextplore_orchestrator.database.repositories import AuthRepository
 from nextplore_orchestrator.domain.mappers import organization_from_dto, user_from_dto
