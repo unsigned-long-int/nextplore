@@ -42,7 +42,9 @@ class OrchestratorCacheService:
     async def delete_user_stats(self, user_identity: UserIdentity) -> None:
         key = f"{user_identity.organization_id}{user_identity.user_id}"
         cache_key = get_string_cache_key(value=key, prefix="user-stats")
-        await self.cache.delete(cache_key)
+        await self.cache.delete(
+            user_identity.organization_id, user_identity.user_id, cache_key
+        )
 
     async def get_user_profile(self, tid: str, oid: str) -> UserProfile:
         key = f"{tid}{oid}"
