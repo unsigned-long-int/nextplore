@@ -17,10 +17,8 @@ from nextplore_orchestrator.api.dependencies.microservices import (
     get_embedding_client,
     get_integration_client,
 )
-from nextplore_orchestrator.api.models.ai_query_request import (
-    AIQueryRequest,
-    QueryMode,
-)
+from nextplore_orchestrator.api.limiter import limiter
+from nextplore_orchestrator.api.models.ai_query_request import AIQueryRequest, QueryMode
 from nextplore_orchestrator.api.models.ai_query_response import AIQueryResponse
 from nextplore_orchestrator.api.router.ai_queries_router import router
 from nextplore_orchestrator.clients.embedding import EmbeddingResponseRemoteError
@@ -51,6 +49,8 @@ def make_request(**overrides) -> AIQueryRequest:
 
 class TestAiQuery(unittest.TestCase):
     def setUp(self):
+        limiter.reset()
+
         self.app = FastAPI()
         self.app.include_router(router)
         self.client = TestClient(self.app)

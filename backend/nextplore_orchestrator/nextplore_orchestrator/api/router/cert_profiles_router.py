@@ -1,11 +1,11 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from svc_nextplore_orchestrator_contracts.models import CertProfile
 
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
 from nextplore_orchestrator.api.dependencies.microservices import get_integration_client
 from nextplore_orchestrator.clients.integration import CertGetProfilesRemoteError
-from nextplore_orchestrator.clients.integration.models.cert_profile import CertProfile
 
 logger = logging.getLogger(__name__)
 

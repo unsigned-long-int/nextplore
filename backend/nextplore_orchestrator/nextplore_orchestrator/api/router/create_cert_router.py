@@ -1,20 +1,22 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
+from svc_integration_contracts.models import CertCreateRequest
 
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
 from nextplore_orchestrator.api.dependencies.microservices import get_integration_client
 from nextplore_orchestrator.clients.integration import CertCreateRemoteError
-from nextplore_orchestrator.clients.integration.models.cert_create_request import (
-    CertCreateRequest,
-)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v1/nextplore-orchestrator", tags=["CreateCertificate"])
 
 
-@router.post("/datastores/certificates", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/datastores/certificates",
+    status_code=status.HTTP_201_CREATED,
+    response_class=Response,
+)
 async def create_certificate(
     cert_create_request: CertCreateRequest,
     user_identity=Depends(get_active_user),
@@ -43,5 +45,5 @@ async def create_certificate(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={"message": "Unexpected server error."},
+            detail={"message": "Unexpected server error"},
         )

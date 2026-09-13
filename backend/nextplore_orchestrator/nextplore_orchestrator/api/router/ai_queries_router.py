@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from nextplore_orchestrator.api.context import UserIdentity
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
@@ -16,6 +16,7 @@ from nextplore_orchestrator.api.dependencies.microservices import (
     get_embedding_client,
     get_integration_client,
 )
+from nextplore_orchestrator.api.limiter import get_identity_key, limiter
 from nextplore_orchestrator.api.models.ai_query_request import AIQueryRequest
 from nextplore_orchestrator.api.models.ai_query_response import AIQueryResponse
 from nextplore_orchestrator.cache.orchestrator_cache import OrchestratorCacheService
@@ -51,8 +52,10 @@ router = APIRouter(prefix="/v1/nextplore-orchestrator", tags=["AiQuery"])
 
 
 @router.post("/llm-inference/query", response_model=AIQueryResponse)
+@limiter.limit("20/minute", key_func=get_identity_key)
 async def ai_query(
-    request: AIQueryRequest,
+    request: Request,
+    ai_query_request: AIQueryRequest,
     user_identity: UserIdentity = Depends(get_active_user),
     llm_orchestrator_factory: LlmOrchestratorFactory = Depends(
         get_llm_orchestrator_factory
@@ -65,11 +68,11 @@ async def ai_query(
     org_id = getattr(user_identity, "organization_id", None)
     user_id = getattr(user_identity, "user_id", None)
     try:
-        embedding_response = await embedding_client.embed(request.prompt)
+        embedding_response = await embedding_client.embed(ai_query_request.prompt)
 
-        if not request.bypass_cache:
+        if not ai_query_request.bypass_cache:
             cached = await cache_service.get_ai_query_response(
-                user_identity=user_identity, request=request
+                user_identity=user_identity, request=ai_query_request
             )
             if cached:
                 cached.cache_hit = True
@@ -77,7 +80,7 @@ async def ai_query(
 
             sem_cache_lookup_result = (
                 await semantic_cache_service.lookup_semantic_cache(
-                    ai_query=request,
+                    ai_query=ai_query_request,
                     embedding=embedding_response.embedding,
                     user_identity=user_identity,
                 )
@@ -90,28 +93,28 @@ async def ai_query(
                 return response
 
         llm_spec = base_llm_spec_from_query_request(
-            query_request=request, base_prompt_embedding=embedding_response.embedding
+            query_request=ai_query_request, base_prompt_embedding=embedding_response.embedding
         )
 
-        if request.is_user_model:
+        if ai_query_request.is_user_model:
             user_llm_config = await integration_client.get_user_llm_config(
-                organization_id=org_id, user_id=user_id, model_id=request.model_ref_id
+                organization_id=org_id, user_id=user_id, model_id=ai_query_request.model_ref_id
             )
             llm_spec.user_llm_config = user_llm_spec_from_llm_config(user_llm_config)
-        llm_orchestrator = llm_orchestrator_factory.get_llm_orchestrator(request.mode)
+        llm_orchestrator = llm_orchestrator_factory.get_llm_orchestrator(ai_query_request.mode)
 
         response = await llm_orchestrator.run(
             llm_spec=llm_spec, user_identity=user_identity
         )
 
-        if not request.bypass_cache:
+        if not ai_query_request.bypass_cache:
             coros = [
                 cache_service.set_ai_query_response(
-                    user_identity=user_identity, request=request, response=response
+                    user_identity=user_identity, request=ai_query_request, response=response
                 ),
                 semantic_cache_service.store_semantic_cache_entry(
                     embedding=embedding_response.embedding,
-                    request=request,
+                    request=ai_query_request,
                     response=response,
                     user_identity=user_identity,
                 ),

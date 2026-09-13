@@ -1,3 +1,3 @@
-from .limiter import limiter
+from .limiter import get_identity_key, limiter
 
-__all__ = ["limiter"]
+__all__ = ["get_identity_key", "limiter"]

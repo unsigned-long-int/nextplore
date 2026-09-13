@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from svc_llm_inference_contracts.models import PromptRequest, PromptResponse
 
 from nextplore_orchestrator.api.context import UserIdentity
@@ -8,6 +8,7 @@ from nextplore_orchestrator.api.dependencies.authentication import get_active_us
 from nextplore_orchestrator.api.dependencies.microservices import (
     get_llm_inference_client,
 )
+from nextplore_orchestrator.api.limiter import get_identity_key, limiter
 from nextplore_orchestrator.clients.llm_inference import ModelResponseRemoteError
 
 logger = logging.getLogger(__name__)
@@ -16,8 +17,10 @@ router = APIRouter(prefix="/v1/nextplore-orchestrator", tags=["DescriptionEnhanc
 
 
 @router.post("/llm-inference/enhancement", response_model=PromptResponse)
+@limiter.limit("20/minute", key_func=get_identity_key)
 async def get_description_enhancement(
-    request: PromptRequest,
+    request: Request,
+    enhancement_request: PromptRequest,
     user_identity: UserIdentity = Depends(get_active_user),
     llm_inference_client=Depends(get_llm_inference_client),
 ) -> PromptResponse:
@@ -26,7 +29,7 @@ async def get_description_enhancement(
 
     try:
         response = await llm_inference_client.get_description_enhancement(
-            organization_id=org_id, user_id=user_id, payload=request
+            organization_id=org_id, user_id=user_id, payload=enhancement_request
         )
         return response
     except ModelResponseRemoteError as e:
