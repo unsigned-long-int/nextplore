@@ -124,9 +124,9 @@ class VectorRepository:
         self, organization_id: UUID, user_id: UUID, datastore_id: UUID
     ) -> None:
         try:
-            async with (self._db.session_scope(
+            async with self._db.session_scope(
                 organization_id, user_id
-            ) as scoped_session):
+            ) as scoped_session:
                 stmt = (
                     delete(VectorORM)
                     .where(VectorORM.datastore_id == datastore_id)

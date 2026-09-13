@@ -12,7 +12,6 @@ from llm_inference_service.services.models_gateway.security.url_guard import (
 )
 
 
-
 class HFProvider(LiteLlmProvider):
     def __init__(self, model: HFModel) -> None:
         super().__init__()

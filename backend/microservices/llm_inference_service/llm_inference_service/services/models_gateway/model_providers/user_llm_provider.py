@@ -6,8 +6,8 @@ from llm_inference_service.services.models_gateway.model_providers.lite_llm_prov
 )
 from llm_inference_service.services.models_gateway.security import assert_safe_api_base
 
-
 _BLOCKED_OVERRIDE_KEYS: set[str] = {"api_base", "base_url", "model", "timeout"}
+
 
 class UserLlmProvider(LiteLlmProvider):
     def __init__(self, model: UserLlmParams) -> None:

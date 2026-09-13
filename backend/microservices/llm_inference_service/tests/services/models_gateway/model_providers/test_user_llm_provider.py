@@ -142,4 +142,3 @@ class TestUserLlmProviderConnectionParamsPrecedence(unittest.TestCase):
         self.assertEqual(
             provider.base_kwargs()["model"], "openai/meta-llama/Llama-3.1-8B-Instruct"
         )
-

@@ -11,7 +11,7 @@ from nextplore_orchestrator.api.dependencies.microservices import get_integratio
 from nextplore_orchestrator.api.router.create_datastore_router import router
 from nextplore_orchestrator.clients.integration import DataStoreCreateRemoteError
 from nextplore_orchestrator.database.exceptions import KekIdGetFailed, KekIdNotFound
-from svc_integration_contracts.models import DataStoreCreateRequest, Auth, Cloud, DB
+from svc_integration_contracts.models import DB, Auth, Cloud, DataStoreCreateRequest
 
 ROUTER = "nextplore_orchestrator.api.router.create_datastore_router"
 ENDPOINT = "/v1/nextplore-orchestrator/datastores"
