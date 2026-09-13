@@ -107,11 +107,11 @@ run-tests-cov: install-libs install-test-deps
 	@echo ""
 	@echo "Testing notification_service..."
 	@cd $(NOTIFICATION_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
-	@mv $(NOTIFICATION_SERVICE)/.coverage .coverage.vector 2>/dev/null || true
+	@mv $(NOTIFICATION_SERVICE)/.coverage .coverage.notification 2>/dev/null || true
 	@echo ""
 	@echo "Testing orchestrator_service..."
 	@cd $(ORCHESTRATOR_SERVICE) && $(PYTHON) -m coverage run --source=. --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s . -p "$(TEST_PATTERN)" -v || exit 1
-	@mv $(ORCHESTRATOR_SERVICE)/.coverage .coverage.vector 2>/dev/null || true
+	@mv $(ORCHESTRATOR_SERVICE)/.coverage .coverage.orchestrator 2>/dev/null || true
 	@echo ""
 	@echo "Testing messaging library..."
 	@cd $(MESSAGING_LIB) && PYTHONPATH=src $(PYTHON) -m coverage run --source=$$(pwd)/src --omit="test_*.py,*/tests/*,*/__pycache__/*" -m unittest discover -s tests -p "$(TEST_PATTERN)" -t . -v || exit 1
