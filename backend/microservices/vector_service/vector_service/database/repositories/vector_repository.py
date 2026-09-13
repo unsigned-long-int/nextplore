@@ -41,7 +41,10 @@ class VectorRepository:
                 organization_id, user_id
             ) as scoped_session:
                 result = await scoped_session.execute(
-                    select(VectorORM).where(VectorORM.datastore_id == datastore_id)
+                    select(VectorORM)
+                    .where(VectorORM.datastore_id == datastore_id)
+                    .where(VectorORM.user_id == user_id)
+                    .where(VectorORM.organization_id == organization_id)
                 )
                 vectors = result.scalars().all()
                 return [orm_to_domain_vector_profile(vector) for vector in vectors]
@@ -71,7 +74,10 @@ class VectorRepository:
                         VectorORM.schema_name,
                         VectorORM.table_name,
                         VectorORM.table_meta,
-                    ).where(VectorORM.qdrant_vector_id.in_(vector_ids))
+                    )
+                    .where(VectorORM.qdrant_vector_id.in_(vector_ids))
+                    .where(VectorORM.user_id == user_id)
+                    .where(VectorORM.organization_id == organization_id)
                 )
                 vectors = result.all()
                 return vectors
@@ -118,10 +124,15 @@ class VectorRepository:
         self, organization_id: UUID, user_id: UUID, datastore_id: UUID
     ) -> None:
         try:
-            async with self._db.session_scope(
+            async with (self._db.session_scope(
                 organization_id, user_id
-            ) as scoped_session:
-                stmt = delete(VectorORM).where(VectorORM.datastore_id == datastore_id)
+            ) as scoped_session):
+                stmt = (
+                    delete(VectorORM)
+                    .where(VectorORM.datastore_id == datastore_id)
+                    .where(VectorORM.user_id == user_id)
+                    .where(VectorORM.organization_id == organization_id)
+                )
                 await scoped_session.execute(stmt)
         except SQLAlchemyError as e:
             msg = f"Delete vectors failed with database error: {e}"
@@ -133,9 +144,10 @@ class VectorRepository:
     ) -> list[UUID]:
         async with self._db.session_scope(organization_id, user_id) as scoped_session:
             result = await scoped_session.execute(
-                select(VectorORM.qdrant_vector_id).where(
-                    VectorORM.datastore_id == datastore_id
-                )
+                select(VectorORM.qdrant_vector_id)
+                .where(VectorORM.datastore_id == datastore_id)
+                .where(VectorORM.user_id == user_id)
+                .where(VectorORM.organization_id == organization_id)
             )
             qdrant_vector_ids = result.scalars().all()
             return qdrant_vector_ids

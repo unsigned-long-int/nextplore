@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from llm_inference_service.domain.models.model_gateway_params import UserLlmParams
 from llm_inference_service.services.models_gateway.model_providers.lite_llm_provider import (
@@ -39,6 +40,18 @@ class TestUserProviderModelPath(unittest.TestCase):
 
 
 class TestUserLlmProviderBaseKwargs(unittest.TestCase):
+    def setUp(self):
+        patcher = patch(
+            "llm_inference_service.services.models_gateway.model_providers.user_llm_provider.assert_safe_api_base"
+        )
+        self.mock_assert_safe = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_calls_the_ssrf_guard_with_the_configured_api_base(self):
+        provider = UserLlmProvider(make_model())
+        provider.base_kwargs()
+        self.mock_assert_safe.assert_called_once_with(provider.model.api_base)
+
     def test_contains_model(self):
         provider = UserLlmProvider(make_model())
         self.assertEqual(
@@ -110,7 +123,14 @@ class TestUserLlmProviderInheritance(unittest.TestCase):
 
 
 class TestUserLlmProviderConnectionParamsPrecedence(unittest.TestCase):
-    def test_connection_params_model_key_overrides_model_path(self):
+    def setUp(self):
+        patcher = patch(
+            "llm_inference_service.services.models_gateway.model_providers.user_llm_provider.assert_safe_api_base"
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_connection_params_cannot_override_model_key(self):
         provider = UserLlmProvider(
             make_model(
                 connection_params={
@@ -119,4 +139,7 @@ class TestUserLlmProviderConnectionParamsPrecedence(unittest.TestCase):
                 }
             )
         )
-        self.assertEqual(provider.base_kwargs()["model"], "rogue-model")
+        self.assertEqual(
+            provider.base_kwargs()["model"], "openai/meta-llama/Llama-3.1-8B-Instruct"
+        )
+

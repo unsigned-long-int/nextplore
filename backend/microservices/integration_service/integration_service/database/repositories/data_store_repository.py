@@ -219,7 +219,10 @@ class DataStoreRepository:
                 organization_id, user_id
             ) as scoped_session:
                 result = await scoped_session.execute(
-                    select(DataStoreORM.kek_kid).where(DataStoreORM.id == datastore_id)
+                    select(DataStoreORM.kek_kid)
+                    .where(DataStoreORM.id == datastore_id)
+                    .where(DataStoreORM.user_id == user_id)
+                    .where(DataStoreORM.organization_id == organization_id)
                 )
                 kek_kid = result.scalar_one()
                 return kek_kid

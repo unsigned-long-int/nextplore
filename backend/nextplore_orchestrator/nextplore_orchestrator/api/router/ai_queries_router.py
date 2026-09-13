@@ -93,15 +93,20 @@ async def ai_query(
                 return response
 
         llm_spec = base_llm_spec_from_query_request(
-            query_request=ai_query_request, base_prompt_embedding=embedding_response.embedding
+            query_request=ai_query_request,
+            base_prompt_embedding=embedding_response.embedding,
         )
 
         if ai_query_request.is_user_model:
             user_llm_config = await integration_client.get_user_llm_config(
-                organization_id=org_id, user_id=user_id, model_id=ai_query_request.model_ref_id
+                organization_id=org_id,
+                user_id=user_id,
+                model_id=ai_query_request.model_ref_id,
             )
             llm_spec.user_llm_config = user_llm_spec_from_llm_config(user_llm_config)
-        llm_orchestrator = llm_orchestrator_factory.get_llm_orchestrator(ai_query_request.mode)
+        llm_orchestrator = llm_orchestrator_factory.get_llm_orchestrator(
+            ai_query_request.mode
+        )
 
         response = await llm_orchestrator.run(
             llm_spec=llm_spec, user_identity=user_identity
@@ -110,7 +115,9 @@ async def ai_query(
         if not ai_query_request.bypass_cache:
             coros = [
                 cache_service.set_ai_query_response(
-                    user_identity=user_identity, request=ai_query_request, response=response
+                    user_identity=user_identity,
+                    request=ai_query_request,
+                    response=response,
                 ),
                 semantic_cache_service.store_semantic_cache_entry(
                     embedding=embedding_response.embedding,

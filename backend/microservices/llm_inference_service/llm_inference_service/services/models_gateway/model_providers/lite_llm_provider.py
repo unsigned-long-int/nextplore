@@ -1,6 +1,6 @@
 import json
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, ClassVar
 
 from svc_llm_inference_contracts.models import ORMContextRequest
 
@@ -14,6 +14,8 @@ from llm_inference_service.services.rag_pipeline.ai_adapter import (
 
 
 class LiteLlmProvider(ABC):
+    DEFAULT_TIMEOUT_SECS: ClassVar[int] = 30
+
     def __init__(self, completion_fn=None):
         if completion_fn is None:
             from litellm import acompletion
@@ -29,6 +31,9 @@ class LiteLlmProvider(ABC):
 
     @abstractmethod
     def max_tokens(self) -> int: ...
+
+    def _request_timeout(self) -> float:
+        return self.DEFAULT_TIMEOUT_SECS
 
     def _resolve_max_tokens(self, requested: int | None = None) -> int:
         ceiling = self.max_tokens()
@@ -55,6 +60,7 @@ class LiteLlmProvider(ABC):
             max_tokens=self._resolve_max_tokens(
                 getattr(orm_context_request, "max_tokens", None)
             ),
+            timeout=self._request_timeout(),
         )
 
         tool_call = resp.choices[0].message.tool_calls[0]
@@ -80,5 +86,6 @@ class LiteLlmProvider(ABC):
             **self.base_kwargs(),
             messages=[{"role": "user", "content": prompt}],
             max_tokens=self._resolve_max_tokens(max_tokens),
+            timeout=self._request_timeout(),
         )
         return resp.choices[0].message.content

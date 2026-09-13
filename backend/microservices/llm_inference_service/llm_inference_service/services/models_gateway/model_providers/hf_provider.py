@@ -7,6 +7,10 @@ from llm_inference_service.domain.models.model_gateway_params import HFModel
 from llm_inference_service.services.models_gateway.model_providers.lite_llm_provider import (
     LiteLlmProvider,
 )
+from llm_inference_service.services.models_gateway.security.url_guard import (
+    assert_safe_api_base,
+)
+
 
 
 class HFProvider(LiteLlmProvider):
@@ -19,6 +23,7 @@ class HFProvider(LiteLlmProvider):
         return f"openai/{self.model.hf_path}"
 
     def base_kwargs(self) -> dict[str, Any]:
+        assert_safe_api_base(self.model.hf_url)
         return {
             "model": self.model_path(),
             "api_key": self._api_key.get_secret_value(),

@@ -34,7 +34,6 @@ class TestCreateCertificateRouter(unittest.TestCase):
             key_size=2048, validity_in_months=12, purpose="general"
         )
 
-
     @staticmethod
     def _identity(get_current_identity_mock):
         identity = MagicMock()
@@ -74,7 +73,6 @@ class TestCreateCertificateRouter(unittest.TestCase):
             json=request.model_dump(mode="json"),
         )
 
-
     @patch(f"{ROUTER}.DataStoreRepository")
     @patch(f"{ROUTER}.CertGenerator")
     @patch(f"{ROUTER}.get_current_identity")
@@ -111,7 +109,9 @@ class TestCreateCertificateRouter(unittest.TestCase):
         identity = self._identity(get_current_identity_mock)
         self._generator(cert_generator_mock, returns=MagicMock())
         self._repo(integration_repo_mock)
-        request_without_purpose = CertCreateRequest(key_size=2048, validity_in_months=12)
+        request_without_purpose = CertCreateRequest(
+            key_size=2048, validity_in_months=12
+        )
 
         response = self._post(identity, request_without_purpose)
 
@@ -119,7 +119,6 @@ class TestCreateCertificateRouter(unittest.TestCase):
         cert_generator_mock.assert_called_once_with(
             f"cert-{identity.organization_id!s}-{identity.user_id!s}-general"
         )
-
 
     @patch(f"{ROUTER}.get_current_identity")
     def test_returns_forbidden_when_org_id_mismatch(self, get_current_identity_mock):
@@ -144,7 +143,6 @@ class TestCreateCertificateRouter(unittest.TestCase):
 
         self.assertEqual(403, response.status_code)
         self.assertEqual("Forbidden", response.json()["detail"]["message"])
-
 
     @patch(f"{ROUTER}.DataStoreRepository")
     @patch(f"{ROUTER}.CertGenerator")
@@ -186,7 +184,6 @@ class TestCreateCertificateRouter(unittest.TestCase):
         self.assertNotIn("secret internals", response.text)
         repo.create_cert.assert_not_awaited()
         self.cache_mock.delete_datastore_cert_profiles.assert_not_awaited()
-
 
     @patch(f"{ROUTER}.DataStoreRepository")
     @patch(f"{ROUTER}.CertGenerator")
