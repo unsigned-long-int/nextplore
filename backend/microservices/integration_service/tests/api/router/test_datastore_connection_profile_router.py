@@ -20,6 +20,8 @@ class TestConnectionProfileRouter(unittest.TestCase):
         self.client = TestClient(self.app)
 
         self.cache_mock = AsyncMock()
+        self.cache_mock.get_datastore_connection_profile = MagicMock()
+        self.cache_mock.set_datastore_connection_profile = MagicMock()
         self.db_connector_mock = AsyncMock()
         self.app.dependency_overrides = {
             get_cache_service: lambda: self.cache_mock,
@@ -94,10 +96,10 @@ class TestConnectionProfileRouter(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json(), cached.model_dump(mode="json"))
 
-        self.cache_mock.get_datastore_connection_profile.assert_awaited_once_with(
+        self.cache_mock.get_datastore_connection_profile.assert_called_once_with(
             user_identity=identity, datastore_id=self.datastore_id
         )
-        self.cache_mock.set_datastore_connection_profile.assert_not_awaited()
+        self.cache_mock.set_datastore_connection_profile.assert_not_called()
 
     @patch(
         "integration_service.api.router.datastore_connection_profile_router.AzureCryptoClient"
@@ -184,8 +186,8 @@ class TestConnectionProfileRouter(unittest.TestCase):
         )
         self.assertEqual(resp.json(), expected.model_dump(mode="json"))
 
-        self.cache_mock.set_datastore_connection_profile.assert_awaited_once()
-        kwargs = self.cache_mock.set_datastore_connection_profile.await_args.kwargs
+        self.cache_mock.set_datastore_connection_profile.assert_called_once()
+        kwargs = self.cache_mock.set_datastore_connection_profile.call_args.kwargs
         self.assertIs(kwargs["user_identity"], identity)
         self.assertEqual(kwargs["datastore_id"], self.datastore_id)
         self.assertIsInstance(kwargs["response"], DataStoreConnectionProfile)

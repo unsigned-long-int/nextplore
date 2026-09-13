@@ -14,11 +14,16 @@ from svc_integration_contracts.models import (
 )
 
 from integration_service.api.context import UserIdentity
+from .local_secret_cache import LocalTTLCache
 
 
 class CacheService:
     def __init__(self, cache: Cache) -> None:
         self.cache = cache
+        self._llm_config_cache: LocalTTLCache[UserLlmConfig] = LocalTTLCache()
+        self._connection_profile_cache: LocalTTLCache[DataStoreConnectionProfile] = (
+            LocalTTLCache()
+        )
 
     async def get_filtered_datastore(
         self, user_identity: UserIdentity, request: FilteredCrawlRequest
@@ -73,36 +78,20 @@ class CacheService:
             value=response,
         )
 
-    async def get_datastore_connection_profile(
-        self,
-        user_identity: UserIdentity,
-        datastore_id: UUID,
-    ) -> DataStoreConnectionProfile:
-        cache_key = get_string_cache_key(
-            value=str(datastore_id), prefix="datastore-connection-profile"
-        )
-        return await self.cache.get_one(
-            user_identity.organization_id,
-            user_identity.user_id,
-            cache_key,
-            model=DataStoreConnectionProfile,
-        )
+    def get_datastore_connection_profile(
+        self, user_identity: UserIdentity, datastore_id: UUID
+    ) -> DataStoreConnectionProfile | None:
+        key = f"{user_identity.organization_id}:{user_identity.user_id}:{datastore_id}"
+        return self._connection_profile_cache.get(key)
 
-    async def set_datastore_connection_profile(
+    def set_datastore_connection_profile(
         self,
         user_identity: UserIdentity,
         datastore_id: UUID,
         response: DataStoreConnectionProfile,
     ) -> None:
-        cache_key = get_string_cache_key(
-            value=str(datastore_id), prefix="datastore-connection-profile"
-        )
-        await self.cache.set_one(
-            user_identity.organization_id,
-            user_identity.user_id,
-            cache_key,
-            value=response,
-        )
+        key = f"{user_identity.organization_id}:{user_identity.user_id}:{datastore_id}"
+        self._connection_profile_cache.set(key, response)
 
     async def get_datastore_profiles(
         self,
@@ -174,16 +163,16 @@ class CacheService:
             user_identity.organization_id, user_identity.user_id, cache_key
         )
 
-    async def delete_user_llm_profiles(
-        self,
-        user_identity: UserIdentity,
-    ) -> None:
+    async def delete_user_llm_profiles(self, user_identity: UserIdentity) -> None:
         cache_key = get_string_cache_key(
             value=f"{user_identity.user_id!s}{user_identity.organization_id!s}",
             prefix="user-llm-profile",
         )
         await self.cache.delete(
             user_identity.organization_id, user_identity.user_id, cache_key
+        )
+        self._llm_config_cache.delete_prefix(
+            f"{user_identity.organization_id}:{user_identity.user_id}:"
         )
 
     async def get_user_llm_profiles(
@@ -214,28 +203,22 @@ class CacheService:
             value=response,
         )
 
-    async def get_user_llm_config(
+    def get_user_llm_config(
         self, user_identity: UserIdentity, model_ref_id: UUID
     ) -> UserLlmConfig:
-        cache_key = get_string_cache_key(
-            value=str(model_ref_id), prefix="user-llm-config"
+        cache_key = (
+            f"{user_identity.organization_id}:{user_identity.user_id}:{model_ref_id}"
         )
-        return await self.cache.get_one(
-            user_identity.organization_id,
-            user_identity.user_id,
-            cache_key,
-            model=UserLlmConfig,
-        )
+        return self._llm_config_cache.get(cache_key)
 
-    async def set_user_llm_config(
+    def set_user_llm_config(
         self, user_identity: UserIdentity, model_ref_id: UUID, response: UserLlmConfig
     ) -> None:
-        cache_key = get_string_cache_key(
-            value=str(model_ref_id), prefix="user-llm-config"
-        )
-        await self.cache.set_one(
-            user_identity.organization_id,
-            user_identity.user_id,
-            cache_key,
-            value=response,
-        )
+        key = f"{user_identity.organization_id}:{user_identity.user_id}:{model_ref_id}"
+        self._llm_config_cache.set(key, response)
+
+    async def delete_by_prefix(self, organization_id: UUID, user_id: UUID) -> None:
+        await self.cache.delete_by_prefix(organization_id, user_id)
+        prefix = f"{organization_id}:{user_id}:"
+        self._llm_config_cache.delete_prefix(prefix)
+        self._connection_profile_cache.delete_prefix(prefix)

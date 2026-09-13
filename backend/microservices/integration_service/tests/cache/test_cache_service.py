@@ -163,79 +163,63 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             value=response,
         )
 
-    @patch("integration_service.cache.cache_service.get_string_cache_key")
-    async def test_get_datastore_connection_profile(self, get_string_cache_key_mock):
-        expected_response = DataStoreConnectionProfile(
-            auth=Auth.iam,
-            cloud=Cloud.aws,
-            db=DB.sqlserver,
-            database_name="testdb",
-            host="localhost",
-            port=5432,
-            warehouse=None,
-            region=None,
+    def test_set_then_get_datastore_connection_profile_roundtrip(self):
+        response = DataStoreConnectionProfile(
+            auth=Auth.iam, cloud=Cloud.aws, db=DB.postgresql,
+            database_name="testdb", host="localhost", port=5432,
+            warehouse=None, region=None,
         )
-        cache_key = "datastore-connection-profile:test-key"
-        get_string_cache_key_mock.return_value = cache_key
-        self.cache_mock.get_one.return_value = expected_response
 
-        result = await self.cache_service.get_datastore_connection_profile(
+        self.cache_service.set_datastore_connection_profile(
+            user_identity=self.user_identity, datastore_id=self.datastore_id, response=response,
+        )
+        result = self.cache_service.get_datastore_connection_profile(
             user_identity=self.user_identity, datastore_id=self.datastore_id
         )
 
-        get_string_cache_key_mock.assert_called_once_with(
-            value=str(self.datastore_id), prefix="datastore-connection-profile"
-        )
-        self.cache_mock.get_one.assert_awaited_once_with(
-            self.user_identity.organization_id,
-            self.user_identity.user_id,
-            cache_key,
-            model=DataStoreConnectionProfile,
-        )
-        self.assertEqual(result, expected_response)
+        self.assertEqual(result, response)
 
-    @patch("integration_service.cache.cache_service.get_string_cache_key")
-    async def test_set_datastore_connection_profile(self, get_string_cache_key_mock):
-        response = DataStoreConnectionProfile(
-            auth=Auth.iam,
-            cloud=Cloud.aws,
-            db=DB.postgresql,
-            database_name="testdb",
-            host="localhost",
-            port=5432,
-            warehouse=None,
-            region=None,
-        )
-        cache_key = "datastore-connection-profile:test-key"
-        get_string_cache_key_mock.return_value = cache_key
-
-        await self.cache_service.set_datastore_connection_profile(
-            user_identity=self.user_identity,
-            datastore_id=self.datastore_id,
-            response=response,
-        )
-
-        get_string_cache_key_mock.assert_called_once_with(
-            value=str(self.datastore_id), prefix="datastore-connection-profile"
-        )
-        self.cache_mock.set_one.assert_awaited_once_with(
-            self.user_identity.organization_id,
-            self.user_identity.user_id,
-            cache_key,
-            value=response,
-        )
-
-    @patch("integration_service.cache.cache_service.get_string_cache_key")
-    async def test_get_connection_profile_returns_none(self, get_string_cache_key_mock):
-        get_string_cache_key_mock.return_value = "connection-profile:test-key"
-        self.cache_mock.get_one.return_value = None
-
-        result = await self.cache_service.get_datastore_connection_profile(
+    def test_get_datastore_connection_profile_returns_none_when_not_cached(self):
+        result = self.cache_service.get_datastore_connection_profile(
             user_identity=self.user_identity, datastore_id=self.datastore_id
         )
 
         self.assertIsNone(result)
-        self.cache_mock.get_one.assert_awaited_once()
+
+    def test_datastore_connection_profile_does_not_touch_redis(self):
+        response = DataStoreConnectionProfile(
+            auth=Auth.iam, cloud=Cloud.aws, db=DB.postgresql,
+            database_name="testdb", host="localhost", port=5432,
+            warehouse=None, region=None,
+        )
+
+        self.cache_service.set_datastore_connection_profile(
+            user_identity=self.user_identity, datastore_id=self.datastore_id, response=response,
+        )
+        self.cache_service.get_datastore_connection_profile(
+            user_identity=self.user_identity, datastore_id=self.datastore_id
+        )
+
+        self.cache_mock.set_one.assert_not_awaited()
+        self.cache_mock.get_one.assert_not_awaited()
+        self.cache_mock.set_raw.assert_not_awaited()
+        self.cache_mock.get_raw.assert_not_awaited()
+
+    def test_datastore_connection_profile_is_scoped_by_datastore_id(self):
+        response = DataStoreConnectionProfile(
+            auth=Auth.iam, cloud=Cloud.aws, db=DB.postgresql,
+            database_name="testdb", host="localhost", port=5432,
+            warehouse=None, region=None,
+        )
+        self.cache_service.set_datastore_connection_profile(
+            user_identity=self.user_identity, datastore_id=self.datastore_id, response=response,
+        )
+
+        result = self.cache_service.get_datastore_connection_profile(
+            user_identity=self.user_identity, datastore_id=uuid4()
+        )
+
+        self.assertIsNone(result)
 
     @patch("integration_service.cache.cache_service.get_string_cache_key")
     async def test_get_datastore_profiles(self, get_string_cache_key_mock):
@@ -598,81 +582,54 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
             value=[],
         )
 
-    @patch("integration_service.cache.cache_service.get_string_cache_key")
-    async def test_get_user_llm_config(self, get_string_cache_key_mock):
-        expected_response = UserLlmConfig(
-            api_base="test-api-base",
-            connection_params={"api_key": "test-api-key"},
-            max_tokens=4256,
+    def test_set_then_get_user_llm_config_roundtrip(self):
+        response = UserLlmConfig(
+            api_base="test-api-base", connection_params={"api_key": "test-api-key"}, max_tokens=4256,
         )
-        cache_key = "user-llm-config:test-key"
-        get_string_cache_key_mock.return_value = cache_key
-        self.cache_mock.get_one.return_value = expected_response
 
-        result = await self.cache_service.get_user_llm_config(
+        self.cache_service.set_user_llm_config(
+            user_identity=self.user_identity, model_ref_id=self.model_ref_id, response=response,
+        )
+        result = self.cache_service.get_user_llm_config(
             user_identity=self.user_identity, model_ref_id=self.model_ref_id
         )
 
-        get_string_cache_key_mock.assert_called_once_with(
-            value=str(self.model_ref_id), prefix="user-llm-config"
-        )
-        self.cache_mock.get_one.assert_awaited_once_with(
-            self.user_identity.organization_id,
-            self.user_identity.user_id,
-            cache_key,
-            model=UserLlmConfig,
-        )
-        self.assertEqual(result, expected_response)
+        self.assertEqual(result, response)
 
-    @patch("integration_service.cache.cache_service.get_string_cache_key")
-    async def test_set_user_llm_config(self, get_string_cache_key_mock):
-        response = UserLlmConfig(
-            api_base="test-api-base",
-            connection_params={"api_key": "test-api-key"},
-            max_tokens=4256,
-        )
-        cache_key = "user-llm-config:test-key"
-        get_string_cache_key_mock.return_value = cache_key
-
-        await self.cache_service.set_user_llm_config(
-            user_identity=self.user_identity,
-            model_ref_id=self.model_ref_id,
-            response=response,
-        )
-
-        get_string_cache_key_mock.assert_called_once_with(
-            value=str(self.model_ref_id), prefix="user-llm-config"
-        )
-        self.cache_mock.set_one.assert_awaited_once_with(
-            self.user_identity.organization_id,
-            self.user_identity.user_id,
-            cache_key,
-            value=response,
-        )
-
-    @patch("integration_service.cache.cache_service.get_string_cache_key")
-    async def test_get_user_llm_config_returns_none(self, get_string_cache_key_mock):
-        get_string_cache_key_mock.return_value = "user-llm-config:test-key"
-        self.cache_mock.get_one.return_value = None
-
-        result = await self.cache_service.get_user_llm_config(
+    def test_get_user_llm_config_returns_none_when_not_cached(self):
+        result = self.cache_service.get_user_llm_config(
             user_identity=self.user_identity, model_ref_id=self.model_ref_id
         )
 
         self.assertIsNone(result)
-        self.cache_mock.get_one.assert_awaited_once()
 
-    @patch("integration_service.cache.cache_service.get_string_cache_key")
-    async def test_user_llm_config_cache_key_uses_model_ref_id(
-        self, get_string_cache_key_mock
-    ):
-        get_string_cache_key_mock.return_value = "user-llm-config:test-key"
-        self.cache_mock.get_one.return_value = None
+    def test_user_llm_config_does_not_touch_redis(self):
+        response = UserLlmConfig(
+            api_base="test-api-base", connection_params={"api_key": "test-api-key"}, max_tokens=4256,
+        )
 
-        await self.cache_service.get_user_llm_config(
+        self.cache_service.set_user_llm_config(
+            user_identity=self.user_identity, model_ref_id=self.model_ref_id, response=response,
+        )
+        self.cache_service.get_user_llm_config(
             user_identity=self.user_identity, model_ref_id=self.model_ref_id
         )
 
-        get_string_cache_key_mock.assert_called_once_with(
-            value=str(self.model_ref_id), prefix="user-llm-config"
+        self.cache_mock.set_one.assert_not_awaited()
+        self.cache_mock.get_one.assert_not_awaited()
+        self.cache_mock.set_raw.assert_not_awaited()
+        self.cache_mock.get_raw.assert_not_awaited()
+
+    def test_user_llm_config_is_scoped_by_model_ref_id(self):
+        response = UserLlmConfig(
+            api_base="test-api-base", connection_params={"api_key": "test-api-key"}, max_tokens=4256,
         )
+        self.cache_service.set_user_llm_config(
+            user_identity=self.user_identity, model_ref_id=self.model_ref_id, response=response,
+        )
+
+        result = self.cache_service.get_user_llm_config(
+            user_identity=self.user_identity, model_ref_id=uuid4()
+        )
+
+        self.assertIsNone(result)

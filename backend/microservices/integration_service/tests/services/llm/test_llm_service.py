@@ -38,6 +38,8 @@ class TestLlmServiceGetConfig(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.mock_repo = AsyncMock(spec=LlmRepository)
         self.mock_cache_service = AsyncMock()
+        self.mock_cache_service.get_user_llm_config = MagicMock()
+        self.mock_cache_service.set_user_llm_config = MagicMock()
         self.mock_crypto_client = MagicMock(spec=CryptoClient)
         self.mock_crypto_client_factory = MagicMock(
             return_value=self.mock_crypto_client
@@ -85,14 +87,14 @@ class TestLlmServiceGetConfig(unittest.IsolatedAsyncioTestCase):
 
         await self.service.get_user_llm_config(self.user_identity, self.model_id)
 
-        self.mock_cache_service.set_user_llm_config.assert_not_awaited()
+        self.mock_cache_service.set_user_llm_config.assert_not_called()
 
     async def test_calls_cache_get_with_correct_args(self):
         self.mock_cache_service.get_user_llm_config.return_value = self.mock_config
 
         await self.service.get_user_llm_config(self.user_identity, self.model_id)
 
-        self.mock_cache_service.get_user_llm_config.assert_awaited_once_with(
+        self.mock_cache_service.get_user_llm_config.assert_called_once_with(
             user_identity=self.user_identity,
             model_ref_id=self.model_id,
         )
@@ -149,7 +151,7 @@ class TestLlmServiceGetConfig(unittest.IsolatedAsyncioTestCase):
 
         await self.service.get_user_llm_config(self.user_identity, self.model_id)
 
-        self.mock_cache_service.set_user_llm_config.assert_awaited_once()
+        self.mock_cache_service.set_user_llm_config.assert_called_once()
         call_kwargs = self.mock_cache_service.set_user_llm_config.call_args.kwargs
         self.assertEqual(call_kwargs["user_identity"], self.user_identity)
         self.assertIsInstance(call_kwargs["response"], UserLlmConfig)
@@ -175,7 +177,7 @@ class TestLlmServiceGetConfig(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(UserLlmGetFailed):
             await self.service.get_user_llm_config(self.user_identity, self.model_id)
 
-        self.mock_cache_service.set_user_llm_config.assert_not_awaited()
+        self.mock_cache_service.set_user_llm_config.assert_not_called()
 
     async def test_raises_when_cache_get_fails(self):
         self.mock_cache_service.get_user_llm_config.side_effect = RuntimeError(

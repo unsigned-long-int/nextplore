@@ -46,7 +46,7 @@ async def get_datastore_connection_profile(
         )
 
     try:
-        cached = await cache_service.get_datastore_connection_profile(
+        cached = cache_service.get_datastore_connection_profile(
             user_identity=user_identity, datastore_id=datastore_id
         )
         if cached:
@@ -96,7 +96,7 @@ async def get_datastore_connection_profile(
             region=datastore.region,
         )
 
-        await cache_service.set_datastore_connection_profile(
+        cache_service.set_datastore_connection_profile(
             user_identity=user_identity, datastore_id=datastore_id, response=response
         )
         return response

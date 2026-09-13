@@ -129,7 +129,7 @@ class LlmService:
         self, user_identity: UserIdentity, model_id: UUID
     ) -> UserLlmConfig:
         try:
-            cached = await self._cache_service.get_user_llm_config(
+            cached = self._cache_service.get_user_llm_config(
                 user_identity=user_identity, model_ref_id=model_id
             )
             if cached:
@@ -150,7 +150,7 @@ class LlmService:
                     user_id=user_identity.user_id,
                 ),
             )
-            await self._cache_service.set_user_llm_config(
+            self._cache_service.set_user_llm_config(
                 user_identity=user_identity,
                 model_ref_id=model_id,
                 response=user_llm_config,

@@ -83,6 +83,9 @@ class TestDataStoreServiceCreate(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.mock_repo = AsyncMock(spec=DataStoreRepository)
         self.mock_bus = AsyncMock()
+        self.cache_mock = AsyncMock()
+        self.cache_mock.get_datastore_connection_profile = MagicMock()
+        self.cache_mock.set_datastore_connection_profile = MagicMock()
         self.mock_cache_service = MagicMock(spec=CacheService)
         self.mock_cache_service.cache = AsyncMock()
         self.mock_crypto_client = MagicMock()
