@@ -1,12 +1,13 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from svc_integration_contracts.models import UserLlmCreateRequest
 
 from nextplore_orchestrator.api.dependencies.authentication import get_active_user
 from nextplore_orchestrator.api.dependencies.microservices import (
     get_llm_inference_client,
 )
+from nextplore_orchestrator.api.limiter import get_identity_key, limiter
 from nextplore_orchestrator.clients.llm_inference import ModelResponseRemoteError
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,9 @@ router = APIRouter(prefix="/v1/nextplore-orchestrator", tags=["LlmTest"])
 
 
 @router.post("/llm-inference/test", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("10/minute", key_func=get_identity_key)
 async def test_user_llm(
+    request: Request,
     llm_create_request: UserLlmCreateRequest,
     user_identity=Depends(get_active_user),
     llm_inference_client=Depends(get_llm_inference_client),

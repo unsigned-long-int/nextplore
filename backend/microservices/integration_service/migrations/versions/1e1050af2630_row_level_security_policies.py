@@ -5,14 +5,15 @@ Revises: a6ecc3b84511
 Create Date: 2026-09-13 16:43:44.617732
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 from alembic import op
 
-revision: str = '1e1050af2630'
-down_revision: Union[str, Sequence[str], None] = '57c2b59760fa'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "1e1050af2630"
+down_revision: str | Sequence[str] | None = "57c2b59760fa"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 _POLICIES = [
     ("datastores", "integrations_by_user_strict"),
