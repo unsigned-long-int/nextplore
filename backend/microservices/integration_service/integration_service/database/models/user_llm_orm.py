@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import TIMESTAMP, Column, Integer, Text, func
+from sqlalchemy import TIMESTAMP, Column, Index, Integer, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import BYTEA, UUID
 
 from .base import Base
@@ -8,11 +8,21 @@ from .base import Base
 
 class UserLlmORM(Base):
     __tablename__ = "user_llm"
-    __table_args__ = {"schema": "integration"}
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id",
+            "user_id",
+            "model_id",
+            "api_base",
+            name="uq_user_hosted_llm_user_model_endpoint",
+        ),
+        Index("idx_user_hosted_llm_org_user", "organization_id", "user_id"),
+        {"schema": "integration"},
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    organization_id = Column(UUID(as_uuid=True), nullable=False)
-    user_id = Column(UUID(as_uuid=True), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     api_base = Column(Text, nullable=False)
     model_id = Column(Text, nullable=False)
     label = Column(Text, nullable=False)

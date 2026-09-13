@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import TIMESTAMP, Boolean, Column, Enum, Integer, Text, func
+from sqlalchemy import TIMESTAMP, Boolean, Column, Enum, Index, Integer, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from svc_integration_contracts.models import DB, Auth, Cloud
 
@@ -9,11 +9,14 @@ from .base import Base
 
 class DataStoreORM(Base):
     __tablename__ = "datastores"
-    __table_args__ = {"schema": "integration"}
+    __table_args__ = (
+        Index("idx_datastores_org_user", "organization_id", "user_id"),
+        {"schema": "integration"},
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    organization_id = Column(UUID(as_uuid=True), nullable=False)
-    user_id = Column(UUID(as_uuid=True), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     auth = Column(
         Enum(
             Auth,

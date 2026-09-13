@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import TIMESTAMP, Column, Enum, ForeignKey, Integer, Text, func
+from sqlalchemy import TIMESTAMP, Column, Enum, ForeignKey, Index, Integer, Text, func
 from sqlalchemy.dialects.postgresql import BYTEA, UUID
 
 from integration_service.domain.models.secret import SecretType
@@ -11,13 +11,18 @@ from .datastore_orm import DataStoreORM
 
 class SecretORM(Base):
     __tablename__ = "datastore_secrets"
-    __table_args__ = {"schema": "integration"}
+    __table_args__ = (
+        Index("idx_secrets_org_user", "organization_id", "user_id"),
+        {"schema": "integration"},
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    organization_id = Column(UUID(as_uuid=True), nullable=False)
-    user_id = Column(UUID(as_uuid=True), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     datastore_id = Column(
-        UUID(as_uuid=True), ForeignKey(DataStoreORM.id), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey(DataStoreORM.id, name="fk_datastore_secrets_datastore_id"),
+        nullable=False,
     )
     secret_type = Column(
         Enum(
@@ -39,6 +44,10 @@ class SecretORM(Base):
     wrap_alg = Column(Text, nullable=False, default="RSA-OAEP-256")
     encoding = Column(Text, nullable=False, default="utf8")
     version = Column(Integer, nullable=False)
-    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
-    updated_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
-    last_accessed_at = Column(TIMESTAMP, nullable=True)
+    created_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
+    )
+    last_accessed_at = Column(TIMESTAMP(timezone=True), nullable=True)

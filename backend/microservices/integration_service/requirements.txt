@@ -1,4 +1,5 @@
 aiokafka>=0.12.0
+alembic>=1.13
 asyncpg>=0.30.0
 attrs>=25.3.0
 cryptography>=45.0.3
