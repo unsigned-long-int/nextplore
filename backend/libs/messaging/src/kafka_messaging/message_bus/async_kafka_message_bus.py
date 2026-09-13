@@ -3,6 +3,7 @@ import inspect
 import json
 import logging
 import os
+from typing import ClassVar
 from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
 
@@ -16,7 +17,14 @@ from kafka_messaging.schema_registry_client import ConfluentSchemaRegistryClient
 logger = logging.getLogger(__name__)
 
 
+class DlqPublishExhausted(Exception):
+    pass
+
+
 class AsyncKafkaMessageBus:
+    DLQ_MAX_RETRIES: ClassVar[int] = 3
+    DLQ_RETRY_BACKOFF_SECONDS: ClassVar[int] = 2
+
     def __init__(self, codec: Codec) -> None:
         self._codec = codec
         self._producer: AIOKafkaProducer | None = None
@@ -89,18 +97,33 @@ class AsyncKafkaMessageBus:
             "offset": record.offset,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-        try:
-            await self._producer.send_and_wait(
-                f"{topic}-dlq", value=json.dumps(dlq_payload).encode("utf-8"), key=key
-            )
-            logger.error(
-                f"Event failed and sent to DLQ; topic={topic} offset={record.offset}: {e}",
-            )
-        except Exception:
-            logger.error(
-                "DLQ publish failed; leaving offset uncommitted", exc_info=True
-            )
-        await consumer.commit()
+
+        for attempt in range(1, self.DLQ_MAX_RETRIES + 1):
+            try:
+                await self._producer.send_and_wait(
+                    f"{topic}-dlq",
+                    value=json.dumps(dlq_payload).encode("utf-8"),
+                    key=key,
+                )
+                logger.exception(
+                    f"Event failed and sent to DLQ; topic={topic}, offset={record.offset}"
+                )
+                await consumer.commit()
+                return
+            except Exception:
+                logger.warning(
+                    f"DLQ publish attempt {attempt}/{self.DLQ_MAX_RETRIES} failed for topic ={topic} offset={record.offset}",
+                    exc_info=True,
+                )
+                if attempt < self.DLQ_MAX_RETRIES:
+                    await asyncio.sleep(attempt * self.DLQ_RETRY_BACKOFF_SECONDS)
+        logger.exception(
+            f"DLQ publish permanently failed after {self.DLQ_MAX_RETRIES} attempts; " 
+            f"halting consumer for topic={topic} at offset={record.offset} to avoid silent data loss"
+        )
+        raise DlqPublishExhausted(
+            f"topic={topic} offset={record.offset} "
+        )
 
     async def _process_record(
         self, record, topic: str, consumer: AIOKafkaConsumer

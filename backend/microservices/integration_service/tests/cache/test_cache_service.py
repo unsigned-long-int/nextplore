@@ -165,13 +165,20 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     def test_set_then_get_datastore_connection_profile_roundtrip(self):
         response = DataStoreConnectionProfile(
-            auth=Auth.iam, cloud=Cloud.aws, db=DB.postgresql,
-            database_name="testdb", host="localhost", port=5432,
-            warehouse=None, region=None,
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.postgresql,
+            database_name="testdb",
+            host="localhost",
+            port=5432,
+            warehouse=None,
+            region=None,
         )
 
         self.cache_service.set_datastore_connection_profile(
-            user_identity=self.user_identity, datastore_id=self.datastore_id, response=response,
+            user_identity=self.user_identity,
+            datastore_id=self.datastore_id,
+            response=response,
         )
         result = self.cache_service.get_datastore_connection_profile(
             user_identity=self.user_identity, datastore_id=self.datastore_id
@@ -188,13 +195,20 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     def test_datastore_connection_profile_does_not_touch_redis(self):
         response = DataStoreConnectionProfile(
-            auth=Auth.iam, cloud=Cloud.aws, db=DB.postgresql,
-            database_name="testdb", host="localhost", port=5432,
-            warehouse=None, region=None,
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.postgresql,
+            database_name="testdb",
+            host="localhost",
+            port=5432,
+            warehouse=None,
+            region=None,
         )
 
         self.cache_service.set_datastore_connection_profile(
-            user_identity=self.user_identity, datastore_id=self.datastore_id, response=response,
+            user_identity=self.user_identity,
+            datastore_id=self.datastore_id,
+            response=response,
         )
         self.cache_service.get_datastore_connection_profile(
             user_identity=self.user_identity, datastore_id=self.datastore_id
@@ -207,12 +221,19 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     def test_datastore_connection_profile_is_scoped_by_datastore_id(self):
         response = DataStoreConnectionProfile(
-            auth=Auth.iam, cloud=Cloud.aws, db=DB.postgresql,
-            database_name="testdb", host="localhost", port=5432,
-            warehouse=None, region=None,
+            auth=Auth.iam,
+            cloud=Cloud.aws,
+            db=DB.postgresql,
+            database_name="testdb",
+            host="localhost",
+            port=5432,
+            warehouse=None,
+            region=None,
         )
         self.cache_service.set_datastore_connection_profile(
-            user_identity=self.user_identity, datastore_id=self.datastore_id, response=response,
+            user_identity=self.user_identity,
+            datastore_id=self.datastore_id,
+            response=response,
         )
 
         result = self.cache_service.get_datastore_connection_profile(
@@ -584,11 +605,15 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     def test_set_then_get_user_llm_config_roundtrip(self):
         response = UserLlmConfig(
-            api_base="test-api-base", connection_params={"api_key": "test-api-key"}, max_tokens=4256,
+            api_base="test-api-base",
+            connection_params={"api_key": "test-api-key"},
+            max_tokens=4256,
         )
 
         self.cache_service.set_user_llm_config(
-            user_identity=self.user_identity, model_ref_id=self.model_ref_id, response=response,
+            user_identity=self.user_identity,
+            model_ref_id=self.model_ref_id,
+            response=response,
         )
         result = self.cache_service.get_user_llm_config(
             user_identity=self.user_identity, model_ref_id=self.model_ref_id
@@ -605,11 +630,15 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     def test_user_llm_config_does_not_touch_redis(self):
         response = UserLlmConfig(
-            api_base="test-api-base", connection_params={"api_key": "test-api-key"}, max_tokens=4256,
+            api_base="test-api-base",
+            connection_params={"api_key": "test-api-key"},
+            max_tokens=4256,
         )
 
         self.cache_service.set_user_llm_config(
-            user_identity=self.user_identity, model_ref_id=self.model_ref_id, response=response,
+            user_identity=self.user_identity,
+            model_ref_id=self.model_ref_id,
+            response=response,
         )
         self.cache_service.get_user_llm_config(
             user_identity=self.user_identity, model_ref_id=self.model_ref_id
@@ -622,10 +651,14 @@ class TestCacheService(unittest.IsolatedAsyncioTestCase):
 
     def test_user_llm_config_is_scoped_by_model_ref_id(self):
         response = UserLlmConfig(
-            api_base="test-api-base", connection_params={"api_key": "test-api-key"}, max_tokens=4256,
+            api_base="test-api-base",
+            connection_params={"api_key": "test-api-key"},
+            max_tokens=4256,
         )
         self.cache_service.set_user_llm_config(
-            user_identity=self.user_identity, model_ref_id=self.model_ref_id, response=response,
+            user_identity=self.user_identity,
+            model_ref_id=self.model_ref_id,
+            response=response,
         )
 
         result = self.cache_service.get_user_llm_config(
