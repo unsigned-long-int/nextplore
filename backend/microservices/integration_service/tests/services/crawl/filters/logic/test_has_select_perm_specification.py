@@ -139,7 +139,8 @@ class TestHasSelectPermissionSpec(unittest.TestCase):
         self.mock_crawler.get_table_names.return_value = ["table1", "table2", "table3"]
 
         def execute_side_effect(stmt):
-            if "table2" in stmt.text:
+            compiled = str(stmt.compile(compile_kwargs={"literal_binds": True}))
+            if "table2" in compiled:
                 raise Exception("Permission denied")
             return MagicMock()
 
@@ -172,10 +173,11 @@ class TestHasSelectPermissionSpec(unittest.TestCase):
         self.mock_crawler.get_table_names.return_value = ["my_table"]
         self.mock_conn.execute.return_value = MagicMock()
         HasSelectPermissionSpec(self.mock_crawler, self.schema_name)
-        executed_sql = self.mock_conn.execute.call_args[0][0].text
-        self.assertIn(self.schema_name, executed_sql)
-        self.assertIn("my_table", executed_sql)
-        self.assertIn("SELECT 1", executed_sql)
+        executed_stmt = self.mock_conn.execute.call_args[0][0]
+        compiled_sql = str(executed_stmt.compile(compile_kwargs={"literal_binds": True}))
+        self.assertIn(self.schema_name, compiled_sql)
+        self.assertIn("my_table", compiled_sql)
+        self.assertIn("SELECT 1", compiled_sql)
 
     def test_snowflake_returns_empty_set_when_no_tables(self):
         self.mock_crawler.dialect.name = "snowflake"
