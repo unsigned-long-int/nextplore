@@ -174,7 +174,9 @@ class TestHasSelectPermissionSpec(unittest.TestCase):
         self.mock_conn.execute.return_value = MagicMock()
         HasSelectPermissionSpec(self.mock_crawler, self.schema_name)
         executed_stmt = self.mock_conn.execute.call_args[0][0]
-        compiled_sql = str(executed_stmt.compile(compile_kwargs={"literal_binds": True}))
+        compiled_sql = str(
+            executed_stmt.compile(compile_kwargs={"literal_binds": True})
+        )
         self.assertIn(self.schema_name, compiled_sql)
         self.assertIn("my_table", compiled_sql)
         self.assertIn("SELECT 1", compiled_sql)
