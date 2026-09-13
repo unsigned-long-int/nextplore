@@ -119,4 +119,4 @@ async def lifespan(app: FastAPI):
     await registry.close_clients()
     await jwks_fetcher.aclose()
     await backend_connector.dispose()
-    engine_manager.shutdown()
+    await engine_manager.shutdown()

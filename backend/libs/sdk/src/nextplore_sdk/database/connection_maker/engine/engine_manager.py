@@ -1,5 +1,5 @@
-import threading
 import time
+import asyncio
 from collections import OrderedDict
 from typing import TypeAlias
 
@@ -16,12 +16,12 @@ class EngineManager:
     def __init__(self, maxsize: int = 256, idle_ttl: int | None = 30 * 60) -> None:
         self._maxsize = maxsize
         self._idle_ttl = idle_ttl
-        self._lock = threading.RLock()
+        self._lock = asyncio.Lock()
         self._engines: OrderedDict[ConnectionProfile, EngineSpecs] = OrderedDict()
 
     async def acquire_engine(self, profile: ConnectionProfile) -> Engine:
         now = time.monotonic()
-        with self._lock:
+        async with self._lock:
             self._prune_locked(now)
 
             spec = self._engines.pop(profile, None)
@@ -53,8 +53,8 @@ class EngineManager:
             engine, _ = self._engines.pop(key)
             engine.dispose()
 
-    def shutdown(self) -> None:
-        with self._lock:
+    async def shutdown(self) -> None:
+        async with self._lock:
             items = list(self._engines.values())
             self._engines.clear()
         for engine, _ in items:
