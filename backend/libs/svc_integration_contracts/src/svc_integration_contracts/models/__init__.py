@@ -54,7 +54,7 @@ class Auth(StrEnum):
 
 class CertState(StrEnum):
     pending = "PENDING"
-    asigned = "ASIGNED"
+    asigned = "ASSIGNED"
     active = "ACTIVE"
     revoked = "REVOKED"
     expired = "EXPIRED"

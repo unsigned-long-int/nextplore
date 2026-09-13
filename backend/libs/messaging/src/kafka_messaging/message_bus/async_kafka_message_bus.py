@@ -3,9 +3,9 @@ import inspect
 import json
 import logging
 import os
-from typing import ClassVar
 from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
+from typing import ClassVar
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from kafka_messaging.codec import AvroCodec, Codec, to_avro_values
@@ -118,12 +118,10 @@ class AsyncKafkaMessageBus:
                 if attempt < self.DLQ_MAX_RETRIES:
                     await asyncio.sleep(attempt * self.DLQ_RETRY_BACKOFF_SECONDS)
         logger.exception(
-            f"DLQ publish permanently failed after {self.DLQ_MAX_RETRIES} attempts; " 
+            f"DLQ publish permanently failed after {self.DLQ_MAX_RETRIES} attempts; "
             f"halting consumer for topic={topic} at offset={record.offset} to avoid silent data loss"
         )
-        raise DlqPublishExhausted(
-            f"topic={topic} offset={record.offset} "
-        )
+        raise DlqPublishExhausted(f"topic={topic} offset={record.offset} ")
 
     async def _process_record(
         self, record, topic: str, consumer: AIOKafkaConsumer

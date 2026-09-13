@@ -26,9 +26,7 @@ class AzureCryptoClient(CryptoClient):
 
         aad_bytes = serialize_aad(aad)
         cipher_bytes = aesgcm.encrypt(nonce, plaintext.encode(), aad_bytes)
-        wrapped_res = self.crypto_client.wrap_key(
-            KeyWrapAlgorithm.rsa_oaep_256, dek
-        )
+        wrapped_res = self.crypto_client.wrap_key(KeyWrapAlgorithm.rsa_oaep_256, dek)
         wrapped_dek = wrapped_res.encrypted_key
 
         return EncryptedSecret(

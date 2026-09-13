@@ -101,7 +101,9 @@ class TestAzureCryptoClient(unittest.TestCase):
 
     def test_encrypt_secret_uses_a_fresh_dek_per_call(self):
         client = mod.AzureCryptoClient("kid")
-        self.mock_crypto_client.wrap_key.return_value = SimpleNamespace(encrypted_key=b"W")
+        self.mock_crypto_client.wrap_key.return_value = SimpleNamespace(
+            encrypted_key=b"W"
+        )
 
         deks = [bytes([i] * 32) for i in range(2)]
         nonces = [bytes([i] * 12) for i in range(2)]
@@ -109,7 +111,9 @@ class TestAzureCryptoClient(unittest.TestCase):
 
         def fake_urandom(n):
             dek, nonce = next(calls) if n == 32 else (None, None)
-            return dek if n == 32 else nonces[len(deks) - 1]  # simplified illustrative version
+            return (
+                dek if n == 32 else nonces[len(deks) - 1]
+            )  # simplified illustrative version
 
         client.encrypt_secret("secret-one", {})
         client.encrypt_secret("secret-two", {})
